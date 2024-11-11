@@ -53,6 +53,9 @@ class NumpyCore:
     def __getitem__(self, item):
         return self.values[item]
 
+    def __setitem__(self, key, value):
+        self.values[key] = value
+
     def clone(self):
         return NumpyCore(self.values.copy(), self.colors.copy(), self.name)  # ! Shallow Copies?
 
@@ -77,6 +80,9 @@ class NumpyCore:
 
     def exponentiate(self):
         return NumpyCore(np.exp(self.values), self.colors, self.name)
+
+    def build_ln(self):
+        return NumpyCore(np.log(self.values), self.colors, self.name)
 
     def get_argmax(self):
         return {self.colors[i]: maxPos for i, maxPos in
