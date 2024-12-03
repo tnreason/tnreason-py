@@ -1,11 +1,9 @@
 from tnreason import engine
 
 from tnreason.encoding import connectives as con
+from tnreason.encoding import suffixes as suf
 
 import math
-
-connectiveFixCoreSuffix = "_conCore"
-headCoreSuffix = "_headCore"
 
 
 def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
@@ -41,7 +39,7 @@ def create_raw_formula_cores(expression, alreadyCreated=[], coreType=None):
         * expression: Nested list specifying a formula
         * alreadyCreated: List of keys to connective cores to be omitted
     """
-    if get_formula_color(expression) + connectiveFixCoreSuffix in alreadyCreated:
+    if get_formula_color(expression) + suf.connectiveCoreSuffix in alreadyCreated:
         return {}
     if isinstance(expression, str):
         return {}
@@ -71,23 +69,23 @@ def create_connective_core(expression, coreType=None):
 
     elif len(expression) == 2:
         preExpressionString = get_formula_color(expression[1])
-        return {expressionString + connectiveFixCoreSuffix:
+        return {expressionString + suf.connectiveCoreSuffix:
                     engine.create_relational_encoding(inshape=[2], outshape=[2], incolors=[preExpressionString],
                                                       outcolors=[expressionString],
                                                       function=con.get_connectives(expression[0]),
                                                       coreType=coreType,
-                                                      name=expressionString + connectiveFixCoreSuffix)}
+                                                      name=expressionString + suf.connectiveCoreSuffix)}
 
     elif len(expression) == 3:
         leftExpressionString = get_formula_color(expression[1])
         rightExpressionString = get_formula_color(expression[2])
-        return {expressionString + connectiveFixCoreSuffix:
+        return {expressionString + suf.connectiveCoreSuffix:
                     engine.create_relational_encoding(inshape=[2, 2], outshape=[2],
                                                       incolors=[leftExpressionString, rightExpressionString],
                                                       outcolors=[expressionString],
                                                       function=con.get_connectives(expression[0]),
                                                       coreType=coreType,
-                                                      name=expressionString + connectiveFixCoreSuffix)}
+                                                      name=expressionString + suf.connectiveCoreSuffix)}
     else:
         raise ValueError("Expression {} not understood!".format(expression))
 
@@ -111,7 +109,7 @@ def create_head_core(expression, headType, weight=None, name=None, coreType=None
 
     color = get_formula_color(expression)
     if name is None:
-        name = color + headCoreSuffix
+        name = color + suf.headCoreSuffix
     return {name: engine.create_tensor_encoding([2], [color], headFunction, coreType=coreType, name=name)}
 
 
@@ -129,15 +127,15 @@ def get_formula_color(expression):
     Identifies a color with an expression
     """
     if isinstance(expression, str):  ## Expression is atomic
-        return expression
+        return expression + suf.atomicVariableSuffix
     elif len(expression) == 1:  ## Expression is atomic, but provided in nested form
         assert isinstance(expression[0], str)
-        return expression[0]
+        return expression[0] + suf.atomicVariableSuffix
     else:
         if not isinstance(expression[0], str):
             raise ValueError("Connective {} has wrong type!".format(expression[0]))
         return "(" + expression[0] + "_" + "_".join(
-            [get_formula_color(entry) for entry in expression[1:]]) + ")"
+            [get_formula_color(entry) for entry in expression[1:]]) + ")" + suf.categoricalVariableSuffix
 
 
 def get_all_atoms(expressionsDict):

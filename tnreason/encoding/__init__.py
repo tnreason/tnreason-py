@@ -5,7 +5,6 @@ from tnreason.encoding.neurons_to_cores import create_neuron, create_architectur
     create_solution_expression, find_selection_colors
 from tnreason.encoding.data_to_cores import create_data_cores
 
-## Core Suffix Nomenclature used in other subpackages
-from tnreason.encoding.formulas_to_cores import headCoreSuffix
-
 from tnreason.encoding.storage import save_as_yaml, load_from_yaml
+
+from tnreason.encoding import suffixes as suf
