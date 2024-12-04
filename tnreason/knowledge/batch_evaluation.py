@@ -6,17 +6,18 @@ class KnowledgePropagator:
     """
     Evaluates formulas by constraint propagation.
     """
+
     def __init__(self, knowledgeBase, evidenceDict={}):
         self.atoms = knowledgeBase.atoms
         self.knowledgeCores = {
             **knowledgeBase.create_cores(),
-            **encoding.create_evidence_cores(evidenceDict)}
+            **encoding.create_atom_evidence_cores(evidenceDict)}
 
         self.propagator = algorithms.ConstraintPropagator(binaryCoresDict=self.knowledgeCores)
 
-        self.knownHeads = get_evidence_headKeys(evidenceDict) + [
-            encoding.get_formula_color(knowledgeBase.facts[key]) + encoding.suf.headCoreSuffix for key in
-            knowledgeBase.facts]
+        self.knownHeads = get_evidence_headKeys(evidenceDict) + [key + encoding.suf.headCoreSuffix for key in knowledgeBase.facts]
+#            encoding.get_formula_color(knowledgeBase.facts[key]) + encoding.suf.headCoreSuffix for key in
+#            knowledgeBase.facts]
 
     def evaluate(self, variables=None):
         if variables is None:
@@ -33,10 +34,6 @@ class KnowledgePropagator:
                                                               **{variable: 2 for variable in variables if
                                                                  variable not in variablesShape}})
 
-
 def get_evidence_headKeys(evidenceDict):
-    return [encoding.get_formula_color(key) + encoding.suf.headCoreSuffix for key in evidenceDict if
-            evidenceDict[key]] + [
-        encoding.get_formula_color(["not", key]) + encoding.suf.headCoreSuffix for key in evidenceDict if
-        not evidenceDict[key]
-    ]
+    return [encoding.get_formula_color(key) + encoding.suf.evidenceCoreSuffix + encoding.suf.headCoreSuffix for key in
+            evidenceDict]

@@ -4,7 +4,7 @@ import numpy as np
 
 from queue import Queue
 
-domainCoreSuffix = "_domainCore"
+domainCoreSuffix = "_domainCore" # Should be headCore, but watch out for names conflict!
 
 
 class ConstraintPropagator:

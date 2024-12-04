@@ -18,7 +18,8 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
             knowledgeCores = {**knowledgeCores,
                               **create_boolean_head(get_formula_color(expressionsDict[formulaName][:-1]), "expFactor",
                                                     weight=
-                                                    expressionsDict[formulaName][-1], coreType=coreType),
+                                                    expressionsDict[formulaName][-1], coreType=coreType,
+                                                    name=formulaName + suf.headCoreSuffix),
                               **create_raw_formula_cores(expressionsDict[formulaName][:-1],
                                                          alreadyCreated=
                                                          list(knowledgeCores.keys()) + alreadyCreated,
@@ -26,7 +27,7 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
         else:
             knowledgeCores = {**knowledgeCores,
                               **create_boolean_head(get_formula_color(expressionsDict[formulaName]), "truthEvaluation",
-                                                    coreType=coreType),
+                                                    coreType=coreType, name=formulaName + suf.headCoreSuffix),
                               **create_raw_formula_cores(expressionsDict[formulaName],
                                                          alreadyCreated=list(knowledgeCores.keys()) + alreadyCreated,
                                                          coreType=coreType)}
@@ -88,7 +89,7 @@ def create_connective_core(expression, coreType=None):
         raise ValueError("Expression {} not understood!".format(expression))
 
 
-def create_boolean_head(color, headType, weight=None, coreType=None):
+def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
     """
     Created the head core to a boolean variable (with dimension 2)
     """
@@ -100,25 +101,40 @@ def create_boolean_head(color, headType, weight=None, coreType=None):
         headFunction = lambda x: math.exp(weight * x)
     else:
         raise ValueError("Headtype {} not understood!".format(headType))
+    if name is None:
+        name = color + suf.headCoreSuffix
+    return {name: engine.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
+                                                name=name)}
 
-    return {color + suf.headCoreSuffix: engine.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
-                                                                      name=color + suf.headCoreSuffix)}
 
-
-def create_head_core(expression, headType, weight=None, name=None, coreType=None):
+def create_formula_head(expression, headType, weight=None, name=None, coreType=None):
     """
     Created the head core to an expression activating it, which is the boolean head to the formula color
     """
-    return create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, coreType=coreType)
+    return create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, name=name,
+                               coreType=coreType)
 
 
 def create_evidence_cores(evidenceDict, coreType=None):
+    coreDict = dict()
+    for color in evidenceDict:
+        if evidenceDict[color]:
+            coreDict.update(create_boolean_head(color, headType="truthEvaluation",
+                                                name=color + suf.evidenceCoreSuffix + suf.headCoreSuffix,
+                                                coreType=coreType))
+        else:
+            coreDict.update(create_boolean_head(color, headType="falseEvaluation",
+                                                name=color + suf.evidenceCoreSuffix + suf.headCoreSuffix,
+                                                coreType=coreType))
+    return coreDict
+
+
+def create_atom_evidence_cores(evidenceDict, coreType=None):
     """
-    Turns positive and negative evidence into literal formulas and encodes them
+    Turns positive and negative evidence about atoms into literal formulas and encodes them as facts
     """
-    return create_formulas_cores({**{key: [key] for key in evidenceDict if evidenceDict[key]},
-                                  **{key: ["not", key] for key in evidenceDict if not evidenceDict[key]}
-                                  }, coreType=coreType)
+    return create_evidence_cores({get_formula_color(atomKey): evidenceDict[atomKey] for atomKey in evidenceDict},
+                                 coreType=coreType)
 
 
 def get_formula_color(expression):
@@ -126,7 +142,7 @@ def get_formula_color(expression):
     Identifies a color with an expression
     """
     formula_string = get_formula_string(expression)
-    if isinstance(expression, str) or (isinstance(expression, str) and len(expression) == 1):
+    if isinstance(expression, str) or (isinstance(expression, list) and len(expression) == 1):
         return formula_string + suf.atomicVariableSuffix
     else:
         return formula_string + suf.categoricalVariableSuffix
@@ -168,9 +184,9 @@ def get_all_atoms(expressionsDict):
 
 def get_atoms(expression):
     if isinstance(expression, str):  ## Then an atom
-        return {expression}
+        return {expression+suf.atomicVariableSuffix}
     elif len(expression) == 1:  ## Then an atomic formula
-        return {expression[0]}
+        return {expression[0]+suf.atomicVariableSuffix}
     else:  ## Then a formula with connective in first position
         atoms = set()
         for subExpression in expression[1:]:

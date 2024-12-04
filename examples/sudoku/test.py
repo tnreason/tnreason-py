@@ -28,7 +28,7 @@ preEvidence = rep.catEvidence_to_atomEvidence(catEvidence)
 
 propagator = algorithms.ConstraintPropagator(
             {**structureCores,
-             **encoding.create_evidence_cores(preEvidence)},
+             **encoding.create_atom_evidence_cores(preEvidence)},
             verbose=False
         )
 propagator.propagate_cores()

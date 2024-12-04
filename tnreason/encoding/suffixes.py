@@ -3,6 +3,8 @@ Cores
 """
 
 headCoreSuffix = "_hCore"
+evidenceCoreSuffix = "_ev"
+
 connectiveCoreSuffix = "_cCore"
 
 selectionCoreSuffix = "_sCore"
@@ -17,8 +19,8 @@ categoricalCoreSuffix = "_rCore" # "Restriction Core to not infer with connectiv
 Colors
 """
 
-categoricalVariableSuffix = "" # _cVar
-atomicVariableSuffix = "" # _aVar
+categoricalVariableSuffix = ""#_cVar"#_cVar" # _cVar
+atomicVariableSuffix = ""#_aVar"#_aVar" # _aVar
 
 selectionVariableSuffix = "_sVar"
 varSelVarSuffix = "_vsVar"

@@ -7,6 +7,8 @@ import numpy as np
 
 from examples.als_gradient_fitting import alternating_least_squares as als
 
+aSuf = encoding.suf.atomicVariableSuffix
+
 networkCores = {
     #**encoding.create_formulas_cores({"f1": ["imp", "a1", "a2"]})
     **encoding.create_raw_formula_cores(["imp", "a1", "a2"])
@@ -20,7 +22,7 @@ targetCores = {
 optimizer = als.ALS(
     networkCores=networkCores,
     targetCores=targetCores,
-    importanceColors=["a1", "a2"]
+    importanceColors=["a1"+aSuf, "a2"+aSuf]
 )
 
 
@@ -60,8 +62,8 @@ class AlsKnowledgeTest(unittest.TestCase):
         dataOptimizer = als.ALS(
             networkCores=encoding.create_raw_formula_cores(["imp", "a1", "a2"]),
             targetCores={"tarCore": engine.get_core()(values=np.ones(dataNum), colors=["dat"])},
-            importanceList=[({"dataTensor": engine.get_core()(values=data, colors=["a1", "a2", "dat"])}, 1)],
-            importanceColors=["a1", "a2"]
+            importanceList=[({"dataTensor": engine.get_core()(values=data, colors=["a1"+aSuf, "a2"+aSuf, "dat"])}, 1)],
+            importanceColors=["a1"+aSuf, "a2"+aSuf]
         )
 
         dataOptimizer.random_initialize(["estHead"], {"estHead": 2}, {"estHead": ["(imp_a1_a2)"]})

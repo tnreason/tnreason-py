@@ -18,7 +18,7 @@ kiki = kic.KikuchiContractor(
                "f": ["j", "a", "b", "(imp_a_b)"],
                "formula": ["(imp_a_b)"]},
     coreDict={"data": {"da" : dataCores["a_dataCore"]}, "datb" : {"db": dataCores["b_dataCore"]},
-              "f" : {**encoding.create_formulas_cores({"w": ["imp","a","b"]}), **encoding.create_head_core(["imp","a","b"],headType="truthEvaluation")},
+              "f" : {**encoding.create_formulas_cores({"w": ["imp","a","b"]}), **encoding.create_formula_head(["imp", "a", "b"], headType="truthEvaluation")},
               "formula": {}}
 )
 

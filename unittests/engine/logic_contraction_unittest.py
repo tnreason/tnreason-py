@@ -41,7 +41,7 @@ class TensorLogicTest(unittest.TestCase):
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
                                                 method=method["contractionMethod"])
-            contractionResult.reorder_colors(["a", "b"])
+            contractionResult.reorder_colors(["a" + aSuf, "b" + aSuf])
 
             self.assertEqual(contractionResult[1, 0], 0)
             self.assertEqual(contractionResult[0, 1], 1)

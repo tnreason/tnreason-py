@@ -35,7 +35,7 @@ class InferenceProvider:
         contracted = engine.contract(
             coreDict={
                 **self.distribution.create_cores(),
-                **encoding.create_evidence_cores(evidenceDict),
+                **encoding.create_atom_evidence_cores(evidenceDict),
                 **encoding.create_raw_formula_cores(queryFormula)
             },
             method=self.contractionMethod, openColors=[encoding.get_formula_color(queryFormula)]).values
@@ -45,7 +45,7 @@ class InferenceProvider:
     def query(self, variableList, evidenceDict={}):
         return engine.contract(method=self.contractionMethod, coreDict={
             **self.distribution.create_cores(),
-            **encoding.create_evidence_cores(evidenceDict),
+            **encoding.create_atom_evidence_cores(evidenceDict),
         }, openColors=variableList).normalize()
 
     def exact_map_query(self, variableList, evidenceDict={}):
@@ -58,7 +58,7 @@ class InferenceProvider:
 
     def draw_samples(self, sampleNum, variableList=None, outType="int64"):
         if variableList is None:
-            variableList = self.distribution.atoms
+            variableList = self.distribution.atoms #[atomKey + encoding.suf.atomicVariableSuffix for atomKey in self.distribution.atoms]
         sampleDf = pd.DataFrame(columns=variableList)
         for samplePos in range(sampleNum):
             sampleDf = pd.concat(

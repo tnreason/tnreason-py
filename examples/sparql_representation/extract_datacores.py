@@ -46,9 +46,13 @@ if __name__ == "__main__":
         }
     """
 
+    from tnreason import encoding
+
     result = g.query(queryString)
     importancePositionList, interpretationDict = rr.rdflib_sparql_evaluation_to_entryPositionList(result)
-    importanceCore = positionList_to_polynomialCore(importancePositionList, variables=["x", "z", "y"],
+
+    termVariableColors = [x + encoding.suf.termVariableSuffix for x in ["x", "z", "y"]]
+    importanceCore = positionList_to_polynomialCore(importancePositionList, variables=termVariableColors,
                                                     shape=[10, 10, 10])
 
     atomAString = """
@@ -60,7 +64,7 @@ if __name__ == "__main__":
     result = g.query(atomAString)
     atomAPositionList, interpretationDict = rr.rdflib_sparql_evaluation_to_entryPositionList(result, interpretationDict)
     atomACore = positionList_to_polynomialCore(atomAPositionList, variables=["x"], shape=[10])
-
+    print(type(atomACore), type(importanceCore))
     dataCores = get_dataCores(importanceCore, atomQueryCoreDict={"aCore": atomACore}, categoricalColors=["z"],
                               coreType="PolynomialCore")
     print(dataCores["z_dataCore"].values)

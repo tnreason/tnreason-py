@@ -134,7 +134,7 @@ class HybridKnowledgeBase:
 
     def create_cores(self):
         return {**encoding.create_formulas_cores({**self.weightedFormulas, **self.facts}),
-                **encoding.create_evidence_cores(self.evidence),
+                **encoding.create_atom_evidence_cores(self.evidence),
                 **encoding.create_categorical_cores(self.categoricalConstraints),
                 **encoding.create_atomization_cores([atom for atom in self.atoms if "=" in atom], self.dimensionDict),
                 **self.backCores}
@@ -149,7 +149,7 @@ class HybridKnowledgeBase:
         Returns the cores posing hard logical constraints on the worlds to be models
         """
         return {**encoding.create_formulas_cores(self.facts),
-                **encoding.create_evidence_cores(self.evidence),
+                **encoding.create_atom_evidence_cores(self.evidence),
                 **encoding.create_categorical_cores(self.categoricalConstraints),
                 **self.backCores}
 
@@ -164,12 +164,12 @@ class HybridKnowledgeBase:
     def get_energy_dict(self, cutoffWeight=100):
         weightedEnergyDict = {
             formulaKey: [{**encoding.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]),
-                          **encoding.create_head_core(self.weightedFormulas[formulaKey][:-1],
-                                                      headType="truthEvaluation")
+                          **encoding.create_formula_head(self.weightedFormulas[formulaKey][:-1],
+                                                         headType="truthEvaluation")
                           }, self.weightedFormulas[formulaKey][-1]] for formulaKey in self.weightedFormulas}
         factsEnergyDict = {formulaKey: [{**encoding.create_raw_formula_cores(self.facts[formulaKey]),
-                                         **encoding.create_head_core(self.facts[formulaKey],
-                                                                     headType="truthEvaluation")
+                                         **encoding.create_formula_head(self.facts[formulaKey],
+                                                                        headType="truthEvaluation")
                                          }, cutoffWeight] for formulaKey in
                            self.facts}
         constraintsEnergyDict = {constraintKey: [
