@@ -21,7 +21,8 @@ def create_architecture(neuronDict, headNeurons=[], coreType=None):
                                  enumerate(neuronDict[neuronName][1:])
                              }, coreType=coreType)}
     for headNeuron in headNeurons:
-        architectureCores = {**architectureCores, **enform.create_head_core(headNeuron, headType="truthEvaluation")}
+        architectureCores = {**architectureCores,
+                             **enform.create_boolean_head(color=headNeuron, headType="truthEvaluation")}
     return architectureCores
 
 

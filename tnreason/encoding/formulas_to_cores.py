@@ -16,17 +16,17 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     for formulaName in expressionsDict.keys():
         if isinstance(expressionsDict[formulaName][-1], float) or isinstance(expressionsDict[formulaName][-1], int):
             knowledgeCores = {**knowledgeCores,
-                              **create_head_core(expressionsDict[formulaName][:-1], "expFactor",
-                                                 weight=
-                                                 expressionsDict[formulaName][-1], coreType=coreType),
+                              **create_boolean_head(get_formula_color(expressionsDict[formulaName][:-1]), "expFactor",
+                                                    weight=
+                                                    expressionsDict[formulaName][-1], coreType=coreType),
                               **create_raw_formula_cores(expressionsDict[formulaName][:-1],
                                                          alreadyCreated=
                                                          list(knowledgeCores.keys()) + alreadyCreated,
                                                          coreType=coreType)}
         else:
             knowledgeCores = {**knowledgeCores,
-                              **create_head_core(expressionsDict[formulaName], "truthEvaluation",
-                                                 coreType=coreType),
+                              **create_boolean_head(get_formula_color(expressionsDict[formulaName]), "truthEvaluation",
+                                                    coreType=coreType),
                               **create_raw_formula_cores(expressionsDict[formulaName],
                                                          alreadyCreated=list(knowledgeCores.keys()) + alreadyCreated,
                                                          coreType=coreType)}
@@ -88,9 +88,9 @@ def create_connective_core(expression, coreType=None):
         raise ValueError("Expression {} not understood!".format(expression))
 
 
-def create_head_core(expression, headType, weight=None, name=None, coreType=None):
+def create_boolean_head(color, headType, weight=None, coreType=None):
     """
-    Created the head core to an expression activating it
+    Created the head core to a boolean variable (with dimension 2)
     """
     if headType == "truthEvaluation":
         headFunction = lambda x: x
@@ -98,17 +98,18 @@ def create_head_core(expression, headType, weight=None, name=None, coreType=None
         headFunction = lambda x: 1 - x
     elif headType == "expFactor":
         headFunction = lambda x: math.exp(weight * x)
-    # elif headType == "weightedTruthEvaluation":
-    #    headFunction = lambda x: weight * x
-    # elif headType == "diffExpFactor":
-    #   function = lambda x: x*math.exp(weight*x)
     else:
         raise ValueError("Headtype {} not understood!".format(headType))
 
-    if name is None:
-        name = get_formula_string(expression) + suf.headCoreSuffix
-    return {name: engine.create_tensor_encoding([2], [get_formula_color(expression)], headFunction, coreType=coreType,
-                                                name=name)}
+    return {color + suf.headCoreSuffix: engine.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
+                                                                      name=color + suf.headCoreSuffix)}
+
+
+def create_head_core(expression, headType, weight=None, name=None, coreType=None):
+    """
+    Created the head core to an expression activating it, which is the boolean head to the formula color
+    """
+    return create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, coreType=coreType)
 
 
 def create_evidence_cores(evidenceDict, coreType=None):
