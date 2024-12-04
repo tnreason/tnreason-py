@@ -1,9 +1,10 @@
 import unittest
 
-from tnreason import knowledge
+from tnreason import knowledge, encoding
 
 sampleRepetition = 10
 
+aSuf = encoding.suf.atomicVariableSuffix
 
 class HybridKBTest(unittest.TestCase):
     def test_is_satisfiable(self):
@@ -84,12 +85,12 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["not", "a1"]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1", "a2"])
-            self.assertTrue((int(sample["a1"]) + int(sample["a2"])) == 2)
+            sample = hybridKB.forward_sample(["a1"+aSuf, "a2"+aSuf])
+            self.assertTrue((int(sample["a1"+aSuf]) + int(sample["a2"+aSuf])) == 2)
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.exact_map_query(["a1", "a2"])
-            self.assertTrue((int(sample["a1"]) + int(sample["a2"])) == 2)
+            sample = hybridKB.exact_map_query(["a1"+aSuf, "a2"+aSuf])
+            self.assertTrue((int(sample["a1"+aSuf]) + int(sample["a2"+aSuf])) == 2)
 
     def test_or(self):
         hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
@@ -100,12 +101,12 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", ["not", "a1"], ["not", "a2"]]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1", "a2"])
-            self.assertTrue((int(sample["a1"]) + int(sample["a2"])) >= 1)
+            sample = hybridKB.forward_sample(["a1"+aSuf, "a2"+aSuf])
+            self.assertTrue((int(sample["a1"+aSuf]) + int(sample["a2"+aSuf])) >= 1)
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.exact_map_query(["a1", "a2"])
-            self.assertTrue((int(sample["a1"]) + int(sample["a2"])) >= 1)
+            sample = hybridKB.exact_map_query(["a1"+aSuf, "a2"+aSuf])
+            self.assertTrue((int(sample["a1"+aSuf]) + int(sample["a2"+aSuf])) >= 1)
 
     def test_xor(self):
         hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
@@ -116,12 +117,12 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", "a1", "a2"]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1", "a2"])
-            self.assertEqual(1 - sample["a1"], sample["a2"])
+            sample = hybridKB.forward_sample(["a1"+aSuf, "a2"+aSuf])
+            self.assertEqual(1 - sample["a1"+aSuf], sample["a2"+aSuf])
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.exact_map_query(["a1", "a2"])
-            self.assertEqual(1 - sample["a1"], sample["a2"])
+            sample = hybridKB.exact_map_query(["a1"+aSuf, "a2"+aSuf])
+            self.assertEqual(1 - sample["a1"+aSuf], sample["a2"+aSuf])
 
     def test_eq(self):
         hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
@@ -132,12 +133,12 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", "a1", ["not", "a2"]]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1", "a2"])
-            self.assertEqual(sample["a1"], sample["a2"])
+            sample = hybridKB.forward_sample(["a1"+aSuf, "a2"+aSuf])
+            self.assertEqual(sample["a1"+aSuf], sample["a2"+aSuf])
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.exact_map_query(["a1", "a2"])
-            self.assertEqual(sample["a1"], sample["a2"])
+            sample = hybridKB.exact_map_query(["a1"+aSuf, "a2"+aSuf])
+            self.assertEqual(sample["a1"+aSuf], sample["a2"+aSuf])
 
     def test_imp(self):
         hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
@@ -148,12 +149,12 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", "a1", ["not", "a2"]]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1", "a2"])
-            self.assertEqual(0, int(sample["a1"]) - int(sample["a1"]) * int(sample["a2"]))
+            sample = hybridKB.forward_sample(["a1"+aSuf, "a2"+aSuf])
+            self.assertEqual(0, int(sample["a1"+aSuf]) - int(sample["a1"+aSuf]) * int(sample["a2"+aSuf]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.exact_map_query(["a1", "a2"])
-            self.assertEqual(0, int(sample["a1"]) - int(sample["a1"]) * int(sample["a2"]))
+            sample = hybridKB.exact_map_query(["a1"+aSuf, "a2"+aSuf])
+            self.assertEqual(0, int(sample["a1"+aSuf]) - int(sample["a1"+aSuf]) * int(sample["a2"+aSuf]))
 
     ##
     def test_unseen_atoms(self):
@@ -170,9 +171,9 @@ class HybridKBTest(unittest.TestCase):
             facts={"constraint1": ["imp", "a1", "a2"]}
         )
         entailedDict = knowledge.KnowledgePropagator(hybridKB, evidenceDict={"a1": 0, "a2": 1}).evaluate()
-        self.assertTrue(entailedDict["a1"] == 0)
-        self.assertTrue(entailedDict["a2"] == 1)
-        self.assertTrue(entailedDict["(imp_a1_a2)"] == 1)
+        self.assertTrue(entailedDict["a1"+aSuf] == 0)
+        self.assertTrue(entailedDict["a2"+aSuf] == 1)
+        self.assertTrue(entailedDict["(imp_a1_a2)"+encoding.suf.categoricalVariableSuffix] == 1)
 
     def test_categorical_constraint(self):
         hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
@@ -181,11 +182,11 @@ class HybridKBTest(unittest.TestCase):
             categoricalConstraints={"c1": ["a1", "a2", "a3"]}
         ))
         for rep in range(sampleRepetition):
-            sample = hybridKB.exact_map_query(["a1", "a2", "a3"])
-            self.assertTrue(int(sample["a1"]) + int(sample["a2"]) + int(sample["a3"]) == 1)
+            sample = hybridKB.exact_map_query(["a1"+aSuf, "a2"+aSuf, "a3"+aSuf])
+            self.assertTrue(int(sample["a1"+aSuf]) + int(sample["a2"+aSuf]) + int(sample["a3"+aSuf]) == 1)
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1", "a2", "a3"])
-            self.assertTrue(int(sample["a1"]) + int(sample["a2"]) + int(sample["a3"]) == 1)
+            sample = hybridKB.forward_sample(["a1"+aSuf, "a2"+aSuf, "a3"+aSuf])
+            self.assertTrue(int(sample["a1"+aSuf]) + int(sample["a2"+aSuf]) + int(sample["a3"+aSuf]) == 1)
 
 
 if __name__ == "__main__":

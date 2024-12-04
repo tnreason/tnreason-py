@@ -1,6 +1,6 @@
 from tnreason import engine
 
-categoricalCoreSuffix = "_catCore"
+from tnreason.encoding import suffixes as suf
 
 
 def create_categorical_cores(categoricalsDict, coreType=None):
@@ -16,9 +16,9 @@ def create_categorical_cores(categoricalsDict, coreType=None):
 
 def create_constraintCoresDict(atoms, catName, coreType=None):
     return {
-        catName + "_" + atomName + categoricalCoreSuffix:
+        catName + "_" + atomName + suf.categoricalCoreSuffix:
             create_single_atomization(catName, len(atoms), i, atomName, coreType=coreType)[
-                catName + "_" + atomName + categoricalCoreSuffix] for i, atomName in enumerate(atoms)}
+                catName + "_" + atomName + suf.categoricalCoreSuffix] for i, atomName in enumerate(atoms)}
 
 
 def create_single_atomization(catName, catDim, position, atomName=None, coreType=None):
@@ -29,11 +29,11 @@ def create_single_atomization(catName, catDim, position, atomName=None, coreType
     if atomName is None:
         atomName = catName + "=" + str(position)
     atomizer = lambda catPos: [catPos == position]
-    return {catName + "_" + atomName + categoricalCoreSuffix:
+    return {catName + "_" + atomName + suf.categoricalCoreSuffix:
                 engine.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catName],
                                                   outcolors=[atomName],
                                                   function=atomizer, coreType=coreType,
-                                                  name=catName + "_" + atomName + categoricalCoreSuffix
+                                                  name=catName + "_" + atomName + suf.categoricalCoreSuffix
                                                   )}
 
 

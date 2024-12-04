@@ -1,9 +1,7 @@
 from tnreason import engine
 
-trivialCoreSuffix = "_trivialCore"
 
-
-def create_trivial_cores(rawKeys, shapeDict=None, suffix=trivialCoreSuffix, coreType=None):
+def create_trivial_cores(rawKeys, shapeDict=None, suffix="", coreType=None):
     """
     Creates dictionary of trivial cores with coordinate 1, which act as neutral placeholders in contractions.
         * rawKeys: List of raw keys (added by suffix)

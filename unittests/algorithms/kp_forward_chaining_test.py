@@ -49,7 +49,7 @@ class FCTest(unittest.TestCase):
         activationCone = propagator.find_variable_cone(["a1", "a2"])
 
         self.assertTrue(len(activationCone) == 4)
-        self.assertTrue("(imp_a1_a2)_conCore" in activationCone)
+        self.assertTrue("(imp_a1_a2)" + encoding.suf.connectiveCoreSuffix in activationCone)
         self.assertTrue("a1_domainCore" in activationCone)
         self.assertTrue("a2_domainCore" in activationCone)
 

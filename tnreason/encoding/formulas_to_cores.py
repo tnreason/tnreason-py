@@ -16,7 +16,7 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     for formulaName in expressionsDict.keys():
         if isinstance(expressionsDict[formulaName][-1], float) or isinstance(expressionsDict[formulaName][-1], int):
             knowledgeCores = {**knowledgeCores,
-                              **create_head_core(get_formula_color(expressionsDict[formulaName][:-1]), "expFactor",
+                              **create_head_core(expressionsDict[formulaName][:-1], "expFactor",
                                                  weight=
                                                  expressionsDict[formulaName][-1], coreType=coreType),
                               **create_raw_formula_cores(expressionsDict[formulaName][:-1],
@@ -25,7 +25,7 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
                                                          coreType=coreType)}
         else:
             knowledgeCores = {**knowledgeCores,
-                              **create_head_core(get_formula_color(expressionsDict[formulaName]), "truthEvaluation",
+                              **create_head_core(expressionsDict[formulaName], "truthEvaluation",
                                                  coreType=coreType),
                               **create_raw_formula_cores(expressionsDict[formulaName],
                                                          alreadyCreated=list(knowledgeCores.keys()) + alreadyCreated,
@@ -39,7 +39,7 @@ def create_raw_formula_cores(expression, alreadyCreated=[], coreType=None):
         * expression: Nested list specifying a formula
         * alreadyCreated: List of keys to connective cores to be omitted
     """
-    if get_formula_color(expression) + suf.connectiveCoreSuffix in alreadyCreated:
+    if get_formula_string(expression) + suf.connectiveCoreSuffix in alreadyCreated:
         return {}
     if isinstance(expression, str):
         return {}
@@ -63,29 +63,27 @@ def create_connective_core(expression, coreType=None):
     """
     Creates the connective core at the head of the expression by loading the truth table
     """
-    expressionString = get_formula_color(expression)
     if isinstance(expression, str):
         return {}
 
     elif len(expression) == 2:
-        preExpressionString = get_formula_color(expression[1])
-        return {expressionString + suf.connectiveCoreSuffix:
-                    engine.create_relational_encoding(inshape=[2], outshape=[2], incolors=[preExpressionString],
-                                                      outcolors=[expressionString],
+        return {get_formula_string(expression) + suf.connectiveCoreSuffix:
+                    engine.create_relational_encoding(inshape=[2], outshape=[2],
+                                                      incolors=[get_formula_color(expression[1])],
+                                                      outcolors=[get_formula_color(expression)],
                                                       function=con.get_connectives(expression[0]),
                                                       coreType=coreType,
-                                                      name=expressionString + suf.connectiveCoreSuffix)}
+                                                      name=get_formula_string(expression) + suf.connectiveCoreSuffix)}
 
     elif len(expression) == 3:
-        leftExpressionString = get_formula_color(expression[1])
-        rightExpressionString = get_formula_color(expression[2])
-        return {expressionString + suf.connectiveCoreSuffix:
+        return {get_formula_string(expression) + suf.connectiveCoreSuffix:
                     engine.create_relational_encoding(inshape=[2, 2], outshape=[2],
-                                                      incolors=[leftExpressionString, rightExpressionString],
-                                                      outcolors=[expressionString],
+                                                      incolors=[get_formula_color(expression[1]),
+                                                                get_formula_color(expression[2])],
+                                                      outcolors=[get_formula_color(expression)],
                                                       function=con.get_connectives(expression[0]),
                                                       coreType=coreType,
-                                                      name=expressionString + suf.connectiveCoreSuffix)}
+                                                      name=get_formula_string(expression) + suf.connectiveCoreSuffix)}
     else:
         raise ValueError("Expression {} not understood!".format(expression))
 
@@ -107,10 +105,10 @@ def create_head_core(expression, headType, weight=None, name=None, coreType=None
     else:
         raise ValueError("Headtype {} not understood!".format(headType))
 
-    color = get_formula_color(expression)
     if name is None:
-        name = color + suf.headCoreSuffix
-    return {name: engine.create_tensor_encoding([2], [color], headFunction, coreType=coreType, name=name)}
+        name = get_formula_string(expression) + suf.headCoreSuffix
+    return {name: engine.create_tensor_encoding([2], [get_formula_color(expression)], headFunction, coreType=coreType,
+                                                name=name)}
 
 
 def create_evidence_cores(evidenceDict, coreType=None):
@@ -126,16 +124,35 @@ def get_formula_color(expression):
     """
     Identifies a color with an expression
     """
+    formula_string = get_formula_string(expression)
+    if isinstance(expression, str) or (isinstance(expression, str) and len(expression) == 1):
+        return formula_string + suf.atomicVariableSuffix
+    else:
+        return formula_string + suf.categoricalVariableSuffix
+
+    # if isinstance(expression, str):  ## Expression is atomic
+    #     return expression + suf.atomicVariableSuffix
+    # elif len(expression) == 1:  ## Expression is atomic, but provided in nested form
+    #     assert isinstance(expression[0], str)
+    #     return expression[0] + suf.atomicVariableSuffix
+    # else:
+    #     if not isinstance(expression[0], str):
+    #         raise ValueError("Connective {} has wrong type!".format(expression[0]))
+    #     return "(" + expression[0] + "_" + "_".join(
+    #         [get_formula_color(entry) for entry in expression[1:]]) + ")" + suf.categoricalVariableSuffix
+
+
+def get_formula_string(expression):
     if isinstance(expression, str):  ## Expression is atomic
-        return expression + suf.atomicVariableSuffix
+        return expression
     elif len(expression) == 1:  ## Expression is atomic, but provided in nested form
         assert isinstance(expression[0], str)
-        return expression[0] + suf.atomicVariableSuffix
+        return expression[0]
     else:
         if not isinstance(expression[0], str):
             raise ValueError("Connective {} has wrong type!".format(expression[0]))
         return "(" + expression[0] + "_" + "_".join(
-            [get_formula_color(entry) for entry in expression[1:]]) + ")" + suf.categoricalVariableSuffix
+            [get_formula_string(entry) for entry in expression[1:]]) + ")"
 
 
 def get_all_atoms(expressionsDict):
