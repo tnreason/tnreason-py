@@ -1,10 +1,10 @@
 from tnreason import engine
-
+from tnreason.encoding import suffixes as suf
 import numpy as np
 
 from queue import Queue
 
-domainCoreSuffix = "_domainCore" # Should be headCore, but watch out for names conflict!
+domainCoreSuffix = suf.domainCoreSuffix + suf.headCoreSuffix
 
 
 class ConstraintPropagator:

@@ -2,7 +2,7 @@ from tnreason import knowledge, encoding
 import numpy as np
 
 from tnreason import engine
-from examples.als_gradient_fitting import alternating_least_squares as als
+from experiments.als_gradient_fitting import alternating_least_squares as als
 
 #### ! MISSING PARTITION FUNCTIONS ! ####
 

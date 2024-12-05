@@ -4,6 +4,9 @@ Cores
 
 headCoreSuffix = "_hCore"
 evidenceCoreSuffix = "_ev"
+domainCoreSuffix = "_dm"
+momentCoreSuffix = "_mm"
+targetCoreSuffix = "_tg"
 
 connectiveCoreSuffix = "_cCore"
 
@@ -13,7 +16,7 @@ actSelCoreSuffix = "_asCore"
 
 dataCoreSuffix = "_dCore"
 
-categoricalCoreSuffix = "_rCore" # "Restriction Core to not infer with connectiveCore"
+restrictionCoreSuffix = "_rCore" # "Restriction Core to not infer with connectiveCore"
 
 """
 Colors

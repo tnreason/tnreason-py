@@ -8,7 +8,7 @@ rules = {
 }
 
 aSuf = encoding.suf.atomicVariableSuffix
-
+domainCoreSuffix = encoding.suf.domainCoreSuffix + encoding.suf.headCoreSuffix
 
 class FCTest(unittest.TestCase):
     def test_modus_ponens(self):
@@ -42,7 +42,7 @@ class FCTest(unittest.TestCase):
         self.assertTrue(assignmentDict["a1" + aSuf] == 0)
 
         activationCone = propagator.find_variable_cone(["a1" + aSuf])
-        self.assertTrue("a1" + aSuf + "_domainCore" in activationCone)
+        self.assertTrue("a1" + aSuf + domainCoreSuffix in activationCone)
         self.assertTrue(len(activationCone) == 1)
 
     def test_activationCone_pureImp(self):
@@ -52,8 +52,8 @@ class FCTest(unittest.TestCase):
 
         self.assertTrue(len(activationCone) == 4)
         self.assertTrue("(imp_a1_a2)" + encoding.suf.connectiveCoreSuffix in activationCone)
-        self.assertTrue("a1" + aSuf + "_domainCore" in activationCone)
-        self.assertTrue("a2" + aSuf + "_domainCore" in activationCone)
+        self.assertTrue("a1" + aSuf + domainCoreSuffix in activationCone)
+        self.assertTrue("a2" + aSuf + domainCoreSuffix in activationCone)
 
     def test_activationCone_andFact(self):
         propagator = algorithms.ConstraintPropagator(encoding.create_formulas_cores({"r1": ["and", "a1", "a2"]}),
@@ -62,8 +62,8 @@ class FCTest(unittest.TestCase):
         activationCone = propagator.find_variable_cone(["a1" + aSuf, "a2" + aSuf])
 
         self.assertTrue(len(activationCone) == 2)
-        self.assertTrue("a1" + aSuf + "_domainCore" in activationCone)
-        self.assertTrue("a2" + aSuf + "_domainCore" in activationCone)
+        self.assertTrue("a1" + aSuf + domainCoreSuffix in activationCone)
+        self.assertTrue("a2" + aSuf + domainCoreSuffix in activationCone)
 
 
 if __name__ == "__main__":

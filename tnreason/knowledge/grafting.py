@@ -4,8 +4,6 @@ from tnreason import engine
 
 from tnreason.knowledge import distributions
 
-parameterCoreSuffix = "_parCore"
-
 headNeuronString = "headNeurons"
 architectureString = "architecture"
 acceptanceCriterionString = "acceptanceCriterion"

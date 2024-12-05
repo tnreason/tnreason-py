@@ -1,7 +1,8 @@
 from tnreason import engine
+from tnreason.encoding import suffixes as suf
 
-momentCoreSuffix = "_momentCore"
-targetCoreSuffix = "_targetCore"
+momentCoreSuffix = suf.momentCoreSuffix + suf.headCoreSuffix
+targetCoreSuffix = suf.targetCoreSuffix + suf.headCoreSuffix
 
 
 class MomentMatcher:

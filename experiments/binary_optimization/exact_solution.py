@@ -33,8 +33,8 @@ def simulated_annealing_solution(model):
     return best_sample
 
 if __name__ == "__main__":
-    from examples.cnf_representation import formula_to_polynomial_core as ftp
-    from examples.binary_optimization import workload_to_pyqubo as wtp
+    from experiments.cnf_representation import formula_to_polynomial_core as ftp
+    from experiments.binary_optimization import workload_to_pyqubo as wtp
 
     knowledgeBase1 = {
        "w1": ["imp", "a", "b", 0.678],

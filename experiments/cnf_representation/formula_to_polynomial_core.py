@@ -1,5 +1,4 @@
-from examples.cnf_representation import cnf_building as cb
-from examples.cnf_representation import as_polynomial_core as ap
+from experiments.cnf_representation import as_polynomial_core as ap, cnf_building as cb
 
 from tnreason import engine
 

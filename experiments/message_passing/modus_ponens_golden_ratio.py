@@ -1,4 +1,4 @@
-from examples.message_passing import mp_moments as mpm
+from experiments.message_passing import mp_moments as mpm
 
 expressionsDict = {
     "e1": ["imp", "p", "q"],

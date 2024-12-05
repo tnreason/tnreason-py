@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     entryPositionList, interpretationsDict = tentris_sparql_evaluation_to_entryPositionList(querySolution)
 
-    from examples.sparql_representation import extract_datacores as ed
+    from experiments.sparql_representation import extract_datacores as ed
 
     core = ed.positionList_to_polynomialCore(entryPositionList, variables=[str(variable)[1:] for variable in
                                                                            querySolution.projected_variables])

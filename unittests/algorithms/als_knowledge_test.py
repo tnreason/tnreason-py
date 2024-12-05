@@ -5,7 +5,7 @@ from tnreason import engine
 
 import numpy as np
 
-from examples.als_gradient_fitting import alternating_least_squares as als
+from experiments.als_gradient_fitting import alternating_least_squares as als
 
 aSuf = encoding.suf.atomicVariableSuffix
 

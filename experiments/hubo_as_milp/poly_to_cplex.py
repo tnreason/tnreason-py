@@ -34,7 +34,7 @@ def poly_to_cplex_model(polyCore):
 
 
 if __name__ == "__main__":
-    from examples.cnf_representation import formula_to_polynomial_core as ftp
+    from experiments.cnf_representation import formula_to_polynomial_core as ftp
 
     polyCore = ftp.weightedFormulas_to_polynomialCore({
         "w1": ["imp", "a", "b", 0.678],
