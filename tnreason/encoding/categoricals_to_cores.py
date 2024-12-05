@@ -14,26 +14,27 @@ def create_categorical_cores(categoricalsDict, coreType=None):
     return catCores
 
 
-def create_constraintCoresDict(atoms, catName, coreType=None):
+def create_constraintCoresDict(atomColors, catColor, coreType=None):
     return {
-        catName + "_" + atomName + suf.restrictionCoreSuffix:
-            create_single_atomization(catName, len(atoms), i, atomName, coreType=coreType)[
-                catName + "_" + atomName + suf.restrictionCoreSuffix] for i, atomName in enumerate(atoms)}
+        catColor + "_" + atomName + suf.atomizationCoreSuffix:
+            create_single_atomization(catColor, len(atomColors), i, atomName, coreType=coreType)[
+                catColor + "_" + atomName + suf.atomizationCoreSuffix] for i, atomName in enumerate(atomColors)}
 
 
-def create_single_atomization(catName, catDim, position, atomName=None, coreType=None):
+def create_single_atomization(catColor, catDim, position, atomColor=None, coreType=None):
     """
     Creates the relation encoding of the categorical X with its atomization to the position (int).
     If the resulting atom is not named otherwise, we call it X=position.
     """
-    if atomName is None:
-        atomName = catName + "=" + str(position)
+    assert position < catDim, "Position out of range of the variable {}!".format(catColor)
+    if atomColor is None:
+        atomColor = catColor + "=" + str(position)
     atomizer = lambda catPos: [catPos == position]
-    return {catName + "_" + atomName + suf.restrictionCoreSuffix:
-                engine.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catName],
-                                                  outcolors=[atomName],
+    return {catColor + "_" + atomColor + suf.atomizationCoreSuffix:
+                engine.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catColor],
+                                                  outcolors=[atomColor],
                                                   function=atomizer, coreType=coreType,
-                                                  name=catName + "_" + atomName + suf.restrictionCoreSuffix
+                                                  name=catColor + "_" + atomColor + suf.atomizationCoreSuffix
                                                   )}
 
 

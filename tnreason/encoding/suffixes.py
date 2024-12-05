@@ -16,7 +16,7 @@ actSelCoreSuffix = "_asCore"
 
 dataCoreSuffix = "_dCore"
 
-restrictionCoreSuffix = "_rCore" # "Restriction Core to not infer with connectiveCore"
+atomizationCoreSuffix = "_aCore" # "Restriction Core to not infer with connectiveCore"
 
 queryCoreSuffix = "_qCore"
 

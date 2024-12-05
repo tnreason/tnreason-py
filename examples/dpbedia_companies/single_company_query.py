@@ -1,19 +1,28 @@
-from SPARQLWrapper import SPARQLWrapper, JSON
-import pandas as pd
-
 from examples.dpbedia_companies import query_strings as qs
 from tnreason.encoding import sparql_to_cores as stc
+from tnreason.encoding import categoricals_to_cores as ctc
+from tnreason.encoding import suffixes as suf
 from tnreason import engine
+
 dbpediaEndpointString = "https://dbpedia.org/sparql"
 
-
 polCoresDict, intDict = stc.queries_to_polynomialCores(dbpediaEndpointString,
-                                                       {"com": qs.companies_query,
-                                                        "branche": qs.branches_query,
-                                                        "size" : qs.size_query
-                                                        })
-engine.draw_factor_graph(polCoresDict)
+                                                       {"com": qs.comp_branch_location_query})
+
 print(polCoresDict["com_qCore"].shape)
+
+branchLocationList = engine.contract(polCoresDict, openColors=["branch"+suf.termVariableSuffix, "location"+suf.termVariableSuffix], method="PolynomialContractor")
+branchLocationList.add_identical_slices()
+print(branchLocationList.values)
+
+print(intDict)
+
+pos = 1
+atomizationCoreDict = ctc.create_single_atomization(catColor="company" + suf.termVariableSuffix,
+                                                    catDim=len(intDict["company"]), position=pos,
+                                                    atomColor=intDict["company"][pos])
+#engine.draw_factor_graph({**polCoresDict, **atomizationCoreDict})
+
 
 # companiesCore, intDict = stc.query_to_polynomialCore(dbpediaEndpointString, qs.companies_query, startInterpretationDict=dict())
 # print(intDict["company"][:5])
