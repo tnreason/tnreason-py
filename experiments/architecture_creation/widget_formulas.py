@@ -2,12 +2,12 @@ import ipywidgets as widgets
 from IPython.display import display
 
 from tnreason.encoding import neurons_to_cores as ntc
-
+from tnreason.encoding import suffixes as suf
 
 def find_selection_variables_neuron(neuronSpecList, neuronName):
     return {
-        neuronName + ntc.connectiveSelColorSuffix: neuronSpecList[0],
-        **{neuronName + "_" + ntc.posPrefix + str(i - 1) + ntc.candidatesColorSuffix: neuronSpecList[i] for i in
+        neuronName + suf.actSelVarSuffix: neuronSpecList[0],
+        **{neuronName + "_" + suf.varSelPosPrefix + str(i - 1) + suf.varSelVarSuffix: neuronSpecList[i] for i in
            range(1, len(neuronSpecList))}
     }
 

@@ -4,6 +4,9 @@ from queue import Queue
 
 
 class PolynomialPropagator:
+    """
+    A form of constraint propagation, where the constraints are the supports of the variables.
+    """
 
     def __init__(self, coresDict):
         self.coresDict = coresDict

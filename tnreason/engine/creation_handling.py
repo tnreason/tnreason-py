@@ -8,7 +8,7 @@ def get_core(coreType=None):
         from tnreason.engine.workload_to_numpy import NumpyCore
         return NumpyCore
     elif coreType == "PolynomialCore":
-        from tnreason.engine.polynomial_contractor import PolynomialCore
+        from tnreason.engine.polynomial_handling import PolynomialCore
         return PolynomialCore
     elif coreType == "HypertrieCore":
         from tnreason.engine.workload_to_tentris import HypertrieCore
@@ -24,7 +24,7 @@ def create_tensor_encoding(inshape, incolors, function, coreType=None, name="Enc
         from tnreason.engine.workload_to_numpy import np_tencoding_from_function
         return np_tencoding_from_function(inshape, incolors, function, name)
     elif coreType == "PolynomialCore":
-        from tnreason.engine.polynomial_contractor import poly_tencoding_from_function
+        from tnreason.engine.polynomial_handling import poly_tencoding_from_function
         return poly_tencoding_from_function(inshape, incolors, function, name)
     elif coreType == "HypertrieCore":
         from tnreason.engine.workload_to_tentris import ht_tencoding_from_function
@@ -54,7 +54,7 @@ def create_relational_encoding(inshape, outshape, incolors, outcolors, function,
         from tnreason.engine.workload_to_numpy import np_rencoding_from_function
         return np_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
     elif coreType == "PolynomialCore":
-        from tnreason.engine.polynomial_contractor import poly_rencoding_from_function
+        from tnreason.engine.polynomial_handling import poly_rencoding_from_function
         return poly_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
     elif coreType == "HypertrieCore":
         from tnreason.engine.workload_to_tentris import ht_rencoding_from_function

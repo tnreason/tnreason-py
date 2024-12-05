@@ -2,6 +2,10 @@ from docplex.mp.model import Model
 
 
 def poly_to_cplex_model(polyCore):
+    """
+    Need binary variables, i.e. leg dimension = 2!, Otherwise: Do atomization first.
+    Docplex format especially useful for translation to qiskit
+    """
     model = Model(str(polyCore.name) + "_gurobiModel")
 
     variableDict = {

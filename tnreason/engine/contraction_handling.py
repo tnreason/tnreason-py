@@ -43,7 +43,7 @@ def contract(coreDict, openColors, dimDict={}, method=None):
 
     ## Experimental Polynomial Contraction
     elif method == "PolynomialContractor":
-        from tnreason.engine.polynomial_contractor import PolynomialContractor
+        from tnreason.engine.polynomial_handling import PolynomialContractor
         return PolynomialContractor(coreDict=coreDict, openColors=openColors).contract()
 
 

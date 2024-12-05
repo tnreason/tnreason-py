@@ -2,8 +2,17 @@ import gurobipy as gp
 from gurobipy import GRB
 
 
+def optimize_gurobi_model(gurobiModel):
+    gurobiModel.optimize()
+    return {v.varName: v.x for v in gurobiModel.getVars()}
+
+
 def poly_to_gurobi_model(polyCore):
-    model = gp.Model(str(polyCore.name)+"_gurobiModel")
+    """
+    Need binary variables, i.e. leg dimension = 2!, Otherwise: Do atomization first.
+    """
+
+    model = gp.Model(str(polyCore.name) + "_gurobiModel")
 
     variableDict = {
         color: model.addVar(vtype=GRB.BINARY, name=color) for color in polyCore.colors
@@ -32,20 +41,3 @@ def poly_to_gurobi_model(polyCore):
 
     model.setObjective(objective, GRB.MAXIMIZE)
     return model
-
-
-if __name__ == "__main__":
-    from experiments.cnf_representation import formula_to_polynomial_core as ftp
-
-    polyCore = ftp.weightedFormulas_to_polynomialCore({
-        "w1": ["imp", "a", "b", 0.678],
-        "w2": ["a", 0.34]
-    })
-    print(polyCore)
-
-    model = poly_to_gurobi_model(polyCore)
-    model.optimize()
-
-    # Output the results
-    for v in model.getVars():
-        print(f'{v.varName}: {v.x}')

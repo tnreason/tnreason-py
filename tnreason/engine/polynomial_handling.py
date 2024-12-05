@@ -87,7 +87,6 @@ class PolynomialCore:
         self.shape = [self.shape[k] for k, col in enumerate(self.colors) if col in newColors]
         self.colors = newColors
 
-
     def add_identical_slices(self):
         newSlices = []
         alreadyFound = []
@@ -123,6 +122,13 @@ class PolynomialCore:
         else:
             raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
 
+    def get_argmax(self, method="gurobi"):
+        if method == "gurobi":
+            from tnreason.engine import poly_to_gurobi as ptg
+            return ptg.optimize_gurobi_model(ptg.poly_to_gurobi_model(binarize_polyCore(self)))
+        else:
+            raise ValueError("Maximation Method {} not implemented for PolynomialCore!".format(method))
+
 
 class PolynomialContractor:
 
@@ -156,3 +162,31 @@ def agreeing_dicts(pos1, pos2):
             if pos1[key] != pos2[key]:
                 return False
     return True
+
+
+def binarize_polyCore(polyCore):
+    ## Need to further enforce that states with concurring atoms cannot be selected!
+
+    binarizedColors = []
+    for i, color in enumerate(polyCore.colors):
+        if polyCore.shape[i] > 2:
+            binarizedColors = binarizedColors + [color + "_" + str(j) for j in range(polyCore.shape[i])]
+        else:
+            binarizedColors.append(color)
+
+    binarizedValues = []
+    for weight, posDict in polyCore.values:
+        binPosDict = {}
+        for color in posDict:
+            if polyCore.shape[polyCore.colors.index(color)] > 2:
+                binPosDict.update(
+                    {**{color + "_" + str(i): 0 for i in range(polyCore.shape[polyCore.colors.index(color)]) if
+                        i != posDict[color]},
+                     color + "_" + str(posDict[color]): 1})
+            else:
+                binPosDict[color] = posDict[color]
+        binarizedValues.append((weight, binPosDict))
+
+    return PolynomialCore(values=binarizedValues,
+                          shape=[2 for i in range(len(binarizedColors))],
+                          colors=binarizedColors)
