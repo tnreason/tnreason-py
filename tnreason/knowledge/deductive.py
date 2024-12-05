@@ -58,7 +58,7 @@ class InferenceProvider:
 
     def draw_samples(self, sampleNum, variableList=None, outType="int64"):
         if variableList is None:
-            variableList = self.distribution.atoms #[atomKey + encoding.suf.atomicVariableSuffix for atomKey in self.distribution.atoms]
+            variableList = self.distribution.distributedVariables
         sampleDf = pd.DataFrame(columns=variableList)
         for samplePos in range(sampleNum):
             sampleDf = pd.concat(

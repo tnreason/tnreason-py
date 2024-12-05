@@ -16,13 +16,13 @@ kb = knowledge.HybridKnowledgeBase(
 
 #exit()
 print(kb.weightedFormulas,"formulas")
-print(kb.atoms)
+print(kb.distributedVariables)
 kb.create_cores()
 
 
 
 infprovider = knowledge.InferenceProvider(kb)
-print(infprovider.distribution.atoms)
+print(infprovider.distribution.distributedVariables)
 print(infprovider.draw_samples(10))
 
 #encoding.get_variables({

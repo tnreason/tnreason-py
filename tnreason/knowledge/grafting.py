@@ -40,12 +40,13 @@ class Grafter:
         """
         Searches for a candidate formula
         """
-        atomColors = encoding.find_atoms(self.specDict[architectureString])
+        atomColors = encoding.find_atom_colors(self.specDict[architectureString])
         selectionColors = encoding.find_selection_colors(self.specDict[architectureString])
 
         empiricalDistribution = distributions.EmpiricalDistribution(sampleDf, atomColors)
-        statisticCores = encoding.create_architecture(self.specDict[architectureString],
-                                                      self.specDict[headNeuronString])
+        statisticCores = encoding.create_architecture(
+            encoding.parse_neuronNameDict_to_neuronColorDict(self.specDict[architectureString]),
+            self.specDict[headNeuronString])
 
         energyDict = {"pos": ({**statisticCores, **empiricalDistribution.create_cores()},
                               1 / empiricalDistribution.get_partition_function(atomColors)),
@@ -72,7 +73,6 @@ class Grafter:
                                        openColors=encoding.find_selection_colors(
                                            self.specDict[architectureString])).multiply(-energyDict["neg"][1])
             klDivergences = posPhase.calculate_coordinatewise_kl_to(negPhase)
-
             solutionDict = klDivergences.get_argmax()
         else:
             raise ValueError("Sampling Method {} not known!".format(self.specDict[methodSelectionString]))

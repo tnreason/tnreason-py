@@ -28,7 +28,7 @@ class EmpiricalDistribution:
         """
         if atomKeys is None:
             atomKeys = list(sampleDf.columns)
-        self.atoms = atomKeys
+        self.distributedVariables = atomKeys
         self.sampleDf = sampleDf
         self.dataNum = sampleDf.values.shape[0]
 
@@ -36,14 +36,14 @@ class EmpiricalDistribution:
         self.dimensionsDict = dimensionsDict
 
     def __str__(self):
-        return "Empirical Distribution with {} samples of atoms {}.".format(self.dataNum, self.atoms)
+        return "Empirical Distribution with {} samples of atoms {}.".format(self.dataNum, self.distributedVariables)
 
     def create_cores(self):
-        return encoding.create_data_cores(self.sampleDf, atomKeys=self.atoms, interpretation=self.interpretation,
+        return encoding.create_data_cores(self.sampleDf, atomKeys=self.distributedVariables, interpretation=self.interpretation,
                                           dimensionsDict=self.dimensionsDict)
 
     def get_partition_function(self, allAtoms=[]):
-        unseenAtomNum = len([atom for atom in allAtoms if atom not in self.atoms])
+        unseenAtomNum = len([atom for atom in allAtoms if atom not in self.distributedVariables])
         return (self.dataNum * (2 ** unseenAtomNum))
 
 
@@ -89,17 +89,17 @@ class HybridKnowledgeBase:
         """
         Identifies the atoms of the Knowledge Base
         """
-        self.atoms = encoding.get_all_atoms(
+        self.distributedVariables = encoding.get_all_atoms(
             {**{key: self.weightedFormulas[key][:-1] for key in self.weightedFormulas},
              **self.facts})
         for constraintKey in self.categoricalConstraints:
             for atom in self.categoricalConstraints[constraintKey]:
-                if atom not in self.atoms:
-                    self.atoms.append(atom)
+                if atom not in self.distributedVariables:
+                    self.distributedVariables.append(atom)
         for eKey in self.evidence:
-            if eKey not in self.atoms:
-                self.atoms.append(eKey)
-        self.atoms = list(self.atoms)
+            if eKey not in self.distributedVariables:
+                self.distributedVariables.append(eKey)
+        self.distributedVariables = list(self.distributedVariables)
 
     def from_yaml(self, loadPath):
         modelSpec = encoding.load_from_yaml(loadPath)
@@ -136,11 +136,11 @@ class HybridKnowledgeBase:
         return {**encoding.create_formulas_cores({**self.weightedFormulas, **self.facts}),
                 **encoding.create_atom_evidence_cores(self.evidence),
                 **encoding.create_categorical_cores(self.categoricalConstraints),
-                **encoding.create_atomization_cores([atom for atom in self.atoms if "=" in atom], self.dimensionDict),
+                **encoding.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom], self.dimensionDict),
                 **self.backCores}
 
     def get_partition_function(self, allAtoms=[]):
-        unseenAtomNum = len([atom for atom in allAtoms if atom not in self.atoms])
+        unseenAtomNum = len([atom for atom in allAtoms if atom not in self.distributedVariables])
         return (engine.contract(coreDict=self.create_cores(), openColors=[]).values
                 * (2 ** unseenAtomNum))
 
@@ -179,4 +179,4 @@ class HybridKnowledgeBase:
         return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}
 
     def get_dimension_dict(self):
-        return {atom: 2 for atom in self.atoms}
+        return {atom: 2 for atom in self.distributedVariables}

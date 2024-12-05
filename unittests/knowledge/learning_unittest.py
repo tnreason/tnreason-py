@@ -14,7 +14,29 @@ sampleDf = knowledge.InferenceProvider(genKB).draw_samples(100)
 
 
 class HybridLearnerTest(unittest.TestCase):
-    def test_boosting(self):
+    def test_boosting_kl_max(self):
+        learner = knowledge.HybridLearner(knowledge.HybridKnowledgeBase(
+            weightedFormulas={"w1": ["not", "a3", 2],
+                              "w2": ["a2", -1]}
+        ))
+        learner.graft_formula({
+            "method": "exactKLMax",
+            "sweeps": 10,
+            "headNeurons": ["neur1"],
+            "architecture":
+                {"neur1": [["imp"],
+                           ["a1"],
+                           ["a3", "a2"]]
+                 },
+            "acceptanceCriterion": "always",
+            "calibrationSweeps": 2
+        }, sampleDf, stepName="_funBoost")
+        hybridKB = learner.get_knowledge_base()
+
+        self.assertEqual(hybridKB.facts["neur1_funBoost"], ["not", ["imp", "a1", "a3"]]) # Different solution to the Energy Max!
+        self.assertEqual(hybridKB.facts["w1"], ["not", "a3"])
+
+    def test_boosting_energy_max(self):
         learner = knowledge.HybridLearner(knowledge.HybridKnowledgeBase(
             weightedFormulas={"w1": ["not", "a3", 2],
                               "w2": ["a2", -1]}

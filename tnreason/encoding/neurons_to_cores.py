@@ -4,25 +4,44 @@ from tnreason.encoding import connectives as con
 from tnreason.encoding import formulas_to_cores as enform
 from tnreason.encoding import suffixes as suf
 
-posPrefix = "p"
+
+def parse_neuronNameDict_to_neuronColorDict(neuronNameDict):
+    return {neuronName: [neuronNameDict[neuronName][0]] + [
+        convert_candidateNames_to_colorList(candidatesList, neuronNameDict.keys()) for candidatesList in
+        neuronNameDict[neuronName][1:]] for neuronName in neuronNameDict}
 
 
-def create_architecture(neuronDict, headNeurons=[], coreType=None):
+def convert_candidateNames_to_colorList(candidatesList, neuronNames):
+    if isinstance(candidatesList, str):
+        varKey, pos = candidatesList.split("=")
+        return varKey + suf.categoricalVariableSuffix + "=" + pos
+    else:
+        colorList = []
+        for candidate in candidatesList:
+            if candidate in neuronNames:
+                colorList.append(candidate + suf.neurVariableSuffix)
+            else:
+                colorList.append(candidate + suf.atomicVariableSuffix)
+        return colorList
+
+
+def create_architecture(neuronColorDict, headNeuronNames=[], coreType=None):
     """
     Creates a tensor network of neuron cores with selection colors
         * neuronDict: Dictionary specifying to each neuronName a list of candidates (for the connective and the arguments)
         * headNeurons: List of neuronNames to be associated with hard headCores
     """
     architectureCores = {}
-    for neuronName in neuronDict.keys():
+    for neuronName in neuronColorDict.keys():
         architectureCores = {**architectureCores,
-                             **create_neuron(neuronName, neuronDict[neuronName][0], {
-                                 neuronName + "_" + posPrefix + str(i): posCandidates for i, posCandidates in
-                                 enumerate(neuronDict[neuronName][1:])
+                             **create_neuron(neuronName, neuronColorDict[neuronName][0], {
+                                 neuronName + suf.varSelPosPrefix + str(i): posCandidates for i, posCandidates in
+                                 enumerate(neuronColorDict[neuronName][1:])
                              }, coreType=coreType)}
-    for headNeuron in headNeurons:
+    for headNeuronName in headNeuronNames:
         architectureCores = {**architectureCores,
-                             **enform.create_boolean_head(color=headNeuron, headType="truthEvaluation")}
+                             **enform.create_boolean_head(color=headNeuronName + suf.neurVariableSuffix,
+                                                          headType="truthEvaluation")}
     return architectureCores
 
 
@@ -78,15 +97,15 @@ def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreT
     """
     if len(candidateKeys) == 1:
         return engine.create_relational_encoding(inshape=[len(connectiveList), 2], outshape=[2],
-                                                 incolors=[neuronName + suf.varSelVarSuffix, *candidateKeys],
-                                                 outcolors=[neuronName],
+                                                 incolors=[neuronName + suf.actSelVarSuffix, *candidateKeys],
+                                                 outcolors=[neuronName + suf.neurVariableSuffix],
                                                  function=con.get_unary_connective_selector(connectiveList),
                                                  coreType=coreType,
                                                  name=neuronName + suf.actSelCoreSuffix)
     elif len(candidateKeys) == 2:
         return engine.create_relational_encoding(inshape=[len(connectiveList), 2, 2], outshape=[2],
-                                                 incolors=[neuronName + suf.varSelVarSuffix, *candidateKeys],
-                                                 outcolors=[neuronName],
+                                                 incolors=[neuronName + suf.actSelVarSuffix, *candidateKeys],
+                                                 outcolors=[neuronName + suf.neurVariableSuffix],
                                                  function=con.get_binary_connective_selector(connectiveList),
                                                  coreType=coreType,
                                                  name=neuronName + suf.actSelCoreSuffix)
@@ -116,9 +135,9 @@ def fix_neurons(neuronDict, selectionDict):
     """
     rawFormulas = {}
     for neuronName in neuronDict:
-        rawFormulas[neuronName] = [neuronDict[neuronName][0][selectionDict[neuronName + suf.varSelVarSuffix]]] + [
+        rawFormulas[neuronName] = [neuronDict[neuronName][0][selectionDict[neuronName + suf.actSelVarSuffix]]] + [
             fix_selection(neuronDict[neuronName][i],
-                          selectionDict[neuronName + "_" + posPrefix + str(i - 1) + suf.varSelVarSuffix])
+                          selectionDict[neuronName + suf.varSelPosPrefix + str(i - 1) + suf.varSelVarSuffix])
             for i in range(1, len(neuronDict[neuronName]))]
     return rawFormulas
 
@@ -158,19 +177,20 @@ def replace_neuronnames(currentNeuronName, fixedNeurons):
 
 
 ## Auxiliary functions for knowledge identifying the atoms and the dimension of selection variables
-def find_atoms(specDict):
+def find_atom_colors(specDict):
     atoms = set()
     for neuronName in specDict.keys():
         for positionList in specDict[neuronName][1:]:
-            atoms = atoms | set(positionList)
+            if isinstance(positionList, list):
+                atoms = atoms | set([atomName + suf.atomicVariableSuffix for atomName in positionList])
     return list(atoms)
 
 
 def find_selection_dimDict(specDict):
     dimDict = {}
     for neuronName in specDict:
-        dimDict.update({neuronName + suf.varSelVarSuffix: len(specDict[neuronName][0]),
-                        **{neuronName + "_" + posPrefix + str(i) + suf.varSelVarSuffix: len(candidates)
+        dimDict.update({neuronName + suf.actSelVarSuffix: len(specDict[neuronName][0]),
+                        **{neuronName + suf.varSelPosPrefix + str(i) + suf.varSelVarSuffix: len(candidates)
                            for i, candidates in enumerate(specDict[neuronName][1:])}})
     return dimDict
 
@@ -181,7 +201,7 @@ def find_selection_colors(specDict):
     """
     colors = []
     for neuronName in specDict:
-        colors.append(neuronName + suf.varSelVarSuffix)
-        colors = colors + [neuronName + "_" + posPrefix + str(i) + suf.varSelVarSuffix for i in
+        colors.append(neuronName + suf.actSelVarSuffix)
+        colors = colors + [neuronName + suf.varSelPosPrefix + str(i) + suf.varSelVarSuffix for i in
                            range(len(specDict[neuronName][1:]))]
     return colors

@@ -8,7 +8,7 @@ class KnowledgePropagator:
     """
 
     def __init__(self, knowledgeBase, evidenceDict={}):
-        self.atoms = knowledgeBase.atoms
+        self.atoms = knowledgeBase.distributedVariables
         self.knowledgeCores = {
             **knowledgeBase.create_cores(),
             **encoding.create_atom_evidence_cores(evidenceDict)}

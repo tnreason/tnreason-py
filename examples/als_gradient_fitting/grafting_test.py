@@ -21,10 +21,10 @@ sampleNum = 100
 samples = knowledge.InferenceProvider(generatingModel).draw_samples(sampleNum)
 
 negativeCores = {**encoding.create_formulas_cores(currentModel.weightedFormulas),
-                 **encoding.create_architecture(architecture, headNeurons=["n1"])}
+                 **encoding.create_architecture(architecture, headNeuronNames=["n1"])}
 
 positiveCores = {**encoding.create_data_cores(samples, ["a","b","c"]),
-                 **encoding.create_architecture(architecture, headNeurons=["n1"])}
+                 **encoding.create_architecture(architecture, headNeuronNames=["n1"])}
 
 networkCores = {
     "n_a": encoding.create_random_core("n_a", [2, 3], ['n1_actVar_tbo', 'n1_p0_selVar_tbo']),

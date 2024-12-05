@@ -19,11 +19,14 @@ categoricalCoreSuffix = "_rCore" # "Restriction Core to not infer with connectiv
 Colors
 """
 
-categoricalVariableSuffix = ""#_cVar"#_cVar" # _cVar
-atomicVariableSuffix = ""#_aVar"#_aVar" # _aVar
+categoricalVariableSuffix = "_cVar"
+atomicVariableSuffix = "_aVar"
+
+neurVariableSuffix = "_nVar"
 
 selectionVariableSuffix = "_sVar"
 varSelVarSuffix = "_vsVar"
+varSelPosPrefix = "_p"
 actSelVarSuffix = "_asVar"
 
 termVariableSuffix = "_tVar"
