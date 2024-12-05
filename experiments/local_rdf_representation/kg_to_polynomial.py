@@ -1,5 +1,5 @@
 from tnreason import engine
-from experiments.kg_representation import find_individuals as fi
+from experiments.local_rdf_representation import find_individuals as fi
 
 import rdflib
 

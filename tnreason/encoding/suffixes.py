@@ -18,6 +18,8 @@ dataCoreSuffix = "_dCore"
 
 restrictionCoreSuffix = "_rCore" # "Restriction Core to not infer with connectiveCore"
 
+queryCoreSuffix = "_qCore"
+
 """
 Colors
 """

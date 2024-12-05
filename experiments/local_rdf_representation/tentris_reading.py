@@ -39,12 +39,12 @@ if __name__ == "__main__":
             ?x ?z ?y .
         }
     """
-    querySolution = tentris_evaluate_query(rdfFilePath="/home/examples/sparql_representation/example_kg/THWS_demo.ttl",
+    querySolution = tentris_evaluate_query(rdfFilePath="/home/examples/local_rdf_representation/example_kg/THWS_demo.ttl",
                                            queryString=queryString)
 
     entryPositionList, interpretationsDict = tentris_sparql_evaluation_to_entryPositionList(querySolution)
 
-    from experiments.sparql_representation import extract_datacores as ed
+    from experiments.local_rdf_representation import extract_datacores as ed
 
     core = ed.positionList_to_polynomialCore(entryPositionList, variables=[str(variable)[1:] for variable in
                                                                            querySolution.projected_variables])

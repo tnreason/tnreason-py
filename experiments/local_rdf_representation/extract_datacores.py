@@ -33,7 +33,7 @@ def positionList_to_polynomialCore(positionList, variables=[], shape=[]):
 
 
 if __name__ == "__main__":
-    from experiments.sparql_representation import rdflib_reading as rr
+    from experiments.local_rdf_representation import rdflib_reading as rr
     import rdflib
 
     g = rdflib.Graph()
