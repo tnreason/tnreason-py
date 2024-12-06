@@ -74,7 +74,7 @@ def create_variable_selectors(candidateKey, variables,
         catName, dimBracket = variables.split("=")
         dim = int(dimBracket.split("[")[1][:-1])
 
-        selFunc = lambda s, c: c == s  # Whether selection variable coincides with control variable
+        selFunc = lambda s, c: [c == s]  # Whether selection variable coincides with control variable
         return {candidateKey + "_" + variables + suf.varSelCoreSuffix: engine.create_relational_encoding(
             inshape=[dim, dim], outshape=[2], incolors=[candidateKey + suf.varSelVarSuffix, catName],
             outcolors=[candidateKey],

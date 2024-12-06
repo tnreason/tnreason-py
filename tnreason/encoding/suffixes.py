@@ -27,7 +27,7 @@ Colors
 categoricalVariableSuffix = "_cVar"
 atomicVariableSuffix = "_aVar"
 
-neurVariableSuffix = "_nVar"
+neurVariableSuffix = ""#_nVar"
 
 selectionVariableSuffix = "_sVar"
 varSelVarSuffix = "_vsVar"
