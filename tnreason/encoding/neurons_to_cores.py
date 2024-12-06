@@ -148,7 +148,7 @@ def fix_selection(choices, position):
     Materializes a choice, either from a categorical variable (when choices is str) or from a list of possibilities (when choices is a list of str)
     """
     if isinstance(choices, str):  # The case of a categorical variable
-        return choices + "=" + str(position)
+        return choices.split("=")[0] + "=" + str(position)
     else:  # The case of a list of possibilities
         return choices[position]
 

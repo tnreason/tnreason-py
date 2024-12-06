@@ -17,4 +17,4 @@ branchLocationList = engine.contract(polCoresDict, openColors=["branch" + suf.te
 branchLocationList.add_identical_slices()
 print(branchLocationList.values)
 
-print(intDict
+print(intDict)

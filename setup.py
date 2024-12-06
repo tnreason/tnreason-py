@@ -8,7 +8,7 @@ setup(
     version="1.0.1",
     author="Alex Goessmann",
     author_email="alex.goessmann@web.de",
-    description="A package for reasoning based on encoding networks",
+    description="A package for reasoning based on tensor networks",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
