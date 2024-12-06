@@ -12,11 +12,8 @@ neuronColorDict = encoding.parse_neuronNameDict_to_neuronColorDict(neuronNameDic
 
 contracted = engine.contract(coreDict={**tbApproximated, **encoding.create_architecture(neuronColorDict, headNeuronNames=["conNeur0"])},
                              openColors=encoding.find_selection_colors(neuronNameDict))
-#print(encoding.find_selection_colors(neuronNameDict))
-#engine.draw_factor_graph({**tbApproximated, **encoding.create_architecture(neuronColorDict, headNeuronNames=["conNeur0"])})
-#print(contracted.values)
-print(neuronNameDict)
-print(neuronColorDict)
-
 solution = contracted.get_argmax()
+
+print(solution)
+print(encoding.create_solution_expression(neuronNameDict, solution))
 print(encoding.create_solution_expression(neuronColorDict, solution))

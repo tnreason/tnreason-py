@@ -1,4 +1,4 @@
-from tnreason.engine import polynomial_contractor as gsc
+from tnreason.engine import polynomial_handling as gsc
 
 import numpy as np
 
