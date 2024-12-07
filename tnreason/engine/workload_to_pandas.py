@@ -45,6 +45,9 @@ class PandasCore:
                 value = value + row[self.valueColumn]
         return value
 
+    def clone(self):
+        return PandasCore(self.values, self.colors, self.name, self.shape)
+
     def contract_with(self, core2):
         core2.values = core2.values.rename(columns={core2.valueColumn: self.valueColumn + "_sec"})
         colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},
@@ -76,13 +79,25 @@ class PandasCore:
                                                                 j, col] == self.nanValue and col not in newColors]) * \
                                                    self.values.loc[j, self.valueColumn]
         self.values = self.values.groupby(newColors)[self.valueColumn].sum().reset_index()
+        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color in newColors]
+
         self.colors = newColors
+        self.shape = newShape
 
     def add_identical_slices(self):
         self.values = self.values.groupby(self.colors)[self.valueColumn].sum().reset_index()
 
-    def multiply(self, weight):
-        self.values[self.valueColumn] = weight * self.values[self.valueColumn]
+    def multiply(self, weight, sliceDict=dict()):
+        """
+        Cannot handle yet situation of nans in sliceDict
+        """
+        if len(sliceDict) == 0:
+            self.values[self.valueColumn] = weight * self.values[self.valueColumn]
+        else:
+            combined_condition = np.ones(self.values.shape[0], dtype=bool)
+            for col, value in sliceDict.items():
+                combined_condition &= (self.values[col] == value)
+            self.values.loc[combined_condition, self.valueColumn] *= weight
 
     def sum_with(self, sumCore):
         sumCore.values = sumCore.values.rename(columns={sumCore.valueColumn: self.valueColumn})

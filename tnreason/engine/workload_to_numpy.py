@@ -79,7 +79,8 @@ class NumpyCore:
 
     def multiply(self, weight, sliceDict=dict()):
         if len(sliceDict) == 0:
-            return NumpyCore(weight * self.values, self.colors, self.name)
+            self.values = weight * self.values
+            return self.clone()
         else:
             subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
             self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]

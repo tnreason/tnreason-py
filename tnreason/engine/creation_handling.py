@@ -10,6 +10,9 @@ def get_core(coreType=None):
     elif coreType == "PolynomialCore":
         from tnreason.engine.polynomial_handling import PolynomialCore
         return PolynomialCore
+    elif coreType == "PandasCore":
+        from tnreason.engine.workload_to_pandas import PandasCore
+        return PandasCore
     elif coreType == "HypertrieCore":
         from tnreason.engine.workload_to_tentris import HypertrieCore
         return HypertrieCore
