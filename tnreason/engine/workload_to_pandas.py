@@ -2,22 +2,24 @@ import pandas as pd
 
 import numpy as np
 
+valueColumnString = "values"
+
 
 def pandas_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="PolyEncoding"):
     df = pd.DataFrame(data=[i + tuple([int(entry) for entry in function(*i)] + [1]) for i in np.ndindex(*inshape)],
-                      columns=incolors + outcolors + ["values"])
-    return PandasCore(values=df, colors=incolors + outcolors, shape=inshape + outshape, valueColumn="values")
+                      columns=incolors + outcolors + [valueColumnString])
+    return PandasCore(values=df, colors=incolors + outcolors, shape=inshape + outshape, valueColumn=valueColumnString)
 
 
 def pandas_tencoding_from_function(inshape, incolors, function, name="PolyEncoding"):
     df = pd.DataFrame(data=[i + (function(*i),) for i in np.ndindex(*inshape) if function(*i) != 0],
-                      columns=incolors + ["values"])
-    return PandasCore(values=df, colors=incolors, shape=inshape, valueColumn="values")
+                      columns=incolors + [valueColumnString])
+    return PandasCore(values=df, colors=incolors, shape=inshape, valueColumn=valueColumnString)
 
 
 class PandasCore:
 
-    def __init__(self, values, colors, name=None, shape=None, valueColumn="values", nanValue=-1):
+    def __init__(self, values, colors, name=None, shape=None, valueColumn=valueColumnString, nanValue=-1):
         self.colors = colors
         self.name = name
 

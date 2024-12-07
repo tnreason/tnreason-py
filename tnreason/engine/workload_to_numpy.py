@@ -20,9 +20,11 @@ def np_from_poly(polyCore):
     for val, posDict in polyCore.values:
         slicesTuple = tuple(posDict.get(color, slice(None)) for color in polyCore.colors)
         tbAdded = np.zeros(polyCore.shape)
-        tbAdded[slicesTuple] = val*np.ones(shape=[polyCore.shape[polyCore.colors.index(color)] for color in polyCore.colors if color not in posDict])
+        tbAdded[slicesTuple] = val * np.ones(
+            shape=[polyCore.shape[polyCore.colors.index(color)] for color in polyCore.colors if color not in posDict])
         values = values + tbAdded
     return NumpyCore(values=values, colors=polyCore.colors, name=polyCore.name)
+
 
 def np_random_core(shape, colors, randomEngine, name):
     if randomEngine == "NumpyUniform":
@@ -75,8 +77,13 @@ class NumpyCore:
             self.reorder_colors(sumCore.colors)
             return NumpyCore(self.values + sumCore.values, self.colors, self.name)
 
-    def multiply(self, weight):
-        return NumpyCore(weight * self.values, self.colors, self.name)
+    def multiply(self, weight, sliceDict=dict()):
+        if len(sliceDict) == 0:
+            return NumpyCore(weight * self.values, self.colors, self.name)
+        else:
+            subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
+            self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]
+            return self.clone()
 
     def exponentiate(self):
         return NumpyCore(np.exp(self.values), self.colors, self.name)

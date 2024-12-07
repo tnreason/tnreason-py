@@ -1,3 +1,5 @@
+import numpy as np
+
 defaultContractionMethod = "NumpyEinsum"
 
 
@@ -49,3 +51,11 @@ def contract(coreDict, openColors, dimDict={}, method=None):
 
     else:
         raise ValueError("Contractor Type {} not known.".format(method))
+
+def normate(coreDict, outColors, inColors, dimDict={}, method=None):
+    contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, method=method)
+    sliceNorms = contract({"rawCon":contracted}, openColors=inColors, dimDict=dimDict, method=method)
+    for x in np.ndindex(sliceNorms.shape):
+        assert sliceNorms[x] != 0, "Slice {} cannot be normated!".format(x)
+        contracted = contracted.multiply(1/sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
+    return contracted
