@@ -89,7 +89,9 @@ def create_from_slice_iterator(shape, colors, sliceIterator, coreType=defaultCor
     return core
 
 
-def convert(inCore, outCoreType="NumpyCore"):
+def convert(inCore, outCoreType=None):
+    if outCoreType is None:
+        outCoreType = defaultCoreType
     return create_from_slice_iterator(inCore.shape, inCore.colors, iter(inCore), coreType=outCoreType)
 
 

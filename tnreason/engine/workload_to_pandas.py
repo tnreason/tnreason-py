@@ -115,11 +115,13 @@ class PandasCore:
         """
         if len(sliceDict) == 0:
             self.values[self.valueColumn] = weight * self.values[self.valueColumn]
+            return self
         else:
             combined_condition = np.ones(self.values.shape[0], dtype=bool)
             for col, value in sliceDict.items():
                 combined_condition &= (self.values[col] == value)
             self.values.loc[combined_condition, self.valueColumn] *= weight
+            return self
 
     def sum_with(self, sumCore):
         sumCore.values = sumCore.values.rename(columns={sumCore.valueColumn: self.valueColumn})

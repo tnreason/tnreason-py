@@ -1,23 +1,22 @@
 import unittest
 
-from tnreason.encoding import sparql_to_cores as stc
+from tnreason.encoding import workload_to_sparqlwrapper as wts
+
 
 class DBpediaTest(unittest.TestCase):
     def test_dppedia(self):
-
-        results = stc.wrapper_json_evaluate_query(endpointString="https://dbpedia.org/sparql", queryString="""
+        resultCore, interpretationDict = wts.query_to_core(endpointString="https://dbpedia.org/sparql", queryString="""
             SELECT DISTINCT ?x ?y ?z
             WHERE { 
                 ?x ?y ?z.
             }
             LIMIT 10
-        """)
+        """, coreType="PolynomialCore")
 
-        entryPositionList, imDict = stc.query_result_to_entryPositionList(results, dict())
-        self.assertTrue(len(entryPositionList) == 10)
+        self.assertTrue(len(resultCore.values) == 10)
 
     def test_categorical(self):
-        results = stc.wrapper_json_evaluate_query(endpointString="https://dbpedia.org/sparql", queryString="""
+        resultCore, interpretationDict = wts.query_to_core(endpointString="https://dbpedia.org/sparql", queryString="""
         PREFIX dbo: <http://dbpedia.org/ontology/>
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         SELECT DISTINCT ?company ?branch ?location
@@ -33,5 +32,3 @@ class DBpediaTest(unittest.TestCase):
                                <http://dbpedia.org/resource/Spain>))
         }
         """)
-
-        entryPositionList, imDict = stc.query_result_to_entryPositionList(results, dict())

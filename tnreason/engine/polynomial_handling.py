@@ -28,8 +28,8 @@ class PolynomialCore:
         self.colors = colors
         self.name = name
 
-        if shape is not None:
-            self.shape = shape
+        #if shape is not None:
+        self.shape = shape
 
         if isinstance(values, np.ndarray):
             self.ell_zero_initialize_from_numpy(values)
@@ -54,6 +54,9 @@ class PolynomialCore:
 
     def __iter__(self):
         return iter(self.values)
+
+    def clone(self):
+        return PolynomialCore(self.values.copy(), self.colors.copy(), self.name, shape=self.shape)  # ! Shallow Copies?
 
     def ell_zero_initialize_from_numpy(self, arr):
         """
@@ -106,9 +109,17 @@ class PolynomialCore:
                 newSlices.append((val, pos))
         self.values = newSlices
 
-    def multiply(self, weight):
-        return PolynomialCore(values=[(weight * val, pos) for (val, pos) in self.values],
-                              shape=self.shape, colors=self.colors, name=self.name)
+    def multiply(self, weight, sliceDict=dict()):
+
+        """
+        Cannot handle yet situation of nans in sliceDict
+        """
+        if len(sliceDict) == 0:
+            self.values = [(weight*val, posDict) for val, posDict in self]
+            return self
+        else:
+            self.values = [(weight*val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for val, posDict in self]
+            return self
 
     def sum_with(self, sumCore):
         colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},

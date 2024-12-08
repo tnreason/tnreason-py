@@ -89,11 +89,11 @@ class NumpyCore:
     def multiply(self, weight, sliceDict=dict()):
         if len(sliceDict) == 0:
             self.values = weight * self.values
-            return self.clone()
+            return self
         else:
             subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
             self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]
-            return self.clone()
+            return self
 
     def exponentiate(self):
         return NumpyCore(np.exp(self.values), self.colors, self.name)
