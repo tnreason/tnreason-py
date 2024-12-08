@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 defaultCoreType = "NumpyCore"
 
 
@@ -69,6 +72,27 @@ def create_relational_encoding(inshape, outshape, incolors, outcolors, function,
         raise ValueError("Core Type {} not supported for .".format(coreType))
 
 
+def create_from_slice_iterator(shape, colors, sliceIterator, coreType=defaultCoreType, name="Iterator"):
+    if coreType == "NumpyCore":
+        from tnreason.engine.workload_to_numpy import NumpyCore
+        core = NumpyCore(values=np.zeros(shape), colors=colors, name=name)
+    elif coreType == "PolynomialCore":
+        from tnreason.engine.polynomial_handling import PolynomialCore
+        core = PolynomialCore(values=[], colors=colors, name=name, shape=shape)
+    elif coreType == "PandasCore":
+        from tnreason.engine.workload_to_pandas import PandasCore
+        core = PandasCore(values=pd.DataFrame(columns=colors), colors=colors, name=name, shape=shape)
+    else:
+        raise ValueError("Core Type {} not supported for .".format(coreType))
+    for value, sliceDict in sliceIterator:
+        core[sliceDict] = value
+    return core
+
+
+def convert(inCore, outCoreType="NumpyCore"):
+    return create_from_slice_iterator(inCore.shape, inCore.colors, iter(inCore), coreType=outCoreType)
+
+
 def get_image(core, inShape, imageValues=[float(0), float(1)]):
     import numpy as np
     for indices in np.ndindex(tuple(inShape)):
@@ -106,11 +130,3 @@ def create_partitioned_relational_encoding(inshape, outshape, incolors, outcolor
                                            coreType=coreType,
                                            name=parKey + nameSuffix)
             for parKey in partitionDict}
-
-
-def convert(inCore, inCoreType="PolynomialCore", outCoreType="NumpyCore"):
-    if inCoreType == "PolynomialCore":
-        if outCoreType == "NumpyCore":
-            from tnreason.engine.workload_to_numpy import np_from_poly
-            return np_from_poly(inCore)
-    raise ValueError("Conversion of {} to {} not implemented!".format(inCoreType, outCoreType))

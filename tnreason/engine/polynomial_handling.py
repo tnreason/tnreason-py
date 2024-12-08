@@ -49,6 +49,9 @@ class PolynomialCore:
                 value += entry[0]
         return value
 
+    def __setitem__(self, sliceDict, value):
+        self.values.append((value, sliceDict))
+
     def __iter__(self):
         return iter(self.values)
 

@@ -11,7 +11,7 @@ polCoresDict, intDict = stc.queries_to_polynomialCores(dbpediaEndpointString,
                                                        {"com": qs.comp_branch_location_query})
 
 convertedQueryCoresDict = {
-    key: engine.convert(inCore=polCoresDict[key], inCoreType="PolynomialCore", outCoreType="NumpyCore") for key in
+    key: engine.convert(inCore=polCoresDict[key], outCoreType="NumpyCore") for key in
     polCoresDict
 }
 

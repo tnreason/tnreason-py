@@ -47,6 +47,13 @@ class PandasCore:
                 value = value + row[self.valueColumn]
         return value
 
+    def __setitem__(self, sliceDict, value):
+        new_row = pd.DataFrame(
+            {**{color: [sliceDict[color]] for color in sliceDict},
+             **{color: [self.nanValue] for color in self.colors if color not in sliceDict},
+             self.valueColumn: [value]})
+        self.values = pd.concat([self.values, new_row], ignore_index=True)
+
     def __iter__(self):
         return self
 
@@ -55,7 +62,7 @@ class PandasCore:
             rowDict = self.values.iloc[self.index].to_dict()
             scalar = rowDict.pop(self.valueColumn)
             self.index += 1
-            return (scalar, {color : int(rowDict[color]) for color in rowDict})
+            return (scalar, {color: int(rowDict[color]) for color in rowDict})
         else:
             self.index = 0
             raise StopIteration
