@@ -57,8 +57,13 @@ class NumpyCore:
     def __getitem__(self, item):
         return self.values[item]
 
-    def __setitem__(self, key, value):
-        self.values[key] = value
+    def __setitem__(self, sliceDict=dict(), value=0):
+        """
+        Adds a value onto the slice, not erasing the values before!
+        """
+        subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
+        onesShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in sliceDict]
+        self.values[subscript] = self.values[subscript] + value * np.ones(shape=onesShape)
 
     def __iter__(self):
         return self
