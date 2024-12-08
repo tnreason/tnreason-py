@@ -48,6 +48,8 @@ class NumpyCore:
         if len(self.colors) != len(set(self.colors)):
             raise ValueError("There are duplicate colors in the colors {} of Core {}!".format(colors, name))
 
+        self.index = 0
+
     def __str__(self):
         return "## Numpy Core " + str(self.name) + " ##\nValues with shape: " + str(self.shape) + "\nColors: " + str(
             self.colors)
@@ -57,6 +59,19 @@ class NumpyCore:
 
     def __setitem__(self, key, value):
         self.values[key] = value
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index < np.prod(self.values.shape):
+            indexTuple = np.unravel_index(self.index, self.values.shape)
+            value = self.values[indexTuple]
+            self.index += 1
+            return (value, {color: indexTuple[i] for i, color in enumerate(self.colors)})
+        else:
+            self.index = 0
+            raise StopIteration
 
     def clone(self):
         return NumpyCore(self.values.copy(), self.colors.copy(), self.name)  # ! Shallow Copies?

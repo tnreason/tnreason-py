@@ -49,6 +49,9 @@ class PolynomialCore:
                 value += entry[0]
         return value
 
+    def __iter__(self):
+        return iter(self.values)
+
     def ell_zero_initialize_from_numpy(self, arr):
         """
         Initialization of the slices by all nonzero coordinates of the array, resulting in ell_zero(arr) many monomials

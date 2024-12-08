@@ -35,6 +35,8 @@ class PandasCore:
         self.nanValue = nanValue
         self.values = self.values.fillna(nanValue)
 
+        self.index = 0
+
     def __getitem__(self, item):
         if isinstance(item, int):
             item = [item]
@@ -44,6 +46,19 @@ class PandasCore:
             if all([row[col] == checkDict[col] or row[col] == self.nanValue for col in self.colors]):
                 value = value + row[self.valueColumn]
         return value
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index < len(self.values):
+            rowDict = self.values.iloc[self.index].to_dict()
+            scalar = rowDict.pop(self.valueColumn)
+            self.index += 1
+            return (scalar, {color : int(rowDict[color]) for color in rowDict})
+        else:
+            self.index = 0
+            raise StopIteration
 
     def clone(self):
         return PandasCore(self.values, self.colors, self.name, self.shape)
