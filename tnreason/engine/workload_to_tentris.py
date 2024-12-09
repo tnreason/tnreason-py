@@ -47,6 +47,59 @@ class TentrisTripleStoreTermCore:
             str(self.tStore.try_get_resource(pos[i])))
             for i, variable in enumerate(self.projectedVariables)})
 
+    def eval_query(self, queryString, variables):
+
+        ## First evaluation to get the shape of the result
+        querySolution = self.tStore.eval_sparql_query(queryString)
+
+        queryInterpretationDict = dict()
+        for variable in variables:
+            if variable in self.interpretationDict:
+                queryInterpretationDict[variable] = self.interpretationDict[variable]
+            else:
+                queryInterpretationDict[variable] = []
+
+        for pos, value in iter(querySolution):
+            for i, variable in enumerate(variables):
+                identifierString = str(pos[querySolution.projected_variables[i]])
+                if identifierString not in queryInterpretationDict[variable]:
+                    queryInterpretationDict[variable].append(identifierString)
+
+        shape = [len(queryInterpretationDict[variable]) for variable in variables]
+
+        ## Second evaluation into iterator
+        return TentrisSPARQLEvaluationTermCore(self.tStore.eval_sparql_query(queryString), queryInterpretationDict,
+                                               variables=variables, shape=shape)
+
+
+class TentrisSPARQLEvaluationTermCore:
+
+    def __init__(self, querySolution, startInterpretationDict, variables=[], shape=[], name=None):
+        self.querySolution = querySolution
+        self.interpretationDict = dict()
+        self.projectedVariables = querySolution.projected_variables
+        self.variables = variables
+        for variable in variables:
+            if variable in startInterpretationDict:
+                self.interpretationDict[variable] = startInterpretationDict[variable]
+            else:
+                self.interpretationDict[variable] = []
+
+        self.colors = [variable + suf.termVariableSuffix for variable in variables]
+        self.shape = shape
+        self.name = name
+
+    def __iter__(self):
+        self.iterator = iter(self.querySolution)
+        return self
+
+    def __next__(self):
+        pos, value = next(self.iterator)
+        return (value,
+                {variable + suf.termVariableSuffix: self.interpretationDict[variable].index(str(
+                    pos[self.projectedVariables[i]])) for i, variable in
+                    enumerate(self.variables)})
+
 
 class HypertrieCore:
     def __init__(self, values=None, colors=None, name=None, shape=None, dtype=float):
