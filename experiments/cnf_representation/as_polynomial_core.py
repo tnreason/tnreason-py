@@ -17,7 +17,7 @@ def clauseList_to_pcore(clauseList):
     return engine.contract(
         coreDict={"c" + str(i): clause_to_pcore(variablesDict) for i, variablesDict in enumerate(clauseList)},
         openColors=find_atoms(clauseList),
-        method="PolynomialContractor"
+        method="CorewiseContractor"
     )
 
 

@@ -6,7 +6,7 @@ from tnreason import engine
 
 def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j" + suf.dataVariableSuffix,
                   categoricalColors=[], coreType=None,
-                  contractionMethod="PolynomialContractor"):
+                  contractionMethod="CorewiseContractor"):
     """
     :importanceQueryCore: Tensor Core representing the evaluation of the importance query (before slice enumeration!)
     :atomQueryCoreDict: Dictionary of Tensor Cores representing the evaluation of the atom extraction queries

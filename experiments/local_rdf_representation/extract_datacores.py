@@ -3,7 +3,7 @@ from tnreason.engine.creation_handling import core_to_relational_encoding
 
 
 def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j", categoricalColors=[], coreType=None,
-                  contractionMethod="PolynomialContractor"):
+                  contractionMethod="CorewiseContractor"):
     """
     :importanceQueryCore: Tensor Core representing the evaluation of the importance query (before slice enumeration!)
     :atomQueryCoreDict: Dictionary of Tensor Cores representing the evaluation of the atom extraction queries

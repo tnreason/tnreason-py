@@ -43,10 +43,9 @@ def contract(coreDict, openColors, dimDict={}, method=None):
         from tnreason.engine.workload_to_pgmpy import PgmpyVariableEliminator
         return PgmpyVariableEliminator(coreDict=coreDict, openColors=openColors).contract()
 
-    ## Experimental Polynomial Contraction
-    elif method == "PolynomialContractor":
-        from tnreason.engine.polynomial_handling import PolynomialContractor
-        return PolynomialContractor(coreDict=coreDict, openColors=openColors).contract()
+    ## Corewise Contractor
+    elif method == "CorewiseContractor":
+        return CorewiseContractor(coreDict=coreDict, openColors=openColors).contract()
 
 
     else:
@@ -62,3 +61,18 @@ def normate(coreDict, outColors, inColors, dimDict={}, method=None):
         else:
             contracted.multiply(1/sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
     return contracted
+
+
+class CorewiseContractor:
+
+    def __init__(self, coreDict={}, openColors=[]):
+        self.coreDict = coreDict
+        self.openColors = openColors
+
+    def contract(self):
+        ## Without optimization -> Can apply optimization from version0
+        name, resultCore = self.coreDict.popitem()
+        for key in self.coreDict:
+            resultCore = resultCore.contract_with(self.coreDict[key])
+        resultCore.reduce_colors(self.openColors)
+        return resultCore

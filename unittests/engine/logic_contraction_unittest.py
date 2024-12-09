@@ -5,8 +5,8 @@ from tnreason import engine
 from tnreason import encoding
 
 methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
-              {"coreType": "PolynomialCore", "contractionMethod": "PolynomialContractor"},
-              {"coreType": "PandasCore", "contractionMethod": "PolynomialContractor"}
+              {"coreType": "PolynomialCore", "contractionMethod": "CorewiseContractor"},
+              {"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"}
               ]
 
 aSuf = encoding.suf.atomicVariableSuffix

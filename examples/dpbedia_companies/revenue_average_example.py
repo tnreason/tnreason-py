@@ -17,6 +17,6 @@ revenue_vector = engine.get_core("PolynomialCore")(values=np.array([float(entry)
 print(revenue_vector.values)
 
 branch_revenue_contraction = engine.contract({**polCoresDict, "RevenueValue": revenue_vector}, openColors=["branch" + suf.termVariableSuffix],
-                                             method="PolynomialContractor")
+                                             method="CorewiseContractor")
 branch_revenue_contraction.add_identical_slices()
 print(branch_revenue_contraction.values)

@@ -122,23 +122,6 @@ class PolynomialCore:
             raise ValueError("Maximation Method {} not implemented for PolynomialCore!".format(method))
 
 
-class PolynomialContractor:
-
-    def __init__(self, coreDict={}, openColors=[]):
-        self.coreDict = coreDict
-        self.openColors = openColors
-
-    def contract(self):
-        ## Without optimization -> Can apply optimization from version0
-        if len(self.coreDict) == 0:
-            return PolynomialCore(values=[(1, dict())], shape=[], colors=self.openColors, name="Contraction")
-        name, resultCore = self.coreDict.popitem()
-        for key in self.coreDict:
-            resultCore = resultCore.contract_with(self.coreDict[key])
-        resultCore.reduce_colors(self.openColors)
-        return resultCore
-
-
 def slice_contraction(slices1, slices2):
     slices = []
     for (val1, pos1) in slices1:

@@ -6,14 +6,14 @@ termCore.adjust_interpretationsDict()
 
 queryString = """
 PREFIX dbo: <http://dbpedia.org/ontology/>
-SELECT DISTINCT ?x
+SELECT DISTINCT ?x ?y
 WHERE {
   ?x ?z ?y.
 }
 LIMIT 5
 """
 
-sparqlCore = termCore.eval_query(queryString, variables=["funx"])
+sparqlCore = termCore.eval_query(queryString, variables=["funx","randomy"])
 
 from tnreason import engine
 print(engine.convert(sparqlCore, "PolynomialCore").values)
