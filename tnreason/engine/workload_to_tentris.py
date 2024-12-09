@@ -2,13 +2,50 @@ from tentris import tentris, Hypertrie
 
 from tnreason.engine import subscript_creation as subc
 
+from tnreason.encoding import suffixes as suf
+
 import numpy as np
 
 
-def ht_from_rdf(path, tripleColors=["s", "p", "o"], name="KnowledgeGraphCore"):
-    tStore = tentris.TripleStore()
-    tStore.load_rdf_data(path)
-    return HypertrieCore(values=tStore.hypertrie(), colors=tripleColors, name=name)
+class TentrisTripleStoreTermCore:
+    """
+    Term Cores are iterateable, but not contractable cores.
+    They differ from other cores by their interpretationDict, which stores string identifiers to each term variable and index.
+    """
+
+    def __init__(self, startInterpretationDict=dict(), spoVariables=["s", "p", "o"], name="TripleStoreCore"):
+        self.tStore = tentris.TripleStore()
+        self.interpretationDict = startInterpretationDict
+        self.projectedVariables = spoVariables
+        for variable in self.projectedVariables:
+            if variable not in self.interpretationDict:
+                self.interpretationDict[variable] = []
+
+        ## Mimicking Properties of TensorCores for iterators
+        self.colors = [variable + suf.termVariableSuffix for variable in self.projectedVariables]
+        self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
+        self.name = name
+
+    def load_rdf_data(self, dataPath):
+        self.tStore.load_rdf_data(dataPath)
+
+    def adjust_interpretationsDict(self):
+        for pos, value in self.tStore.hypertrie():
+            for i, variable in enumerate(self.projectedVariables):
+                identifier = str(self.tStore.try_get_resource(pos[i]))
+                if identifier not in self.interpretationDict[variable]:
+                    self.interpretationDict[variable].append(identifier)
+        self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
+
+    def __iter__(self):
+        self.iterator = iter(self.tStore.hypertrie())
+        return self
+
+    def __next__(self):
+        pos, value = next(self.iterator)
+        return (value, {variable + suf.termVariableSuffix: self.interpretationDict[variable].index(
+            str(self.tStore.try_get_resource(pos[i])))
+            for i, variable in enumerate(self.projectedVariables)})
 
 
 class HypertrieCore:

@@ -9,7 +9,7 @@ def queries_to_cores(endpointString, queryDict, startInterpretationDict=dict(), 
     """
     Evaluates a dictionary of queries with a single runCore, which interpretationDict is maintained throught all queries
     """
-    runCore = SPARQLWrapperPseudoCore(endpointString=endpointString, startInterpretationDict=startInterpretationDict)
+    runCore = SPARQLWrapperTermCore(endpointString=endpointString, startInterpretationDict=startInterpretationDict)
     queryCoresDict = dict()
     for nameKey in queryDict:
         runCore.run_query(queryString=queryDict[nameKey], name=nameKey,
@@ -26,9 +26,10 @@ def query_to_core(endpointString, queryString, startInterpretationDict=dict(),
     return queryCoresDict[name], interpretationDict
 
 
-class SPARQLWrapperPseudoCore:
+class SPARQLWrapperTermCore:
     """
-    Pseudo-Core, since not contractable, but can be converted to any core format after running a query.
+    Term Cores are iterateable, but not contractable cores.
+    They differ from other cores by their interpretationDict, which stores string identifiers to each term variable and index.
     """
 
     def __init__(self, endpointString, startInterpretationDict=dict()):
@@ -48,7 +49,7 @@ class SPARQLWrapperPseudoCore:
         if adjustInterpretation:
             self.adjust_interpretationsDict()
 
-        ## Mimicking Properties of TensorCores for usage in conversion
+        ## Mimicking Properties of TensorCores for iterators
         self.colors = [variable + suf.termVariableSuffix for variable in self.projectedVariables]
         self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
         self.name = name
@@ -62,6 +63,7 @@ class SPARQLWrapperPseudoCore:
                 identifierString = str(entry[variable]["value"])
                 if identifierString not in self.interpretationDict[variable]:
                     self.interpretationDict[variable].append(identifierString)
+        self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
 
     def __iter__(self):
         self.solutionIterator = iter(self.querySolution["results"]["bindings"])

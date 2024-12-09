@@ -1,11 +1,10 @@
 from tnreason.engine import workload_to_tentris as wt
 
-kgCore = wt.ht_from_rdf("/home/version1/tentris/bbb_generated.ttl")
-
-
+termCore = wt.TentrisTripleStoreTermCore()
+termCore.load_rdf_data("/home/version1/tentris/bbb_generated.ttl")
+termCore.adjust_interpretationsDict()
 
 from tnreason import engine
 
-polyCore = engine.convert(kgCore, "PolynomialCore")
+polyCore = engine.convert(termCore, "PolynomialCore")
 print([val for val in polyCore])
-#print(kgCore.values[1407374883553337, 1407374883553338, 1697645953286153])
