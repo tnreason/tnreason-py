@@ -5,17 +5,17 @@ import numpy as np
 valueColumnString = "values"
 
 
-def pandas_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="PolyEncoding"):
-    df = pd.DataFrame(data=[i + tuple([int(entry) for entry in function(*i)] + [1]) for i in np.ndindex(*inshape)],
-                      columns=incolors + outcolors + [valueColumnString])
-    return PandasCore(values=df, colors=incolors + outcolors, shape=inshape + outshape, valueColumn=valueColumnString)
-
-
-def pandas_tencoding_from_function(inshape, incolors, function, name="PolyEncoding"):
-    df = pd.DataFrame(data=[i + (function(*i),) for i in np.ndindex(*inshape) if function(*i) != 0],
-                      columns=incolors + [valueColumnString])
-    return PandasCore(values=df, colors=incolors, shape=inshape, valueColumn=valueColumnString)
-
+# def pandas_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="PolyEncoding"):
+#     df = pd.DataFrame(data=[i + tuple([int(entry) for entry in function(*i)] + [1]) for i in np.ndindex(*inshape)],
+#                       columns=incolors + outcolors + [valueColumnString])
+#     return PandasCore(values=df, colors=incolors + outcolors, shape=inshape + outshape, valueColumn=valueColumnString,
+#                       name=name)
+#
+#
+# def pandas_tencoding_from_function(inshape, incolors, function, name="PolyEncoding"):
+#     df = pd.DataFrame(data=[i + (function(*i),) for i in np.ndindex(*inshape) if function(*i) != 0],
+#                       columns=incolors + [valueColumnString])
+#     return PandasCore(values=df, colors=incolors, shape=inshape, valueColumn=valueColumnString, name=name)
 
 class PandasCore:
 

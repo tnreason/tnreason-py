@@ -26,20 +26,23 @@ def get_core(coreType=None):
 def create_tensor_encoding(inshape, incolors, function, coreType=None, name="Encoding"):
     if coreType is None:
         coreType = defaultCoreType
-    if coreType == "NumpyCore":
-        from tnreason.engine.workload_to_numpy import np_tencoding_from_function
-        return np_tencoding_from_function(inshape, incolors, function, name)
-    elif coreType == "PolynomialCore":
-        from tnreason.engine.polynomial_handling import poly_tencoding_from_function
-        return poly_tencoding_from_function(inshape, incolors, function, name)
-    elif coreType == "HypertrieCore":
-        from tnreason.engine.workload_to_tentris import ht_tencoding_from_function
-        return ht_tencoding_from_function(inshape, incolors, function, name)
-    elif coreType == "PandasCore":
-        from tnreason.engine.workload_to_pandas import pandas_tencoding_from_function
-        return pandas_tencoding_from_function(inshape, incolors, function, name)
-    else:
-        raise ValueError("Core Type {} not supported for .".format(coreType))
+    return create_from_slice_iterator(inshape, incolors,
+                                      sliceIterator=coordinate_slice_iterator(inshape, incolors, function),
+                                      coreType=coreType, name=name)
+    # if coreType == "NumpyCore":
+    #     from tnreason.engine.workload_to_numpy import np_tencoding_from_function
+    #     return np_tencoding_from_function(inshape, incolors, function, name)
+    # elif coreType == "PolynomialCore":
+    #     from tnreason.engine.polynomial_handling import poly_tencoding_from_function
+    #     return poly_tencoding_from_function(inshape, incolors, function, name)
+    # elif coreType == "HypertrieCore":
+    #     from tnreason.engine.workload_to_tentris import ht_tencoding_from_function
+    #     return ht_tencoding_from_function(inshape, incolors, function, name)
+    # elif coreType == "PandasCore":
+    #     from tnreason.engine.workload_to_pandas import pandas_tencoding_from_function
+    #     return pandas_tencoding_from_function(inshape, incolors, function, name)
+    # else:
+    #     raise ValueError("Core Type {} not supported for .".format(coreType))
 
 
 def create_random_core(name, shape, colors,
@@ -56,20 +59,35 @@ def create_relational_encoding(inshape, outshape, incolors, outcolors, function,
     """
     if coreType is None:
         coreType = defaultCoreType
-    if coreType == "NumpyCore":
-        from tnreason.engine.workload_to_numpy import np_rencoding_from_function
-        return np_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
-    elif coreType == "PolynomialCore":
-        from tnreason.engine.polynomial_handling import poly_rencoding_from_function
-        return poly_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
-    elif coreType == "HypertrieCore":
-        from tnreason.engine.workload_to_tentris import ht_rencoding_from_function
-        return ht_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
-    elif coreType == "PandasCore":
-        from tnreason.engine.workload_to_pandas import pandas_rencoding_from_function
-        return pandas_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
-    else:
-        raise ValueError("Core Type {} not supported for .".format(coreType))
+    return create_from_slice_iterator(inshape + outshape, incolors + outcolors,
+                                      sliceIterator=relational_slice_iterator(inshape, incolors, outcolors, function),
+                                      coreType=coreType, name=name)
+    # if coreType == "NumpyCore":
+    #     from tnreason.engine.workload_to_numpy import np_rencoding_from_function
+    #     return np_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
+    # elif coreType == "PolynomialCore":
+    #     from tnreason.engine.polynomial_handling import poly_rencoding_from_function
+    #     return poly_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
+    # elif coreType == "HypertrieCore":
+    #     from tnreason.engine.workload_to_tentris import ht_rencoding_from_function
+    #     return ht_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
+    # elif coreType == "PandasCore":
+    #     from tnreason.engine.workload_to_pandas import pandas_rencoding_from_function
+    #     return pandas_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name)
+    # else:
+    #     raise ValueError("Core Type {} not supported for .".format(coreType))
+
+
+def coordinate_slice_iterator(inshape, incolors, coordFunction):
+    return [(coordFunction(*idx), {color: idx[i] for i, color in enumerate(incolors)}) for idx in np.ndindex(*inshape)]
+
+
+def relational_slice_iterator(inshape, incolors, outcolors, function):
+    for color in incolors:
+        if color in outcolors:
+            raise ValueError
+    return [(1, {**{color: idx[i] for i, color in enumerate(incolors)},
+                 **{color: int(function(*idx)[i]) for i, color in enumerate(outcolors)}}) for idx in np.ndindex(*inshape)]
 
 
 def create_from_slice_iterator(shape, colors, sliceIterator, coreType=defaultCoreType, name="Iterator"):

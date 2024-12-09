@@ -2,6 +2,8 @@ from tnreason.engine.creation_handling import core_to_relational_encoding
 
 from tnreason.encoding import suffixes as suf
 
+from tnreason import engine
+
 def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j" + suf.dataVariableSuffix,
                   categoricalColors=[], coreType=None,
                   contractionMethod="PolynomialContractor"):
