@@ -7,7 +7,7 @@ core2 = gsc.PolynomialCore(np.array([[1, 2, 3], [0, 1, 0]]), ["b", "c"])
 
 print(core1.values)
 
-result = gsc.PolynomialContractor({"c1": core1, "c2": core2}, ["a"]).contract()
+result = gsc.CoorewiseContractor({"c1": core1, "c2": core2}, ["a"]).contract()
 print(result.values)
 
 result.add_identical_slices()

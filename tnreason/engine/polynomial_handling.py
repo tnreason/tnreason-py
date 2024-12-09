@@ -115,9 +115,12 @@ class PolynomialCore:
             raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
 
     def get_argmax(self, method="gurobi"):
+        """
+        Works for all iterateable cores, but only for PolynomialCore efficiently, since supporting slice sparsity
+        """
         if method == "gurobi":
-            from tnreason.engine import poly_to_gurobi as ptg
-            return ptg.optimize_gurobi_model(ptg.poly_to_gurobi_model(binarize_polyCore(self)))
+            from tnreason.engine import workload_to_gurobi as ptg
+            return ptg.optimize_gurobi_model(ptg.core_to_gurobi_model(binarize_polyCore(self)))
         else:
             raise ValueError("Maximation Method {} not implemented for PolynomialCore!".format(method))
 
