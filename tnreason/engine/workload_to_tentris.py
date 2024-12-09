@@ -1,24 +1,8 @@
 from tentris import tentris, Hypertrie
 
-from tnreason.engine import workload_to_numpy as cor
-
 from tnreason.engine import subscript_creation as subc
 
 import numpy as np
-
-
-def ht_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="PolyEncoding"):
-    values = Hypertrie(dtype=int, depth=len(inshape + outshape))
-    for i in np.ndindex(*inshape):
-        values[tuple(i) + tuple(function(*i))] = 1
-    return HypertrieCore(values=values, colors=incolors + outcolors, name=name)
-
-
-def ht_tencoding_from_function(inshape, incolors, function, name="PolyEncoding", dtype=float):
-    values = Hypertrie(dtype=dtype, depth=len(inshape))
-    for i in np.ndindex(*inshape):
-        values[tuple(i)] = float(function(*i))
-    return HypertrieCore(values=values, colors=incolors, name=name)
 
 
 def ht_from_rdf(path, tripleColors=["s", "p", "o"], name="KnowledgeGraphCore"):
@@ -28,23 +12,36 @@ def ht_from_rdf(path, tripleColors=["s", "p", "o"], name="KnowledgeGraphCore"):
 
 
 class HypertrieCore:
-    def __init__(self, values, colors, name=None, shape=[]):
-        if isinstance(values, Hypertrie):
-            self.values = values
-        elif isinstance(values, np.ndarray):
-            self.values_from_numpy(array=values)
-        else:
-            raise ValueError("Values {} to initialize Hypertrie Core not understood!".format(values))
+    def __init__(self, values=None, colors=None, name=None, shape=None, dtype=float):
         self.colors = colors
         self.name = name
 
-        self.shape = shape
+        if values is None:
+            self.values = Hypertrie(dtype=dtype, depth=len(shape))
+            self.shape = shape
+        elif isinstance(values, Hypertrie):
+            self.values = values
+            self.get_shape()
+
+        self.index = 0
 
     def __str__(self):
         return "## Hypertrie Core " + str(self.name) + "\nColors: " + str(self.colors)
 
     def __getitem__(self, item):
         return self.values[item]
+
+    def __setitem__(self, sliceDict, value):
+        subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
+        self.values[subscript] = self.values[subscript] + value
+
+    def __iter__(self):
+        self.iterator = iter(self.values)
+        return self
+
+    def __next__(self):
+        pos, value = next(self.iterator)
+        return (value, {color: pos[i] for i, color in enumerate(self.colors)})
 
     def get_shape(self):
         shape = np.zeros(self.values.depth)
@@ -54,32 +51,14 @@ class HypertrieCore:
                     shape[i] = entry[0][i] + 1
         self.shape = [int(dim) for dim in shape]
 
-    def values_from_numpy(self, array):
-        self.values = Hypertrie(dtype=array.dtype, depth=len(array.shape))
-        for index in np.ndindex(array.shape):
-            if array[index] != 0:
-                self.values[index] = array[index]
-
-    def values_to_numpy(self, calculateShape=False):
-        if calculateShape:
-            self.get_shape()
-        numpyValues = np.zeros(shape=self.shape)
-        for entry in self.values:
-            numpyValues[tuple(entry[0])] = entry[1]
-        return numpyValues
-
-    def to_NumpyCore(self):
-        return cor.NumpyCore(values=self.values_to_numpy(), colors=self.colors, name=self.name)
-
 
 class HypertrieContractor:
     def __init__(self, coreDict, openColors):
         for key in coreDict:
             if not isinstance(coreDict[key], HypertrieCore):
-                if isinstance(coreDict[key], cor.NumpyCore):
-                    coreDict[key] = HypertrieCore(coreDict[key].values, coreDict[key].colors, coreDict[key].name)
-                else:
-                    raise ValueError("Hypertrie Contractions works only for Hypertrie or Numpy Cores!")
+                raise ValueError(
+                    "Hypertrie Contractions works only for Hypertrie, but got core {} of type {}!".format(key, type(
+                        coreDict[key])))
         self.coreDict = coreDict
         self.openColors = openColors
 

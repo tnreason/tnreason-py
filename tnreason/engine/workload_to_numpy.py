@@ -51,8 +51,8 @@ class NumpyCore:
         return self
 
     def __next__(self):
-        if self.index < np.prod(self.values.shape):
-            indexTuple = np.unravel_index(self.index, self.values.shape)
+        if self.index < np.prod(self.shape):
+            indexTuple = np.unravel_index(self.index, self.shape)
             value = self.values[indexTuple]
             self.index += 1
             return (value, {color: indexTuple[i] for i, color in enumerate(self.colors)})
