@@ -1,19 +1,6 @@
 import numpy as np
 
 
-# def poly_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="PolyEncoding"):
-#     sliceList = [(1, {(incolors + outcolors)[k]: assignment for k, assignment in
-#                       enumerate(i + tuple([int(entry) for entry in function(*i)]))}) for i in np.ndindex(*inshape)]
-#     return PolynomialCore(values=sliceList, shape=inshape + outshape, colors=incolors + outcolors,
-#                           name=name)
-#
-#
-# def poly_tencoding_from_function(inshape, incolors, function, name="PolyEncoding"):
-#     sliceList = [(function(*i), {incolors[k]: assignment for k, assignment in enumerate(i)}) for i in
-#                  np.ndindex(*inshape) if function(*i) != 0]
-#     return PolynomialCore(values=sliceList, shape=inshape, colors=incolors, name=name)
-
-
 class PolynomialCore:
     """
     :values: Storing the polynomial by a list of tuples, each representing a weighted monomial by
@@ -24,17 +11,17 @@ class PolynomialCore:
     Each monomial seen as a tensor is specified by a weighted trivial slice.
     """
 
-    def __init__(self, values, colors, name=None, shape=None):
+    def __init__(self, values=None, colors=None, name=None, shape=None):
+
+        if values is None:  # Empty intialization
+            self.values = []
+        else:  # Initialization based on values
+            self.values = values
+
         self.colors = colors
         self.name = name
 
-        #if shape is not None:
         self.shape = shape
-
-        if isinstance(values, np.ndarray):
-            self.ell_zero_initialize_from_numpy(values)
-        else:
-            self.values = values
 
     def __str__(self):
         return "## Polynomial Core " + str(self.name) + " ##\nValues: " + str(self.values) + "\nColors: " + str(
@@ -57,19 +44,6 @@ class PolynomialCore:
 
     def clone(self):
         return PolynomialCore(self.values.copy(), self.colors.copy(), self.name, shape=self.shape)  # ! Shallow Copies?
-
-    def ell_zero_initialize_from_numpy(self, arr):
-        """
-        Initialization of the slices by all nonzero coordinates of the array, resulting in ell_zero(arr) many monomials
-        """
-        slices = []
-        for idx in np.ndindex(arr.shape):
-            if arr[idx] != 0:
-                slices.append(
-                    (arr[idx], {self.colors[i]: subindex for i, subindex in enumerate(idx)})
-                )
-        self.values = slices
-        self.shape = arr.shape
 
     def contract_with(self, core2):
         newColors = list(set(self.colors) | set(core2.colors))
@@ -115,10 +89,11 @@ class PolynomialCore:
         Cannot handle yet situation of nans in sliceDict
         """
         if len(sliceDict) == 0:
-            self.values = [(weight*val, posDict) for val, posDict in self]
+            self.values = [(weight * val, posDict) for val, posDict in self]
             return self
         else:
-            self.values = [(weight*val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for val, posDict in self]
+            self.values = [(weight * val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for
+                           val, posDict in self]
             return self
 
     def sum_with(self, sumCore):

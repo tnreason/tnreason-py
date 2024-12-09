@@ -2,33 +2,24 @@ import pandas as pd
 
 import numpy as np
 
-valueColumnString = "values"
+defaultValueColumnString = "values"
+defaultNanValue = -1
 
-
-# def pandas_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="PolyEncoding"):
-#     df = pd.DataFrame(data=[i + tuple([int(entry) for entry in function(*i)] + [1]) for i in np.ndindex(*inshape)],
-#                       columns=incolors + outcolors + [valueColumnString])
-#     return PandasCore(values=df, colors=incolors + outcolors, shape=inshape + outshape, valueColumn=valueColumnString,
-#                       name=name)
-#
-#
-# def pandas_tencoding_from_function(inshape, incolors, function, name="PolyEncoding"):
-#     df = pd.DataFrame(data=[i + (function(*i),) for i in np.ndindex(*inshape) if function(*i) != 0],
-#                       columns=incolors + [valueColumnString])
-#     return PandasCore(values=df, colors=incolors, shape=inshape, valueColumn=valueColumnString, name=name)
 
 class PandasCore:
 
-    def __init__(self, values, colors, name=None, shape=None, valueColumn=valueColumnString, nanValue=-1):
+    def __init__(self, values=None, colors=None, name=None, shape=None, valueColumn=defaultValueColumnString,
+                 nanValue=defaultNanValue):
         self.colors = colors
         self.name = name
+        self.shape = shape
 
-        if shape is not None:
-            self.shape = shape
+        if values is None:  # Empty initialization based on colors
+            self.values = pd.DataFrame(columns=colors)
+        else:  # Initialization based on values
+            self.values = pd.DataFrame(values)
 
-        self.values = values
         self.valueColumn = valueColumn
-
         if not valueColumn in self.values.columns:
             self.values[valueColumn] = 1
 

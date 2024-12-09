@@ -3,18 +3,6 @@ import numpy as np
 from tnreason.engine import subscript_creation as subc
 
 
-# def np_rencoding_from_function(inshape, outshape, incolors, outcolors, function, name="NPREncoding"):
-#     values = np.zeros(inshape + outshape)
-#     for i in np.ndindex(*inshape):
-#         values[i + tuple(
-#             [int(entry) for entry in function(*i)])] = 1
-#     return NumpyCore(values=values, colors=incolors + outcolors, name=name)
-#
-#
-# def np_tencoding_from_function(inshape, incolors, function, name="NPTEncoding"):
-#     return NumpyCore(values=np.fromfunction(np.vectorize(function), inshape), colors=incolors, name=name)
-
-
 def np_random_core(shape, colors, randomEngine, name):
     if randomEngine == "NumpyUniform":
         return NumpyCore(values=np.random.random(size=shape), colors=colors, name=name)
@@ -25,12 +13,17 @@ def np_random_core(shape, colors, randomEngine, name):
 
 
 class NumpyCore:
-    def __init__(self, values, colors, name=None):
-        self.values = np.array(values)
+    def __init__(self, values=None, colors=None, name=None, shape=None):
+
+        if values is None:  # Empty initialization based on shape
+            self.values = np.zeros(shape=shape)
+            self.shape = shape
+        else:  # Initialization based on values
+            self.values = np.array(values)
+            self.shape = self.values.shape
+
         self.colors = colors
         self.name = name
-
-        self.shape = self.values.shape
 
         if len(self.colors) != len(self.values.shape):
             raise ValueError("Number of Colors does not match the Value Shape in Core {}!".format(name))
