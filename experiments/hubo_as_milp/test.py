@@ -1,6 +1,6 @@
 from tnreason import engine
 from tnreason.engine import polynomial_handling as ph
-from tnreason.engine import poly_to_gurobi as ptg
+from tnreason.engine import workload_to_gurobi as ptg
 from experiments.cnf_representation import formula_to_polynomial_core as ftp
 
 polyCore = engine.get_core("PolynomialCore")(values=[(-2, {"c1": 0, "c2": 1}), (3.4, {"c2": 0})],

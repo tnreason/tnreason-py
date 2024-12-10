@@ -6,6 +6,7 @@ from algorithms.als_matrix_test import AlsMatrixTest
 from algorithms.als_knowledge_test import AlsKnowledgeTest
 
 from engine.logic_contraction_unittest import TensorLogicTest
+from engine.conversion_unittest import IteratorConversionTest
 
 from encoding.sparqlwrapper_dppedia_test import DBpediaTest # Takes the longest
 
