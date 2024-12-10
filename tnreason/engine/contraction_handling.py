@@ -45,6 +45,9 @@ def contract(coreDict, openColors, dimDict={}, method=None):
 
     ## Corewise Contractor
     elif method == "CorewiseContractor":
+        """
+        Requires the contract_with() method of cores
+        """
         return CorewiseContractor(coreDict=coreDict, openColors=openColors).contract()
 
 

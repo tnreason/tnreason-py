@@ -23,7 +23,7 @@ def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j", 
 
 def positionList_to_polynomialCore(positionList, variables=[], shape=[]):
     """
-    Turns outputs of query evaluations (rdflib or tentris) into polynomial cores for further contraction
+    Turns outputs of query evaluations (rdflib or tentris_tests) into polynomial cores for further contraction
     """
     return engine.get_core("PolynomialCore")(
         values=[(1, posDict) for posDict in positionList],

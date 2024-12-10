@@ -1,10 +1,10 @@
-from tentris import tentris, Variable
+from tentris_tests import tentris, Variable
 
 
 def tentris_sparql_evaluation_to_entryPositionList(querySolution, interpretationDict=dict()):
     """
     Handling of evaluated queries of Tentris
-    :querySolution: Instance of tentris.tentris.SPARQLSolutionGenerator
+    :querySolution: Instance of tentris_tests.tentris_tests.SPARQLSolutionGenerator
     :interpretationDict: Dictionary storing to each variable a list of string IRI identifiers
     :return: List of Dictionaries assigning an index to each variable, Modified interpretationDict
     """

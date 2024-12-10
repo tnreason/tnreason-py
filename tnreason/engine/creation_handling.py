@@ -18,6 +18,12 @@ def get_core(coreType=None):
     elif coreType == "HypertrieCore":
         from tnreason.engine.workload_to_tentris import HypertrieCore
         return HypertrieCore
+    elif coreType == "TorchCore":
+        from tnreason.engine.workload_to_torch import TorchCore
+        return TorchCore
+    elif coreType == "TensorFlowCore":
+        from tnreason.engine.workload_to_tensorflow import TensorFlowCore
+        return TensorFlowCore
     else:
         raise ValueError("Core Type {} not supported.".format(coreType))
 

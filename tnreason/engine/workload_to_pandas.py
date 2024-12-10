@@ -53,7 +53,7 @@ class PandasCore:
             rowDict = self.values.iloc[self.index].to_dict()
             scalar = rowDict.pop(self.valueColumn)
             self.index += 1
-            return (scalar, {color: int(rowDict[color]) for color in rowDict})
+            return (scalar, {color: int(rowDict[color]) for color in rowDict if rowDict[color]!=self.nanValue})
         else:
             self.index = 0
             raise StopIteration

@@ -3,6 +3,7 @@ from pgmpy.factors.discrete import DiscreteFactor
 from pgmpy.inference import VariableElimination
 
 from tnreason.engine import workload_to_numpy as cor
+from tnreason.engine import creation_handling as ch
 
 class PgmpyVariableEliminator:
     """
@@ -11,8 +12,7 @@ class PgmpyVariableEliminator:
     """
     def __init__(self, coreDict={}, openColors=[]):
         self.model = MarkovNetwork()
-        self.add_factors_from_coresDict(coreDict)
-
+        self.add_factors_from_coresDict({key: ch.convert(coreDict[key], "NumpyCore") for key in coreDict})
         self.openColors = openColors
 
     def add_factors_from_coresDict(self, coresDict):
