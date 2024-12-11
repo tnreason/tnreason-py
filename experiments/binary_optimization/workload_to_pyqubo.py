@@ -1,10 +1,10 @@
 from pyqubo import Binary
 
 
-def polynomialCore_to_pyqubo_hamiltonian(polynomialCore):
-    binariesColorDict = {color: Binary(color) for color in polynomialCore.colors}
+def core_to_pyqubo_hamiltonian(core):
+    binariesColorDict = {color: Binary(color) for color in core.colors}
     hamiltonian = 0
-    for val, positions in polynomialCore.values:
+    for val, positions in iter(core):
         hamiltonian = hamiltonian + create_potential(
             val, {key for key in positions if not positions[key]}, {key for key in positions if positions[key]},
             binariesColorDict
@@ -25,8 +25,8 @@ if __name__ == "__main__":
     polyCore = ctc.weightedFormulas_to_sparseCore({
         "w1": ["imp", "a", "b", 0.678],
         "w2": ["a", 0.34]
-    })
-    hamiltonian = polynomialCore_to_pyqubo_hamiltonian(polyCore)
+    }, coreType="PandasCore")
+    hamiltonian = core_to_pyqubo_hamiltonian(polyCore)
     model = hamiltonian.compile()
 
     qubo, offset = model.to_qubo()

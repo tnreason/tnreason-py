@@ -51,7 +51,7 @@ if __name__ == "__main__":
     "formula3" : ["imp", ["and", "A", ["and", "vB", ["and", "B", ["and", "hB", "M"]]]], "U", 10] }
 
     polyCore = ctc.weightedFormulas_to_sparseCore(knowledgeBase3)
-    hamiltonian = wtp.polynomialCore_to_pyqubo_hamiltonian(polyCore)
+    hamiltonian = wtp.core_to_pyqubo_hamiltonian(polyCore)
     model = hamiltonian.compile()
 
     b_sample, energies = dimod_exact_solution(model)

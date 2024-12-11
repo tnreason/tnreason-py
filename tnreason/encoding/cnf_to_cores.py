@@ -6,9 +6,9 @@ defaultSparseCoreType = "PolynomialCore"
 ## Summarizing
 def weightedFormulas_to_sparseCore(weightedFormulas, coreType=defaultSparseCoreType):
     """
-    Builds the weighted sum of the formulas as a Polynomial Core
+    Builds the weighted sum of the formulas as a slice-sparse Core
     """
-    sumCore = engine.get_core("PolynomialCore")(values=[], colors=[], shape=[])
+    sumCore = engine.get_core(coreType)(values=[], colors=[], shape=[])
     for key in weightedFormulas:
         sumCore = sumCore.sum_with(
             formula_to_sparseCore(weightedFormulas[key][:-1], coreType=coreType).multiply(weightedFormulas[key][-1])
@@ -19,7 +19,7 @@ def weightedFormulas_to_sparseCore(weightedFormulas, coreType=defaultSparseCoreT
 
 def formula_to_sparseCore(expression, coreType=defaultSparseCoreType):
     """
-    Turns an expression into a Polynomial Core based on the contraction of its clauses
+    Turns an expression into a slice-sparse Core based on the contraction of its clauses
     """
     core = clauseList_to_core(simplify_clauseList(cnf_to_dict(to_cnf(expression, uppushAnd=False))), coreType=coreType)
     if coreType == "PolynomialCore":
