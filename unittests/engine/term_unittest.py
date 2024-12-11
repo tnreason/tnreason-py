@@ -5,7 +5,7 @@ from tnreason import encoding
 
 aSuf = encoding.suf.atomicVariableSuffix
 
-class TermLoading(unittest.TestCase):
+class TermLoadingTest(unittest.TestCase):
 
     def test_pandas_tCore(self):
 

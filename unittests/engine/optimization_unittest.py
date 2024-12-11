@@ -32,3 +32,15 @@ class GurobiTest(unittest.TestCase):
 
         self.assertEqual(model.getVarByName("a").X, 1)
         self.assertEqual(model.getVarByName("b").X, 1)
+
+    def test_argmax(self):
+        from tnreason.encoding import cnf_to_cores as ctc
+
+        polyCore = ctc.weightedFormulas_to_sparseCore({
+            "w1": ["imp", "a", "b", 0.678],
+            "w2": ["a", 0.34]
+        })
+
+        optimum = polyCore.get_argmax()
+        self.assertEqual(optimum["a"], 1)
+        self.assertEqual(optimum["b"], 1)

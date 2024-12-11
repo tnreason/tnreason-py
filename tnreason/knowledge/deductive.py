@@ -2,8 +2,6 @@ from tnreason import engine
 from tnreason import encoding
 from tnreason import algorithms
 
-import pandas as pd
-
 entailedString = "entailed"
 contradictingString = "contradicting"
 contingentString = "contingent"
@@ -49,23 +47,33 @@ class InferenceProvider:
         }, openColors=variableList).normalize()
 
     def exact_map_query(self, variableList, evidenceDict={}):
+        """
+        When distributionCore is a
+            * PolynomialCore, uses gurobi optimizer on integer linear program
+            * NumpyCore uses the argmax method of numpy
+        """
         distributionCore = self.query(variableList, evidenceDict)
         return distributionCore.get_argmax()
 
-    def forward_sample(self, variableList, dimDict={}):
-        return algorithms.ForwardSampler(self.distribution.create_cores(), dimDict=dimDict).draw_forward_sample(
-            variableList)
+    def forward_sample(self, variableList, dimDict=None):
+        """
+        To Do: Include in draw_samples as special case
+        """
+        sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, sampleColors=variableList)
+        return next(sampler)[1]
 
-    def draw_samples(self, sampleNum, variableList=None, outType="int64"):
+    def draw_samples(self, sampleNum, variableList=None, outType="int64", method="ForwardSampling"):
+        """
+        Initializes a Sampler being an iteratable core
+        To Do: Provide options like Energy-based and flexibilize output core to be any (most efficient: Sparse Core).
+        """
         if variableList is None:
             variableList = self.distribution.distributedVariables
-        sampleDf = pd.DataFrame(columns=variableList)
-        for samplePos in range(sampleNum):
-            sampleDf = pd.concat(
-                [sampleDf,
-                 pd.DataFrame(self.forward_sample(variableList=variableList),
-                              index=[samplePos])])
-        return sampleDf.astype(outType)
+        if method == "ForwardSampling":
+            sampler = algorithms.ForwardSampleCore(self.distribution, sampleColors=variableList, sampleNum=sampleNum)
+        else:
+            raise ValueError("Sampling Method {} not implemented.".format(method))
+        return engine.convert(sampler, "PandasCore").values[variableList].astype(outType)
 
     ## Energy-based: Creates always a full sample!
     # Can be used for sample (temperatures converging to 1) or for maximum search (temperature converging to 0)

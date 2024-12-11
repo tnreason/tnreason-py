@@ -1,5 +1,3 @@
-import pandas as pd
-
 from tnreason.knowledge import weight_estimation as wees
 from tnreason.knowledge import grafting as gf
 from tnreason.knowledge import distributions as dist
