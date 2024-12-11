@@ -1,5 +1,7 @@
 import pandas as pd
 
+from tnreason.encoding import suffixes as suf
+
 import numpy as np
 
 defaultValueColumnString = "values"
@@ -53,7 +55,7 @@ class PandasCore:
             rowDict = self.values.iloc[self.index].to_dict()
             scalar = rowDict.pop(self.valueColumn)
             self.index += 1
-            return (scalar, {color: int(rowDict[color]) for color in rowDict if rowDict[color]!=self.nanValue})
+            return (scalar, {color: int(rowDict[color]) for color in rowDict if rowDict[color] != self.nanValue})
         else:
             self.index = 0
             raise StopIteration
@@ -134,3 +136,59 @@ class PandasCore:
             self.colors = newColors
         else:
             raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
+
+
+class PandasTermCore:
+
+    def __init__(self, valueDf=None, startInterpretationDict=dict(), adjustWhileIterate=True):
+        self.interpretationDict = startInterpretationDict
+        if valueDf is not None:
+            self.load(valueDf)
+
+        self.adjustWhileIterate = adjustWhileIterate
+
+    def load(self, valueDf, termVariables=None, adjustInterpretation=True, name="PandasDf"):
+        if termVariables is None:
+            self.termVariables = list(valueDf.columns)
+            self.valueDf = valueDf
+        else:
+            self.termVariables = termVariables
+            self.valueDf = valueDf[termVariables]
+        for variable in self.termVariables:
+            if variable not in self.interpretationDict:
+                self.interpretationDict[variable] = []
+
+        if adjustInterpretation:
+            self.adjust_interpretationsDict()
+
+        self.colors = [var + suf.termVariableSuffix for var in self.termVariables]
+        self.shape = [len(self.interpretationDict[var]) for var in self.termVariables]
+        self.name = name
+
+    def adjust_interpretationsDict(self):
+        """
+        Necessary before shape is used
+        """
+        for j, row in self.valueDf.iterrows():
+            for variable in self.termVariables:
+                if str(row[variable]) not in self.interpretationDict[variable]:
+                    self.interpretationDict[variable].append(str(row[variable]))
+
+        self.shape = [len(self.interpretationDict[variable]) for variable in self.termVariables]
+        self.adjustWhileIterate = False
+
+    def __iter__(self):
+        self.rowIterator = iter(self.valueDf.iterrows())
+        return self
+
+    def __next__(self):
+        j, row = next(self.rowIterator)
+
+        if self.adjustWhileIterate:
+            for variable in self.termVariables:
+                if str(row[variable]) not in self.interpretationDict[variable]:
+                    self.interpretationDict[variable].append(str(row[variable]))
+
+        return (1, {
+            variable + suf.termVariableSuffix: self.interpretationDict[variable].index(str(row[variable]))
+            for variable in self.termVariables})

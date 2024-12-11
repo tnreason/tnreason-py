@@ -32,9 +32,10 @@ class SPARQLWrapperTermCore:
     They differ from other cores by their interpretationDict, which stores string identifiers to each term variable and index.
     """
 
-    def __init__(self, endpointString, startInterpretationDict=dict()):
+    def __init__(self, endpointString, startInterpretationDict=dict(), adjustWhileIterate=True):
         self.sparql = SPARQLWrapper(endpointString)
         self.interpretationDict = startInterpretationDict
+        self.adjustWhileIterate = adjustWhileIterate
 
     def run_query(self, queryString, name="Query", adjustInterpretation=True):
         self.sparql.setQuery(queryString)
@@ -64,6 +65,7 @@ class SPARQLWrapperTermCore:
                 if identifierString not in self.interpretationDict[variable]:
                     self.interpretationDict[variable].append(identifierString)
         self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
+        self.adjustWhileIterate = False
 
     def __iter__(self):
         self.solutionIterator = iter(self.querySolution["results"]["bindings"])
@@ -72,10 +74,11 @@ class SPARQLWrapperTermCore:
     def __next__(self):
         entry = next(self.solutionIterator)
 
-        for variable in self.projectedVariables:
-            identifierString = str(entry[variable]["value"])
-            if identifierString not in self.interpretationDict[variable]:
-                self.interpretationDict[variable].append(identifierString)
+        if self.adjustWhileIterate:
+            for variable in self.projectedVariables:
+                identifierString = str(entry[variable]["value"])
+                if identifierString not in self.interpretationDict[variable]:
+                    self.interpretationDict[variable].append(identifierString)
 
         return (1, {
             variable + suf.termVariableSuffix: self.interpretationDict[variable].index(str(entry[variable]["value"]))
