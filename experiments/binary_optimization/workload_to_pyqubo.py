@@ -21,9 +21,8 @@ def create_potential(val, neg, pos, binariesDict):
 
 
 if __name__ == "__main__":
-    from experiments.cnf_representation import formula_to_polynomial_core as ftp
-
-    polyCore = ftp.weightedFormulas_to_polynomialCore({
+    from tnreason.encoding import cnf_to_cores as ctc
+    polyCore = ctc.weightedFormulas_to_sparseCore({
         "w1": ["imp", "a", "b", 0.678],
         "w2": ["a", 0.34]
     })

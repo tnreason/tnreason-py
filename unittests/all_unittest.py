@@ -10,6 +10,7 @@ from engine.conversion_unittest import IteratorConversionTest
 from engine.normation_unittest import NormationTest
 
 from encoding.sparqlwrapper_dppedia_unittest import DBpediaTest # Takes the longest
+from encoding.cnf_representation_unittest import CNFTest
 
 from knowledge.entropy_maximization_unittest import EntropyMaximationTest
 from knowledge.hybridKB_unittest import HybridKBTest

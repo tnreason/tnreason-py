@@ -1,5 +1,9 @@
 from tnreason import encoding, engine
 
+"""
+Provides a selection architecture to parametrize clauses
+"""
+
 def get_cnf_architecture(maxSize, atomList):
     return {
         **{"colNeur" + str(i): [["or"], ["neur" + str(i + 1)], ["colNeur" + str(i - 1)]] for i in
