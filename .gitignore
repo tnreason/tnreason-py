@@ -15,5 +15,3 @@ demonstration/fig.png
 demonstration/visualizations/
 old_dist/
 tnreason.egg-info/
-
-pgmpy_tests/*

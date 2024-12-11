@@ -1,4 +1,6 @@
-from experiments.cnf_representation import as_polynomial_core as ap, cnf_building as cb
+from experiments.cnf_representation import cnf_building as cb
+
+from tnreason.encoding import cnf_to_cores as ctc
 
 from tnreason import engine
 
@@ -20,7 +22,7 @@ def formula_to_polynomialCore(expression):
     """
     Turns an expression into a Polynomial Core based on the contraction of its clauses
     """
-    core = ap.clauseList_to_pcore(simplify_clauseList(cnf_to_dict(cb.to_cnf(expression, uppushAnd=False))))
+    core = ctc.clauseList_to_core(simplify_clauseList(cnf_to_dict(cb.to_cnf(expression, uppushAnd=False))))
     core.add_identical_slices()
     return core
 
