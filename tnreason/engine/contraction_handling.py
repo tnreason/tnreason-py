@@ -3,26 +3,31 @@ import numpy as np
 defaultContractionMethod = "NumpyEinsum"
 
 
-def contract(coreDict, openColors, dimDict={}, method=None):
+def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
     """
     Contractors are initialized with
         * coreDict: Dictionary of colored tensor cores specifying a network
         * openColors: List of colors to leave open in the contraction
         * dimDict: Dictionary of dimension to each color, required only when colors do not appear in the cores
+        * method:
+        * coreType: Required for the empty Initialization
     """
     if method is None:
         method = defaultContractionMethod
 
     ## Handling trivial colors (not appearing in coreDict)
     from tnreason.engine.auxiliary_cores import create_trivial_core
-    dimDict.update({color : 2 for color in openColors if color not in dimDict})
+    dimDict.update({color: 2 for color in openColors if color not in dimDict})
+
     if len(coreDict) == 0:
-        return create_trivial_core(name="Contracted", shape=[dimDict[color] for color in openColors], colors=openColors)
+        return create_trivial_core(name="Contracted", shape=[dimDict[color] for color in openColors], colors=openColors,
+                                   coreType=coreType)
+
     appearingColors = list(set().union(*[coreDict[coreKey].colors for coreKey in coreDict]))
     for color in openColors:
         if color not in appearingColors:
             coreDict[color + "_trivialCore"] = create_trivial_core(color + "_trivialCore", shape=[dimDict[color]],
-                                                                   colors=[color])
+                                                                   colors=[color], coreType=coreType)
 
     ## Einstein Summation Contractors
     if method == "NumpyEinsum":
@@ -54,15 +59,17 @@ def contract(coreDict, openColors, dimDict={}, method=None):
     else:
         raise ValueError("Contractor Type {} not known.".format(method))
 
-def normate(coreDict, outColors, inColors, dimDict={}, method=None):
-    contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, method=method)
+
+def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=None):
+    contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, method=method, coreType=coreType)
     # Need to clone in order to avoid cross reference manipulation!
-    sliceNorms = contract({"rawCon":contracted.clone()}, openColors=inColors, dimDict=dimDict, method=method)
+    sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimDict=dimDict, method=method,
+                          coreType=coreType)
     for x in np.ndindex(tuple(sliceNorms.shape)):
         if sliceNorms[x] == 0:
             print("Slice {} cannot be normated!".format(x))
         else:
-            contracted.multiply(1/sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
+            contracted.multiply(1 / sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
     return contracted
 
 
@@ -74,8 +81,9 @@ class CorewiseContractor:
 
     def contract(self):
         ## Without optimization -> Can apply optimization from version0
-        name, resultCore = self.coreDict.popitem()
-        for key in self.coreDict:
+        coreKeys = list(self.coreDict.keys())
+        name, resultCore = coreKeys[0], self.coreDict[coreKeys[0]]
+        for key in coreKeys[1:]:
             resultCore = resultCore.contract_with(self.coreDict[key])
         resultCore.reduce_colors(self.openColors)
         return resultCore

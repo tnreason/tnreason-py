@@ -7,8 +7,9 @@ from algorithms.als_knowledge_test import AlsKnowledgeTest
 
 from engine.logic_contraction_unittest import TensorLogicTest
 from engine.conversion_unittest import IteratorConversionTest
+from engine.normation_unittest import NormationTest
 
-from encoding.sparqlwrapper_dppedia_test import DBpediaTest # Takes the longest
+from encoding.sparqlwrapper_dppedia_unittest import DBpediaTest # Takes the longest
 
 from knowledge.entropy_maximization_unittest import EntropyMaximationTest
 from knowledge.hybridKB_unittest import HybridKBTest
