@@ -1,5 +1,7 @@
 from tnreason import engine
 
+from tnreason.algorithms import sampling_handling as sh
+
 import numpy as np
 
 ## Energy-based
@@ -102,8 +104,10 @@ class EnergyMeanField:
         return sample
 
 
-class EnergyGibbs:
-    def __init__(self, energyDict, colors=[], dimDict={}, coreType=None, contractionMethod=None):
+class EnergyGibbs(sh.SampleCoreBase):
+    def __init__(self, energyDict, colors=[], dimDict={}, coreType=None, contractionMethod=None, **specDict):
+        super().__init__(**specDict)
+
         self.energyDict = energyDict
         self.colors = colors
 
@@ -148,6 +152,22 @@ class EnergyGibbs:
         for i, temperature in enumerate(temperatureList):
             for j, upKey in enumerate(partitionColorDict):
                 self.sample_colors(partitionColorDict[upKey], temperature=temperature)
+
+    def draw_sample(self, **specDict):
+        """
+        To Do: SpecDict to super().__init__, here only startAssignment
+        """
+        if specDict.get("startAssignment", None) is not None:
+            self.sample = specDict["startAssignment"]
+        else:
+            self.sample = {}
+
+        temperatureList = specDict.get("temperatureList", [1])
+        partitionColorDict = specDict.get("partitionColorDict", {color: [color] for color in self.colors})
+        for i, temperature in enumerate(temperatureList):
+            for j, upKey in enumerate(partitionColorDict):
+                self.sample_colors(partitionColorDict[upKey], temperature=temperature)
+
 
 
 def create_affectionDict(energyDict, colors):

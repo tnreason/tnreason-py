@@ -59,7 +59,7 @@ class InferenceProvider:
         """
         To Do: Include in draw_samples as special case
         """
-        sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, sampleColors=variableList)
+        sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, colors=variableList)
         return next(sampler)[1]
 
     def draw_samples(self, sampleNum, variableList=None, outType="int64", method="ForwardSampling"):
@@ -70,7 +70,7 @@ class InferenceProvider:
         if variableList is None:
             variableList = self.distribution.distributedVariables
         if method == "ForwardSampling":
-            sampler = algorithms.ForwardSampleCore(self.distribution, sampleColors=variableList, sampleNum=sampleNum)
+            sampler = algorithms.ForwardSampleCore(self.distribution, colors=variableList, sampleNum=sampleNum)
         else:
             raise ValueError("Sampling Method {} not implemented.".format(method))
         return engine.convert(sampler, "PandasCore").values[variableList].astype(outType)

@@ -1,34 +1,24 @@
 from tnreason import engine
 
+from tnreason.algorithms import sampling_handling as sh
 
-class ForwardSampleCore:
+
+class ForwardSampleCore(sh.SampleCoreBase):
     """
     Iteratable SampleCore, can be converted into a contractable TensorCore
     """
-    def __init__(self, dist, dimDict=None, coreType=None, contractionMethod=None, sampleNum = 1, sampleColors=None):
+
+    def __init__(self, dist, dimDictFromCores=True, **specDict):
+        super().__init__(**specDict)
         self.distribution = dist
-        if dimDict is None:
-            self.dimDict = engine.get_dimDict(self.distribution.create_cores())
-        else:
-            self.dimDict = dimDict
-        self.coreType = coreType
-        self.contractionMethod = contractionMethod
 
-        self.index = 0
-        self.sampleNum = sampleNum
+        if dimDictFromCores:
+            self.dimDict.update(engine.get_dimDict(self.distribution.create_cores()))
 
-        if sampleColors is None:
-            self.colors = list(self.dimDict.keys())
-        else:
-            self.colors = sampleColors
-
-            for color in self.colors:
-                if color not in self.dimDict:
-                    self.dimDict[color] = 2
-
-        self.shape = [self.dimDict[color] for color in self.colors]
-
-    def draw_forward_sample(self):
+    def draw_sample(self, startAssignment=dict()):
+        """
+        Ignores the startAssignment, since drawing from full distribution!
+        """
         for color in self.colors:
             if color not in self.dimDict:
                 self.dimDict[color] = 2
@@ -43,14 +33,3 @@ class ForwardSampleCore:
                 openColors=[sampleColor], dimDict=self.dimDict, method=self.contractionMethod)
             sample[sampleColor] = condProb.draw_sample(asEnergy=False)[sampleColor]
         return sample
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.index < self.sampleNum:
-            self.index += 1
-            return (1, self.draw_forward_sample())
-        else:
-            self.index = 0
-            raise StopIteration

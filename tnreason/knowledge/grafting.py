@@ -2,8 +2,6 @@ from tnreason import algorithms
 from tnreason import encoding
 from tnreason import engine
 
-from tnreason.knowledge import distributions
-
 headNeuronString = "headNeurons"
 architectureString = "architecture"
 acceptanceCriterionString = "acceptanceCriterion"
