@@ -19,7 +19,7 @@ sampleDf = generatingKB.draw_samples(sampleNum)
 class EntropyMaximationTest(unittest.TestCase):
     def test_convergence(self):
         expressionsDict = {"f1": ["imp", "a", "b"], "f2": ["imp", "a", "c"], "f3": ["a"]}
-        inferer = knowledge.InferenceProvider(knowledge.EmpiricalDistribution(sampleDf))
+        inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
         satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
 
         entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict, backCores={})
@@ -29,7 +29,7 @@ class EntropyMaximationTest(unittest.TestCase):
 
     def test_backCores(self):
         expressionsDict = {"f1": ["imp", "a", "b"], "f2": ["imp", "a", "c"], "f3": ["a"]}
-        inferer = knowledge.InferenceProvider(knowledge.EmpiricalDistribution(sampleDf))
+        inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
         satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
 
         preBackCores = encoding.create_formulas_cores({"fact1": ["imp", "a", "b"]})
@@ -46,7 +46,7 @@ class EntropyMaximationTest(unittest.TestCase):
         expressionsDict = {"f_a": ["a"],
                            "f_b": ["b"],
                            "f_c": ["c"]}
-        inferer = knowledge.InferenceProvider(knowledge.EmpiricalDistribution(sampleDf))
+        inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
         satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
 
         entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict)
@@ -64,7 +64,7 @@ class EntropyMaximationTest(unittest.TestCase):
                            "f_b": ["b"],
                            "f_c": ["c"]}
 
-        hybridKB = knowledge.HybridKnowledgeBase(backCores=knowledge.EmpiricalDistribution(sampleDf).create_cores())
+        hybridKB = knowledge.HybridKnowledgeBase(backCores=knowledge.get_empirical_distribution(sampleDf).create_cores())
 
         inferer = knowledge.InferenceProvider(hybridKB)
         satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}

@@ -54,7 +54,7 @@ class HybridLearner:
         tboFormulas = {
             key: self.hybridKB.weightedFormulas[key][:-1] for key in formulaKeys}
 
-        empDistributionInferer = ded.InferenceProvider(dist.EmpiricalDistribution(sampleDf))
+        empDistributionInferer = ded.InferenceProvider(dist.get_empirical_distribution(sampleDf))
         satDict = {key: empDistributionInferer.ask(tboFormulas[key]) for key in tboFormulas}
         calibrator = wees.EntropyMaximizer(expressionsDict=tboFormulas, satisfactionDict=satDict,
                                            backCores=self.hybridKB.create_hard_cores())

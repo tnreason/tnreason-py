@@ -93,11 +93,13 @@ class PandasCore:
                                                             self.values.loc[
                                                                 j, col] == self.nanValue and col not in newColors]) * \
                                                    self.values.loc[j, self.valueColumn]
-        self.values = self.values.groupby(newColors)[self.valueColumn].sum().reset_index()
-        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color in newColors]
+        if len(newColors)==0:
+            self.values = pd.DataFrame({self.valueColumn : [self.values[self.valueColumn].sum()]})
+        else:
+            self.values = self.values.groupby(newColors)[self.valueColumn].sum().reset_index()
 
+        self.shape = [self.shape[i] for i, color in enumerate(self.colors) if color in newColors]
         self.colors = newColors
-        self.shape = newShape
 
     def add_identical_slices(self):
         self.values = self.values.groupby(self.colors)[self.valueColumn].sum().reset_index()

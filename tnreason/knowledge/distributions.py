@@ -1,60 +1,78 @@
 from tnreason import encoding
 from tnreason import engine
+import math
 
 probFormulasKey = "weightedFormulas"
 logFormulasKey = "facts"
 categoricalsKey = "categoricalConstraints"
 evidenceKey = "evidence"
 
-"""
-Distributions are Markov Networks with two methods:
-    * create_cores(): returning the factor cores
-    * get_partition_function(allAtoms): returning the partition function given the atomic variables of interest
-"""
 
-
-class EmpiricalDistribution:
+class DistributionBase:
     """
-    Inferable (by InferenceProvider) empirical distributions
+    Distributions have two methods:
+        * create_cores(): returning the factor cores -> customized!
+        * get_partition_function(allAtoms): returning the partition function given the atomic variables of interest
     """
 
-    def __init__(self, sampleDf, atomKeys=None, interpretation="atomic", dimensionsDict={}):
-        """
+    def __init__(self, **specDict):
+        self.partitionFunction = specDict.get("partitionFunction", None)
+        self.coreType = specDict.get("coreType", None)
+        self.contractionMethod = specDict.get("contractionMethod", None)
+
+    def get_partition_function(self, addDimDict={}):
+        if self.partitionFunction is None:
+            self.partitionFunction = engine.contract(self.create_cores(), openColors=[], method=self.contractionMethod)[
+                                     :]
+        return math.prod(
+            [addDimDict[color] for color in addDimDict if color not in self.dimDict]) * self.partitionFunction
+
+
+class MarkovNetwork(DistributionBase):
+    """
+    Interprets a Tensor Network as a distribution
+    """
+
+    def __init__(self, coreDict, **specDict):
+        super().__init__(**specDict)
+
+        self.coreDict = coreDict
+        self.dimDict = engine.get_dimDict(coreDict)
+
+    def create_cores(self):
+        return self.coreDict
+
+
+def get_empirical_distribution(sampleDf, atomColors=None, interpretation="atomic", dimensionsDict=None):
+    """
+    Returns an empirical distributions as a MarkovNetwork
         * sampleDf: pd.DataFrame containing the samples defining the empirical distributions
         * atomKeys: List of columns of sampleDf to be recognized as atoms
         * interpretation: Specifies the interpretation of the entries of sampleDf
             - "atomic": Variables have dimension 2 and entries in [0,1] are the probability of the atom holding.
             - "categorical": Variables have dimension m specified in dimensionsDict and entries are the certain value of the variable in [m]
-        """
-        if atomKeys is None:
-            atomKeys = list(sampleDf.columns)
-        self.distributedVariables = atomKeys
-        self.sampleDf = sampleDf
-        self.dataNum = sampleDf.values.shape[0]
-
-        self.interpretation = interpretation
-        self.dimensionsDict = dimensionsDict
-
-    def __str__(self):
-        return "Empirical Distribution with {} samples of atoms {}.".format(self.dataNum, self.distributedVariables)
-
-    def create_cores(self):
-        return encoding.create_data_cores(self.sampleDf, atomKeys=self.distributedVariables, interpretation=self.interpretation,
-                                          dimensionsDict=self.dimensionsDict)
-
-    def get_partition_function(self, allAtoms=[]):
-        unseenAtomNum = len([atom for atom in allAtoms if atom not in self.distributedVariables])
-        return (self.dataNum * (2 ** unseenAtomNum))
+    """
+    if atomColors is not None:
+        sampleDf = sampleDf[atomColors]
+    else:
+        atomColors = list(sampleDf.columns)
+    if "value" not in sampleDf.columns:
+        sampleDf["value"] = 1
+    return MarkovNetwork(encoding.create_data_cores(sampleDf, atomKeys=atomColors,
+                                                    interpretation=interpretation,
+                                                    dimensionsDict=dimensionsDict),
+                         partitionFunction=sampleDf["value"].sum())
 
 
-class HybridKnowledgeBase:
+class HybridKnowledgeBase(DistributionBase):
     """
     Inferable (by HybridInferer) Knowledge Base. Generalizes Markov Logic Network by further dedicated cores
     * dimensionDict: Dictionary of dimensions for in the formulas appearing categorical variables
     """
 
-    def __init__(self, weightedFormulas={}, facts={}, categoricalConstraints={}, evidence={}, backCores={},
-                 dimensionDict={}):
+    def __init__(self, weightedFormulas={}, facts={}, categoricalConstraints={}, evidence={}, backCores={}, **specDict):
+        super().__init__(**specDict)
+
         self.weightedFormulas = {key: weightedFormulas[key][:-1] + [float(weightedFormulas[key][-1])] for key in
                                  weightedFormulas}
         self.facts = facts
@@ -65,7 +83,8 @@ class HybridKnowledgeBase:
         self.backCores = backCores
 
         self.find_atoms()
-        self.dimensionDict = dimensionDict
+        self.dimDict = {**{atomColor: 2 for atomColor in self.distributedVariables},
+                        **engine.get_dimDict(backCores)}
 
     def __str__(self):
         outString = "Hybrid Knowledge Base consistent of"
@@ -136,14 +155,11 @@ class HybridKnowledgeBase:
         return {**encoding.create_formulas_cores({**self.weightedFormulas, **self.facts}),
                 **encoding.create_atom_evidence_cores(self.evidence),
                 **encoding.create_categorical_cores(self.categoricalConstraints),
-                **encoding.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom], self.dimensionDict),
+                **encoding.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
+                                                    self.dimDict),
                 **self.backCores}
 
-    def get_partition_function(self, allAtoms=[]):
-        unseenAtomNum = len([atom for atom in allAtoms if atom not in self.distributedVariables])
-        return (engine.contract(coreDict=self.create_cores(), openColors=[]).values
-                * (2 ** unseenAtomNum))
-
+    ### Special to Hybrid Knowledge Bases
     def create_hard_cores(self):
         """
         Returns the cores posing hard logical constraints on the worlds to be models
@@ -177,6 +193,3 @@ class HybridKnowledgeBase:
             cutoffWeight] for constraintKey in self.categoricalConstraints}
 
         return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}
-
-    def get_dimension_dict(self):
-        return {atom: 2 for atom in self.distributedVariables}

@@ -12,5 +12,5 @@ from tnreason.engine.creation_handling import get_core, defaultCoreType, create_
 def get_dimDict(coreDict):
     dimDict = {}
     for coreKey in coreDict:
-        dimDict.update({color: coreDict[coreKey].values.shape[i] for i, color in enumerate(coreDict[coreKey].colors)})
+        dimDict.update({color: coreDict[coreKey].shape[i] for i, color in enumerate(coreDict[coreKey].colors)})
     return dimDict

@@ -37,6 +37,10 @@ class NumpyCore:
             self.colors)
 
     def __getitem__(self, item):
+        if isinstance(item, slice) and item.start is None:
+            """ Then full slize : and Core needs to be just a number """
+            assert len(self.colors) == 0
+            return float(self.values)
         return self.values[item]
 
     def __setitem__(self, sliceDict, value):

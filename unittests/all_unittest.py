@@ -17,5 +17,6 @@ from knowledge.entropy_maximization_unittest import EntropyMaximationTest
 from knowledge.hybridKB_unittest import HybridKBTest
 #from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_unittest import HybridLearnerTest
+from knowledge.distribution_unittest import MNTest
 
 unittest.main()

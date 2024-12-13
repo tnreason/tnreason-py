@@ -80,7 +80,7 @@ class InferenceProvider:
     ## TO DO: Add support for evidenceDict
     def energy_based_sample(self, method, temperatureList=[1 for i in range(10)]):
         return algorithms.optimize_energy(energyDict={**self.distribution.get_energy_dict()},
-                                          colors=list(self.distribution.get_dimension_dict().keys()),
-                                          dimDict=self.distribution.get_dimension_dict(),
+                                          colors=list(self.distribution.distributedVariables),
+                                          dimDict={color : 2 for color in self.distribution.distributedVariables},
                                           method=method,
                                           temperatureList=temperatureList)
