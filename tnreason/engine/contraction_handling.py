@@ -17,15 +17,12 @@ def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
 
     ## Handling trivial colors (not appearing in coreDict)
     from tnreason.engine.auxiliary_cores import create_trivial_core
-    dimDict.update({color: 2 for color in openColors if color not in dimDict})
-
-    if len(coreDict) == 0:
-        return create_trivial_core(name="Contracted", shape=[dimDict[color] for color in openColors], colors=openColors,
-                                   coreType=coreType)
-
     appearingColors = list(set().union(*[coreDict[coreKey].colors for coreKey in coreDict]))
     for color in openColors:
         if color not in appearingColors:
+            if color not in dimDict:
+                dimDict[color] = 2
+                print("Color {} handled trivially, not appearing in coreDict or dimDict.".format(color))
             coreDict[color + "_trivialCore"] = create_trivial_core(color + "_trivialCore", shape=[dimDict[color]],
                                                                    colors=[color], coreType=coreType)
 
@@ -76,7 +73,7 @@ def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=Non
 class CorewiseContractor:
 
     def __init__(self, coreDict={}, openColors=[]):
-        self.coreDict = coreDict
+        self.coreDict = {coreKey : coreDict[coreKey].clone() for coreKey in coreDict}
         self.openColors = openColors
 
     def contract(self):

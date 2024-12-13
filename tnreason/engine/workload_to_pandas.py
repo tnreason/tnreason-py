@@ -61,7 +61,7 @@ class PandasCore:
             raise StopIteration
 
     def clone(self):
-        return PandasCore(self.values, self.colors, self.name, self.shape)
+        return PandasCore(self.values.copy(deep=True), self.colors, self.name, self.shape)
 
     def contract_with(self, core2):
         core2.values = core2.values.rename(columns={core2.valueColumn: self.valueColumn + "_sec"})
