@@ -59,6 +59,9 @@ def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
 
 def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=None):
     contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, method=method, coreType=coreType)
+    if len(inColors) == 0:
+        return contracted
+
     # Need to clone in order to avoid cross reference manipulation!
     sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimDict=dimDict, method=method,
                           coreType=coreType)
