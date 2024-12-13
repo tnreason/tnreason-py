@@ -1,8 +1,4 @@
-import networkx as nx
-from matplotlib import pyplot as plt
-
 from tnreason import encoding
-
 
 def visualize(hybridKB, title="Visualization of the Knowledge Base",
               savePath=None):
@@ -57,6 +53,8 @@ def visualize_subexpressions(expressionsDict={},
                              factsDict={},
                              categoricalConstraints={},
                              evidenceDict={}):
+    import networkx as nx
+
     edges = []
     horPositions = {}
     nodes = []
@@ -92,6 +90,9 @@ def draw_with_evidence(graph, pos, evidenceDict, atoms, title, savePath=None):
 
     hidden_node_alpha = 0.3
     visible_node_alpha = 0.8
+
+    import networkx as nx
+    from matplotlib import pyplot as plt
 
     nx.draw_networkx_nodes(graph, pos,
                            nodelist=[atomKey for atomKey in evidenceDict if

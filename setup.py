@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name="tnreason",
-    version="1.0.1",
+    version="1.0.2",
     author="Alex Goessmann",
     author_email="alex.goessmann@web.de",
     description="A package for reasoning based on tensor networks",
@@ -21,12 +21,14 @@ setup(
     install_requires=[
         "numpy>=1.17",  # was 1.23.4",
         "pandas>=1.0.0",
+        "gurobipy",
+        "SPARQLWrapper",
         "networkx",
         "pyyaml",
-        "rdflib",
-        "matplotlib",
-        "pgmpy",
-        "importlib-resources"
+        #"rdflib",
+        #"matplotlib",
+        #"pgmpy",
+        #"importlib-resources"
     ],
     python_requires=">=3",
     license="AGPL-3.0",
