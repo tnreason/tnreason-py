@@ -34,22 +34,21 @@ class Grafter:
         self.knowledgeBase = knowledgeBase
         self.specDict = specDict
 
-    def find_candidate(self, sampleDf):
+    def find_candidate(self, empiricalDistribution):
         """
         Searches for a candidate formula
         """
-        atomColors = encoding.find_atom_colors(self.specDict[architectureString])
+        atomDimDict = {atomColor : 2 for atomColor in encoding.find_atom_colors(self.specDict[architectureString])}
         selectionColors = encoding.find_selection_colors(self.specDict[architectureString])
 
-        empiricalDistribution = distributions.get_empirical_distribution(sampleDf, atomColors)
         statisticCores = encoding.create_architecture(
             encoding.parse_neuronNameDict_to_neuronColorDict(self.specDict[architectureString]),
             self.specDict[headNeuronString])
 
         energyDict = {"pos": ({**statisticCores, **empiricalDistribution.create_cores()},
-                              1 / empiricalDistribution.get_partition_function(atomColors)),
+                              1 / empiricalDistribution.get_partition_function({color : 2 for color in atomDimDict})),
                       "neg": ({**statisticCores, **self.knowledgeBase.create_cores()},
-                              -1 / self.knowledgeBase.get_partition_function({color : 2 for color in atomColors}))}
+                              -1 / self.knowledgeBase.get_partition_function({color : 2 for color in atomDimDict}))}
         dimDict = engine.get_dimDict(statisticCores)
 
         ## Energy optimization methods: Ignores constrastive structure of energyDict

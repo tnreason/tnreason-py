@@ -21,7 +21,7 @@ class HybridLearner:
     def get_knowledge_base(self):
         return self.hybridKB
 
-    def graft_formula(self, specDict, sampleDf, stepName="_grafted"):
+    def graft_formula(self, specDict, empDistribution, stepName="_grafted"):
         """
         Grafting with
         * specDict: Dictionary specification of the Hyperparameters of the Boosting Step:
@@ -30,12 +30,12 @@ class HybridLearner:
             - architecture: Collection of neurons
             - headNeurons: List of neuronKeys to be used for formula heads
             - calibrationSweeps: Number of sweeps in weight estimation
-        * sampleDf: pd.DataFrame storing the data used for the boosting step
+        * empDistribution: storing the data used for the boosting step
         * stepName: Specifies a name suffix for the learned formula to be stored in the HybridKnowledgeBase.
                     Needs to differ for each Step to avoid key conflicts.
         """
         booster = gf.Grafter(self.hybridKB, specDict)
-        booster.find_candidate(sampleDf)
+        booster.find_candidate(empDistribution)
         print("Learned formulas: {}".format(booster.candidates))
         if booster.test_candidates():
             print("Accepted formulas.")
@@ -45,16 +45,16 @@ class HybridLearner:
                     booster.candidates}))
             if "calibrationSweeps" not in specDict:
                 specDict["calibrationSweeps"] = 10
-            self.calibrate_weights_on_data(specDict, sampleDf=sampleDf)
+            self.calibrate_weights_on_data(specDict, empDistribution)
 
-    def calibrate_weights_on_data(self, specDict, sampleDf, formulaKeys=None):
+    def calibrate_weights_on_data(self, specDict, empDistribution, formulaKeys=None):
         if formulaKeys is None:
             formulaKeys = self.hybridKB.weightedFormulas.keys()
 
         tboFormulas = {
             key: self.hybridKB.weightedFormulas[key][:-1] for key in formulaKeys}
 
-        empDistributionInferer = ded.InferenceProvider(dist.get_empirical_distribution(sampleDf))
+        empDistributionInferer = ded.InferenceProvider(empDistribution)
         satDict = {key: empDistributionInferer.ask(tboFormulas[key]) for key in tboFormulas}
         calibrator = wees.EntropyMaximizer(expressionsDict=tboFormulas, satisfactionDict=satDict,
                                            backCores=self.hybridKB.create_hard_cores())

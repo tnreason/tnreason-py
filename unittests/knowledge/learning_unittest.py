@@ -30,10 +30,11 @@ class HybridLearnerTest(unittest.TestCase):
                  },
             "acceptanceCriterion": "always",
             "calibrationSweeps": 2
-        }, sampleDf, stepName="_funBoost")
+        }, knowledge.get_empirical_distribution(sampleDf), stepName="_funBoost")
         hybridKB = learner.get_knowledge_base()
 
-        self.assertEqual(hybridKB.facts["neur1_funBoost"], ["not", ["imp", "a1", "a3"]]) # Different solution to the Energy Max!
+        self.assertEqual(hybridKB.facts["neur1_funBoost"],
+                         ["not", ["imp", "a1", "a3"]])  # Different solution to the Energy Max!
         self.assertEqual(hybridKB.facts["w1"], ["not", "a3"])
 
     def test_boosting_energy_max(self):
@@ -52,7 +53,7 @@ class HybridLearnerTest(unittest.TestCase):
                  },
             "acceptanceCriterion": "always",
             "calibrationSweeps": 2
-        }, sampleDf, stepName="_funBoost")
+        }, knowledge.get_empirical_distribution(sampleDf), stepName="_funBoost")
         hybridKB = learner.get_knowledge_base()
 
         self.assertEqual(hybridKB.weightedFormulas["neur1_funBoost"][:-1], ["imp", "a1", "a2"])
