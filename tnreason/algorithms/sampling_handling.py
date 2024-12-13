@@ -4,8 +4,7 @@ class SampleCoreBase:
         Can pass the iteration of any core in startSliceIterator
         """
         self.sampleNum = specDict.get("sampleNum", 1)
-        self.startSliceIterator = specDict.get("startSliceIterator",
-                                               iter([(1, dict()) for i in range(self.sampleNum)]))
+        self.startSlices = specDict.get("startSlices", [(1, dict()) for i in range(self.sampleNum)])
         self.colors = specDict.get("colors", [])
         self.dimDict = specDict.get("dimDict", dict())
 
@@ -25,6 +24,7 @@ class SampleCoreBase:
         self.contractionMethod = specDict.get("contractionMethod", None)
 
     def __iter__(self):
+        self.startSliceIterator = iter(self.startSlices)
         return self
 
     def __next__(self):
@@ -34,12 +34,6 @@ class SampleCoreBase:
         except StopIteration:
             raise StopIteration
 
-    def draw_sample(self, startAssignment):
+    def draw_sample(self, startAssignment=dict()):
         return startAssignment
 
-
-if __name__ == "__main__":
-    sampler = SampleCoreBase(sampleNum=10)
-
-    for entry in sampler:
-        print(entry)

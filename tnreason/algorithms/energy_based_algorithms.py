@@ -11,25 +11,32 @@ energyMaximumMethodString = "exactEnergyMax"
 energyOptimizationMethods = [gibbsMethodString, meanFieldMethodString, energyMaximumMethodString]
 
 
-def optimize_energy(energyDict, colors=[], dimDict={}, method=gibbsMethodString,
-                    temperatureList=[1 for i in range(10)], coreType=None, contractionMethod=None):
+def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
+    """
+    Mixes two steps! Approximation (EnergyMeanFieldApproximator) and Sample Drawing (EnergyGibbsSampleCore)
+    """
     if method == gibbsMethodString:
-        sampler = EnergyGibbs(energyDict=energyDict, colors=colors, dimDict=dimDict, coreType=coreType,
-                              contractionMethod=contractionMethod)
-        sampler.annealed_sample(temperatureList)
+        sampler = EnergyGibbsSampleCore(energyDict=energyDict, **specDict)
+        sampler.draw_sample()
         return sampler.sample
     elif method == meanFieldMethodString:
-        approximator = EnergyMeanField(energyDict=energyDict, colors=colors, dimDict=dimDict, coreType=coreType,
-                                       contractionMethod=contractionMethod)
-        approximator.anneal(temperatureList=temperatureList)
+        approximator = EnergyMeanFieldApproximator(energyDict=energyDict, **specDict)
+        approximator.anneal(temperatureList=specDict.get("approximationTemperatureList", [1 for i in range(10)]))
+
+#        return EnergyGibbsSampleCore(energyDict=approximator.get_energyDict(), **specDict)
         return approximator.draw_sample()
     elif method == energyMaximumMethodString:
-        contracted = engine.create_trivial_core("contracted", [dimDict[color] for color in colors], colors,
-                                                coreType=coreType)
+        """
+        Potential: Sparse Cores -> HUBO!
+        """
+        contracted = engine.create_trivial_core("contracted", [specDict.get("dimDict", dict())[color] for color in
+                                                               specDict.get("colors", [])], specDict.get("colors", []),
+                                                coreType=specDict.get("coreType", None))
         for energyKey in energyDict:
             contracted = contracted.sum_with(
-                engine.contract(energyDict[energyKey][0], openColors=colors, dimDict=dimDict,
-                                method=contractionMethod).multiply(
+                engine.contract(energyDict[energyKey][0], openColors=specDict.get("colors", []),
+                                dimDict=specDict.get("dimDict", dict()),
+                                method=specDict.get("contractionMethod", None)).multiply(
                     energyDict[energyKey][1]))
         return contracted.get_argmax()
     else:
@@ -37,27 +44,24 @@ def optimize_energy(energyDict, colors=[], dimDict={}, method=gibbsMethodString,
                                                                                  method))
 
 
-class EnergyMeanField:
-    def __init__(self, energyDict, colors=[], dimDict={}, partitionColorDict=None, coreType=None,
-                 contractionMethod=None):
+class EnergyMeanFieldApproximator:
+    def __init__(self, energyDict, **specDict):
+
+        self.colors = specDict.get("colors", [])
+        self.dimDict = specDict.get("dimDict", dict())
+        self.coreType = specDict.get("coreType", None)
+        self.contractionMethod = specDict.get("contractionMethod", None)
+
         self.energyDict = energyDict
-        self.colors = colors
+        self.affectionDict = create_affectionDict(energyDict, self.colors)
 
-        self.affectionDict = create_affectionDict(energyDict, colors)
-        self.dimDict = dimDict
-
-        self.coreType = coreType
-        self.contractionMethod = contractionMethod
+        self.partitionColorDict = specDict.get("partitionColorDict", {color: [color] for color in self.colors})
 
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
-        if partitionColorDict is None:
-            self.partitionColorDict = {color: [color] for color in colors}
-        else:
-            self.partitionColorDict = partitionColorDict
         self.meanCores = {parKey: engine.create_trivial_core(parKey, [self.dimDict[color] for color in
                                                                       self.partitionColorDict[parKey]],
                                                              self.partitionColorDict[parKey],
-                                                             coreType=coreType).multiply(
+                                                             coreType=self.coreType).multiply(
             1 / np.prod([self.dimDict[color] for color in self.partitionColorDict[parKey]])) for parKey
             in self.partitionColorDict}
 
@@ -97,33 +101,32 @@ class EnergyMeanField:
     def draw_sample(self):
         """
         Draws a sample from the approximating independent distribution
+        -> Better to use EnergyGibbs for that!
         """
         sample = {}
         for coreKey in self.meanCores:
             sample.update(self.meanCores[coreKey].draw_sample(temperature=1))
         return sample
 
+    def get_energyDict(self):
+        return [(1, {coreKey: self.meanCores[coreKey].build_ln()}) for coreKey in self.meanCores]
 
-class EnergyGibbs(sh.SampleCoreBase):
-    def __init__(self, energyDict, colors=[], dimDict={}, coreType=None, contractionMethod=None, **specDict):
+
+class EnergyGibbsSampleCore(sh.SampleCoreBase):
+    def __init__(self, energyDict, **specDict):
         super().__init__(**specDict)
 
         self.energyDict = energyDict
-        self.colors = colors
+        self.affectionDict = create_affectionDict(energyDict, self.colors)
+        self.temperatureList = specDict.get("temperatureList", [1])
+        self.partitionColorDict = specDict.get("partitionColorDict", {color: [color] for color in self.colors})
 
-        self.affectionDict = create_affectionDict(energyDict, colors)
-
-        self.dimDict = dimDict
-        self.sample = {}
-
-        self.coreType = coreType
-        self.contractionMethod = contractionMethod
-
-    def initialize_sample_uniform(self):
-        for color in self.colors:
-            self.sample.update(
-                engine.create_trivial_core(color + "_probCore", [self.dimDict[color]], [color],
-                                           coreType=self.coreType).draw_sample())
+    def draw_sample(self, startAssignment=dict()):
+        self.sample = startAssignment
+        for i, temperature in enumerate(self.temperatureList):
+            for j, upKey in enumerate(self.partitionColorDict):
+                self.sample_colors(self.partitionColorDict[upKey], temperature=temperature)
+        return self.sample
 
     def calculate_energy(self, upColors):
         affectedEnergyKeys = list(set().union(*[self.affectionDict[color] for color in upColors]))
@@ -145,29 +148,6 @@ class EnergyGibbs(sh.SampleCoreBase):
     def sample_colors(self, colors, temperature=1):
         energy = self.calculate_energy(colors)
         self.sample.update(energy.draw_sample(asEnergy=True, temperature=temperature))
-
-    def annealed_sample(self, temperatureList=[1], partitionColorDict=None):
-        if partitionColorDict is None:
-            partitionColorDict = {color: [color] for color in self.colors}
-        for i, temperature in enumerate(temperatureList):
-            for j, upKey in enumerate(partitionColorDict):
-                self.sample_colors(partitionColorDict[upKey], temperature=temperature)
-
-    def draw_sample(self, **specDict):
-        """
-        To Do: SpecDict to super().__init__, here only startAssignment
-        """
-        if specDict.get("startAssignment", None) is not None:
-            self.sample = specDict["startAssignment"]
-        else:
-            self.sample = {}
-
-        temperatureList = specDict.get("temperatureList", [1])
-        partitionColorDict = specDict.get("partitionColorDict", {color: [color] for color in self.colors})
-        for i, temperature in enumerate(temperatureList):
-            for j, upKey in enumerate(partitionColorDict):
-                self.sample_colors(partitionColorDict[upKey], temperature=temperature)
-
 
 
 def create_affectionDict(energyDict, colors):

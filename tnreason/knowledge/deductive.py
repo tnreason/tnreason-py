@@ -60,6 +60,7 @@ class InferenceProvider:
         To Do: Include in draw_samples as special case
         """
         sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, colors=variableList)
+        iter(sampler)
         return next(sampler)[1]
 
     def draw_samples(self, sampleNum, variableList=None, outType="int64", method="ForwardSampling"):
