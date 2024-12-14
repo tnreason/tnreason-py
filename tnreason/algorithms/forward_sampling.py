@@ -13,23 +13,23 @@ class ForwardSampleCore(sh.SampleCoreBase):
         self.distribution = dist
 
         if dimDictFromCores:
-            self.dimDict.update(engine.get_dimDict(self.distribution.create_cores()))
+            self.dimensionDict.update(engine.get_dimDict(self.distribution.create_cores()))
 
     def draw_sample(self, startAssignment=dict()):
         """
         Ignores the startAssignment, since drawing from full distribution!
         """
         for color in self.colors:
-            if color not in self.dimDict:
-                self.dimDict[color] = 2
+            if color not in self.dimensionDict:
+                self.dimensionDict[color] = 2
         sample = {}
         for sampleColor in self.colors:
             condProb = engine.contract(
                 {**self.distribution.create_cores(),
                  **{oldColor + "_sampleCore": engine.create_basis_core(oldColor + "_sampleCore",
-                                                                       [self.dimDict[oldColor]], [oldColor],
+                                                                       [self.dimensionDict[oldColor]], [oldColor],
                                                                        sample[oldColor], coreType=self.coreType) for
                     oldColor in sample}},
-                openColors=[sampleColor], dimDict=self.dimDict, method=self.contractionMethod)
+                openColors=[sampleColor], dimDict=self.dimensionDict, method=self.contractionMethod)
             sample[sampleColor] = condProb.draw_sample(asEnergy=False)[sampleColor]
         return sample

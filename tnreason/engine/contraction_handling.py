@@ -2,18 +2,24 @@ import numpy as np
 
 defaultContractionMethod = "NumpyEinsum"
 
+class EngineUser:
+    def __init__(self, **engineSpec):
+        self.coreType = engineSpec.get("coreType", "NumpyCore")
+        self.contractionMethod = engineSpec.get("contractionMethod", "NumpyEinsum")
+        self.dimensionDict = engineSpec.get("dimensionDict", dict())
 
-def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimDict={}, method=None, coreType=None):
+
+def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={}, contractionMethod=None, coreType=None):
     if len(weightedCoreDicts) == 0:
-        return contract(backCores, openColors=openColors, dimDict=dimDict, method=method, coreType=coreType)
+        return contract(backCores, openColors=openColors, dimDict=dimensionDict, method=contractionMethod, coreType=coreType)
     else:
-        contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors, dimDict=dimDict,
-                              method=method,
+        contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors, dimDict=dimensionDict,
+                              method=contractionMethod,
                               coreType=coreType).multiply(weightedCoreDicts[0][0])
         for i in range(1, len(weightedCoreDicts)):
             contracted = contracted.sum_with(
-                contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimDict=dimDict,
-                         method=method,
+                contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimDict=dimensionDict,
+                         method=contractionMethod,
                          coreType=coreType).multiply(weightedCoreDicts[i][0])
             )
         return contracted

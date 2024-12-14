@@ -16,7 +16,7 @@ class NumpyCore:
     def __init__(self, values=None, colors=None, name=None, shape=None):
 
         if values is None:  # Empty initialization based on shape
-            self.values = np.zeros(shape=shape)
+            self.values = np.zeros(shape=shape).astype(float)
             self.shape = shape
         else:  # Initialization based on values
             self.values = np.array(values)
@@ -37,11 +37,14 @@ class NumpyCore:
             self.colors)
 
     def __getitem__(self, item):
-        if isinstance(item, slice) and item.start is None:
+        if isinstance(item, dict):
+            return self.values[tuple(item.get(color, None) for color in self.colors)]
+        elif isinstance(item, slice) and item.start is None:
             """ Then full slize : and Core needs to be just a number """
             assert len(self.colors) == 0
             return float(self.values)
-        return self.values[item]
+        else:
+            return self.values[item]
 
     def __setitem__(self, sliceDict, value):
         """
@@ -95,8 +98,8 @@ class NumpyCore:
     def exponentiate(self):
         return NumpyCore(np.exp(self.values), self.colors, self.name)
 
-    def build_ln(self):
-        return NumpyCore(np.log(self.values), self.colors, self.name)
+    def build_ln(self, threshold=1e-8):
+        return NumpyCore(np.log(np.clip(self.values, threshold, None)), self.colors, self.name)
 
     def get_argmax(self):
         return {self.colors[i]: maxPos for i, maxPos in

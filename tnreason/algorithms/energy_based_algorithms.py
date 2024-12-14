@@ -20,7 +20,7 @@ def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
         sampler.draw_sample()
         return sampler.sample
     elif method == meanFieldMethodString:
-        approximator = EnergyMeanFieldApproximator(energyDict=energyDict, **specDict)
+        approximator = NaiveMeanFieldApproximator(energyDict=energyDict, **specDict)
         approximator.anneal(
             approximationTemperatureList=specDict.get("approximationTemperatureList", [1 for i in range(10)]))
 
@@ -45,25 +45,76 @@ def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
                                                                                  method))
 
 
-class EnergyMeanFieldApproximator:
-    def __init__(self, energyDict, **specDict):
-
-        self.colors = specDict.get("colors", [])
-        self.dimDict = specDict.get("dimDict", dict())
-        self.coreType = specDict.get("coreType", None)
-        self.contractionMethod = specDict.get("contractionMethod", None)
+class GenericMeanFieldApproximator(engine.EngineUser):
+    def __init__(self, energyDict, colors=[], edgeColorDict=None, **engineSpec):
+        """
+        Edge Color Dict : Representing a HyperGraph, which Markov Network is used for approximation
+        """
+        super().__init__(**engineSpec)
 
         self.energyDict = energyDict
+        self.colors = colors
+
+        if edgeColorDict is None:
+            self.edgeColorDict = {color: [color] for color in colors}
+        else:
+            self.edgeColorDict = edgeColorDict
+
+        self.approxCores = {parKey: engine.create_trivial_core(parKey, [self.dimensionDict[color] for color in
+                                                                        self.edgeColorDict[parKey]],
+                                                               self.edgeColorDict[parKey],
+                                                               coreType=self.coreType).multiply(
+            1 / np.prod([self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) for parKey in
+            self.edgeColorDict}
+
+    def update_core(self, approxCoreKey):
+
+        restApproxCores = {key: self.approxCores[key] for key in self.approxCores if key != approxCoreKey}
+        contracted = engine.sum_contract(
+            weightedCoreDicts=energyDict_to_weightedCoresDicts(self.energyDict) +
+                              [(-1, {key: self.approxCores[key].build_ln()}) for key in self.approxCores if
+                               key != approxCoreKey],
+            backCores=restApproxCores, openColors=self.edgeColorDict[approxCoreKey],
+            coreType=self.coreType,
+            contractionMethod=self.contractionMethod
+        )
+        ## Normate coordinatewise
+        denominator = engine.contract(restApproxCores, openColors=self.edgeColorDict[approxCoreKey])
+        update = engine.get_core(self.coreType)(values=None, colors=self.edgeColorDict[approxCoreKey],
+                                                shape=[self.dimensionDict[color] for color in
+                                                       self.edgeColorDict[approxCoreKey]])
+        sum = 0
+        for i in np.ndindex(*[self.dimensionDict[color] for color in self.edgeColorDict[approxCoreKey]]):
+            posDict = {color: i[l] for l, color in enumerate(self.edgeColorDict[approxCoreKey])}
+            coordinate = np.exp(contracted[posDict] / denominator[posDict])
+            update[posDict] = coordinate
+            sum += 1
+        self.approxCores[approxCoreKey] = update.multiply(1 / sum)
+
+    def get_energyDict(self):
+        return [(1, {coreKey: self.approxCores[coreKey].build_ln()}) for coreKey in self.approxCores]
+
+
+class NaiveMeanFieldApproximator(engine.EngineUser):
+    def __init__(self, energyDict, colors=[], partionColorDict=None, **engineSpec):
+        super().__init__(**engineSpec)
+
+        self.colors = colors
+        self.energyDict = energyDict
+
         self.affectionDict = create_affectionDict(energyDict, self.colors)
 
-        self.partitionColorDict = specDict.get("partitionColorDict", {color: [color] for color in self.colors})
+        if partionColorDict is None:
+            self.partitionColorDict = {color: [color] for color in self.colors}
+        else:
+            self.partitionColorDict = partionColorDict
 
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
-        self.meanCores = {parKey: engine.create_trivial_core(parKey, [self.dimDict[color] for color in
+        self.meanCores = {parKey: engine.create_trivial_core(parKey, [self.dimensionDict[color] for color in
                                                                       self.partitionColorDict[parKey]],
                                                              self.partitionColorDict[parKey],
                                                              coreType=self.coreType).multiply(
-            1 / np.prod([self.dimDict[color] for color in self.partitionColorDict[parKey]])) for parKey
+            1 / np.prod([self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) for parKey
             in self.partitionColorDict}
 
     def update_meanCore(self, upKey, temperature=1):
@@ -75,7 +126,8 @@ class EnergyMeanFieldApproximator:
 
         contracted = engine.sum_contract(energyDict_to_weightedCoresDicts(self.energyDict, affectedEnergyKeys),
                                          backCores=restMeanCores, openColors=self.partitionColorDict[upKey],
-                                         dimDict=self.dimDict, method=self.contractionMethod, coreType=self.coreType)
+                                         dimensionDict=self.dimensionDict, contractionMethod=self.contractionMethod,
+                                         coreType=self.coreType)
 
         self.meanCores[upKey] = contracted.multiply(1 / temperature).exponentiate().normalize()
 
@@ -127,13 +179,13 @@ class EnergyGibbsSampleCore(sh.SampleCoreBase):
     def calculate_energy(self, upColors):
         affectedEnergyKeys = list(set().union(*[self.affectionDict[color] for color in upColors]))
         sampleCores = {
-            color + "_sampleCore": engine.create_basis_core(color + "_sampleCore", [self.dimDict[color]], [color],
+            color + "_sampleCore": engine.create_basis_core(color + "_sampleCore", [self.dimensionDict[color]], [color],
                                                             (self.sample[color]), coreType=self.coreType) for
             color in self.sample if color not in upColors}
 
         return engine.sum_contract(energyDict_to_weightedCoresDicts(self.energyDict, affectedEnergyKeys),
-                                         backCores=sampleCores, openColors=upColors, dimDict=self.dimDict,
-                                         method=self.contractionMethod, coreType=self.coreType)
+                                   backCores=sampleCores, openColors=upColors, dimensionDict=self.dimensionDict,
+                                   contractionMethod=self.contractionMethod, coreType=self.coreType)
 
 
 def create_affectionDict(energyDict, colors):
