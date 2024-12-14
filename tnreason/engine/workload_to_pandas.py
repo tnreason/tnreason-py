@@ -31,6 +31,12 @@ class PandasCore:
         self.index = 0
 
     def __getitem__(self, item):
+        if isinstance(item, dict):
+            value = 0
+            for j, row in self.values.iterrows():
+                if all([row[col] == item[col] or row[col] == self.nanValue for col in self.colors]):
+                    value = value + row[self.valueColumn]
+            return value
         if isinstance(item, int):
             item = [item]
         checkDict = {color: item[i] for i, color in enumerate(self.colors)}

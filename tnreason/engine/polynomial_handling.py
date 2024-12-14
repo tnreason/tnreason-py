@@ -28,6 +28,13 @@ class PolynomialCore:
             self.colors)
 
     def __getitem__(self, item):
+        if isinstance(item, dict):
+            value = 0
+            for entry in self.values:
+                if agreeing_dicts(entry[1], item):
+                    value += entry[0]
+            return value
+
         if isinstance(item, int):
             item = [item]
         value = 0

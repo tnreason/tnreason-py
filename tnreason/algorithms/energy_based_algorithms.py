@@ -24,7 +24,7 @@ def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
         approximator.anneal(
             approximationTemperatureList=specDict.get("approximationTemperatureList", [1 for i in range(10)]))
 
-        #        return EnergyGibbsSampleCore(energyDict=approximator.get_energyDict(), **specDict)
+        #return EnergyGibbsSampleCore(energyDict=approximator.get_energyDict(), **specDict)
         return approximator.draw_sample()
     elif method == energyMaximumMethodString:
         """

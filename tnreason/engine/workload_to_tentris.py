@@ -119,7 +119,10 @@ class HypertrieCore:
         return "## Hypertrie Core " + str(self.name) + "\nColors: " + str(self.colors)
 
     def __getitem__(self, item):
-        return self.values[item]
+        if isinstance(item, dict):
+            return self.values[tuple(item.get(color, None) for color in self.colors)]
+        else:
+            return self.values[item]
 
     def __setitem__(self, sliceDict, value):
         subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
