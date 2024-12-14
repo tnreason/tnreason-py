@@ -1,36 +1,42 @@
-# def transform_datapoint(assignmentDict, sampler, **specDict):
-#     return sampler.sample(startAssignment = assignmentDict)
-#
-# def transform_dataSet(dataCore, sampler):
-#     for value, entry in dataCore:
-#         transform_datapoint(assignmentDict)
-
-
-class DataTransformer:
-    def __init__(self, sampler, dataCore):
-        self.sampler = sampler
-        self.dataCore = dataCore
-
-    def __iter__(self):
-        self.iterator = iter(self.dataCore)
-        return self
-
-    def __next__(self):
-        value, assignmentDict = next(self.iterator)
-        return (value, self.sampler.draw_sample(startAssignment=assignmentDict))
-
-
 if __name__ == "__main__":
+    """
+    Data transformation now at the SampleCoreBase (in startSlices -> data)
+    """
+
     from tnreason.algorithms import energy_based_algorithms as eba
 
-    from tnreason import knowledge, encoding
+    from tnreason import knowledge, encoding, engine
 
-    dist = knowledge.HybridKnowledgeBase(weightedFormulas={"w1": ["imp", "a", "b", 5.23]})
+    dist = knowledge.HybridKnowledgeBase(weightedFormulas={"w1": ["imp", "a", "b", 0.23]})
 
-    sampler = eba.EnergyGibbs(dist.get_energy_dict(), colors=dist.distributedVariables,
-                              dimDict={color: 2 for color in dist.distributedVariables})
-    print(sampler.colors)
+    sampler = eba.EnergyGibbsSampleCore(dist.get_energy_dict(), colors=dist.distributedVariables,
+                                        dimDict={color: 2 for color in dist.distributedVariables},
+                                        # startSliceIterator=iter([(1, {"a" + encoding.suf.atomicVariableSuffix: 1,
+                                        #                 "b" + encoding.suf.atomicVariableSuffix: 0})]),
+                                        temperatureList=[1 for i in range(5)],
+                                        sampleNum=3
+                                        )
 
-    sampler.draw_sample(
-        startAssignment={"a" + encoding.suf.atomicVariableSuffix: 0, "b" + encoding.suf.atomicVariableSuffix: 1},
-    temperatureList=[1 for i in range(5)])
+    core = engine.convert(iter(sampler), "PandasCore")
+    for entry in core:
+        print(entry)
+
+    print("again")
+    for entry in core:
+        print(entry)
+
+
+    sampler = eba.EnergyGibbsSampleCore(dist.get_energy_dict(), colors=dist.distributedVariables,
+                                        temperatureList=[1 for i in range(5)],
+                                        dimDict={color: 2 for color in dist.distributedVariables},
+                                        startSlices=[(1,dict()), (1,dict())]  #core
+                                        )
+    print("redone")
+    for sample in sampler:
+        print(sample)
+
+    for sample in sampler:
+        print(sample)
+
+
+#    print(engine.convert(iter(sampler), "PandasCore").values)

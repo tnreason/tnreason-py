@@ -3,6 +3,22 @@ import numpy as np
 defaultContractionMethod = "NumpyEinsum"
 
 
+def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimDict={}, method=None, coreType=None):
+    if len(weightedCoreDicts) == 0:
+        return contract(backCores, openColors=openColors, dimDict=dimDict, method=method, coreType=coreType)
+    else:
+        contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors, dimDict=dimDict,
+                              method=method,
+                              coreType=coreType).multiply(weightedCoreDicts[0][0])
+        for i in range(1, len(weightedCoreDicts)):
+            contracted = contracted.sum_with(
+                contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimDict=dimDict,
+                         method=method,
+                         coreType=coreType).multiply(weightedCoreDicts[i][0])
+            )
+        return contracted
+
+
 def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
     """
     Contractors are initialized with
@@ -76,7 +92,7 @@ def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=Non
 class CorewiseContractor:
 
     def __init__(self, coreDict={}, openColors=[]):
-        self.coreDict = {coreKey : coreDict[coreKey].clone() for coreKey in coreDict}
+        self.coreDict = {coreKey: coreDict[coreKey].clone() for coreKey in coreDict}
         self.openColors = openColors
 
     def contract(self):
