@@ -16,7 +16,7 @@ class ALS:
     """
 
     def __init__(self, networkCores, importanceColors=[], importanceList=[({}, 1)],
-                 contractionMethod=engine.defaultContractionMethod, targetCores=None, targetList=[({}, 1)]):
+                 contractionMethod=None, targetCores=None, targetList=[({}, 1)]):
         self.networkCores = networkCores
 
         self.importanceColors = importanceColors

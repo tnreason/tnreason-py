@@ -13,7 +13,7 @@ class EntropyMaximizer:
     """
 
     def __init__(self, expressionsDict, satisfactionDict, backCores={},
-                 contractionMethod=engine.defaultContractionMethod):
+                 contractionMethod=None):
         self.backCores = backCores
         self.expressionsDict = expressionsDict
         self.satisfactionDict = satisfactionDict

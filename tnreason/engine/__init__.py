@@ -2,9 +2,9 @@ from tnreason.engine.engine_visualization import draw_factor_graph
 
 from tnreason.engine.auxiliary_cores import create_trivial_cores, create_trivial_core, create_basis_core
 
-from tnreason.engine.contraction_handling import contract, sum_contract, defaultContractionMethod, normate, EngineUser
+from tnreason.engine.contraction_handling import contract, sum_contract, normate, EngineUser
 
-from tnreason.engine.creation_handling import get_core, defaultCoreType, create_tensor_encoding, \
+from tnreason.engine.creation_handling import get_core, create_tensor_encoding, \
     create_relational_encoding, create_partitioned_relational_encoding, create_random_core, convert, \
     create_from_slice_iterator
 

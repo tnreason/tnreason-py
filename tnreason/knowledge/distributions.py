@@ -152,11 +152,11 @@ class HybridKnowledgeBase(DistributionBase):
         self.find_atoms()
 
     def create_cores(self):
-        return {**encoding.create_formulas_cores({**self.weightedFormulas, **self.facts}),
-                **encoding.create_atom_evidence_cores(self.evidence),
-                **encoding.create_categorical_cores(self.categoricalConstraints),
+        return {**encoding.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),
+                **encoding.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
+                **encoding.create_categorical_cores(self.categoricalConstraints, coreType=self.coreType),
                 **encoding.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
-                                                    self.dimDict),
+                                                    self.dimDict, coreType=self.coreType),
                 **self.backCores}
 
     ### Special to Hybrid Knowledge Bases

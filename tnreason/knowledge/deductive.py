@@ -12,7 +12,7 @@ class InferenceProvider:
     Answering queries on a distribution by contracting its cores.
     """
 
-    def __init__(self, distribution, contractionMethod=engine.defaultContractionMethod):
+    def __init__(self, distribution, contractionMethod=None):
         """
         * distribution: Needs to support create_cores() and get_partition_function()
         """
