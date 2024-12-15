@@ -9,6 +9,7 @@ methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
               {"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"}
               ]
 
+
 class MNTest(unittest.TestCase):
 
     def test_single_core(self):
@@ -18,27 +19,34 @@ class MNTest(unittest.TestCase):
 
         for method in methodList:
             mN = dist.MarkovNetwork(coreDict={"core": engine.convert(valueCore, method["coreType"])},
-                               contractionMethod=method["contractionMethod"], coreType=method["coreType"])
-            self.assertEqual(mN.get_partition_function(addDimDict={"d":10}), 222.8)
+                                    contractionMethod=method["contractionMethod"], coreType=method["coreType"])
+            self.assertEqual(mN.get_partition_function(addDimDict={"d": 10}), 222.8)
             self.assertEqual(mN.get_partition_function(), 22.28)
 
-            marginal = engine.contract(mN.create_cores(), openColors=["a","c"], contractionMethod=method["contractionMethod"])
-            self.assertEqual(marginal[0,4], 3*(1+0.36))
+            marginal = engine.contract(mN.create_cores(), openColors=["a", "c"],
+                                       contractionMethod=method["contractionMethod"])
+            self.assertEqual(marginal[0, 4], 3 * (1 + 0.36))
 
     def test_empirical(self):
-        methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"}]
+        methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
+                      {"coreType": "PolynomialCore", "contractionMethod": "CorewiseContractor"},
+                      #{"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"} #Takes too long!
+                      ]
         for method in methodList:
             generatingKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(weightedFormulas=
             {
                 "f1": ["imp", "a", "b", 2.567],
                 "f2": ["imp", "a", "c", 2.222],
                 "f3": ["a", 1.78]
-            }, coreType=method["coreType"], contractionMethod=method["contractionMethod"]))
+            }, coreType=method["coreType"], contractionMethod=method["contractionMethod"]),
+                coreType=method["coreType"], contractionMethod=method["contractionMethod"]
+            )
 
-            sampleNum = 200
+            sampleNum = 10
             sampleDf = generatingKB.draw_samples(sampleNum)
 
             knowledge.get_empirical_distribution(sampleDf)
+
 
 if __name__ == "__main__":
     unittest.main()

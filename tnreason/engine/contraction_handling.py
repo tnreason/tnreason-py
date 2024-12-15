@@ -81,12 +81,12 @@ def contract(coreDict, openColors, dimDict={}, contractionMethod=None, coreType=
 
 def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=None):
     contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, contractionMethod=method, coreType=coreType)
-    if len(inColors) == 0:
-        return contracted
-
-    # Need to clone in order to avoid cross reference manipulation!
     sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimDict=dimDict, contractionMethod=method,
                           coreType=coreType)
+    if len(inColors) == 0:
+        return contracted.multiply(1/sliceNorms[:])
+
+    # Need to clone in order to avoid cross reference manipulation!
     for x in np.ndindex(tuple(sliceNorms.shape)):
         if sliceNorms[x] == 0:
             print("Slice {} cannot be normated!".format(x))

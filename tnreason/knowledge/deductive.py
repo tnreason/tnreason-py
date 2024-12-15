@@ -7,17 +7,17 @@ contradictingString = "contradicting"
 contingentString = "contingent"
 
 
-class InferenceProvider:
+class InferenceProvider(engine.EngineUser):
     """
     Answering queries on a distribution by contracting its cores.
     """
 
-    def __init__(self, distribution, contractionMethod=None):
+    def __init__(self, distribution, **engineSpec):
         """
         * distribution: Needs to support create_cores() and get_partition_function()
         """
+        super().__init__(**engineSpec)
         self.distribution = distribution
-        self.contractionMethod = contractionMethod
 
     def ask_constraint(self, constraint):
         probability = self.ask(constraint, evidenceDict={})
@@ -41,10 +41,11 @@ class InferenceProvider:
         return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])
 
     def query(self, variableList, evidenceDict={}):
-        return engine.contract(contractionMethod=self.contractionMethod, coreDict={
-            **self.distribution.create_cores(),
-            **encoding.create_atom_evidence_cores(evidenceDict),
-        }, openColors=variableList).normalize() #multiply(1 / self.distribution.get_partition_function())    Avoid .normalize() by partition function of the Markov Network?
+        return engine.normate(coreDict={**self.distribution.create_cores(),
+                                        **encoding.create_atom_evidence_cores(evidenceDict)},
+                              inColors=[], outColors=variableList,
+                              method=self.contractionMethod
+                              )
 
     def exact_map_query(self, variableList, evidenceDict={}):
         """
@@ -52,16 +53,7 @@ class InferenceProvider:
             * PolynomialCore, uses gurobi optimizer on integer linear program
             * NumpyCore uses the argmax method of numpy
         """
-        distributionCore = self.query(variableList, evidenceDict)
-        return distributionCore.get_argmax()
-
-    def forward_sample(self, variableList, dimDict=None):
-        """
-        To Do: Include in draw_samples as special case
-        """
-        sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, colors=variableList)
-        iter(sampler)
-        return next(sampler)[1]
+        return self.query(variableList, evidenceDict).get_argmax()
 
     def draw_samples(self, sampleNum, variableList=None, outType="int64", method="ForwardSampling"):
         """
@@ -71,10 +63,21 @@ class InferenceProvider:
         if variableList is None:
             variableList = self.distribution.distributedVariables
         if method == "ForwardSampling":
-            sampler = algorithms.ForwardSampleCore(self.distribution, colors=variableList, sampleNum=sampleNum)
+            sampler = algorithms.ForwardSampleCore(self.distribution, sampleNum=sampleNum, colors=variableList,
+                                                   contractionMethod=self.contractionMethod,
+                                                   coreType=self.coreType)
         else:
             raise ValueError("Sampling Method {} not implemented.".format(method))
-        return engine.convert(sampler, "PandasCore").values[variableList].astype(outType) # Flexibilize to arbitrary output CoreType!
+        return engine.convert(sampler, "PandasCore").values[variableList].astype(
+            outType)  # Flexibilize to arbitrary output CoreType!
+
+    def forward_sample(self, variableList, dimDict=None):
+        """
+        To Do: Include in draw_samples as special case
+        """
+        sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, colors=variableList)
+        iter(sampler)
+        return next(sampler)[1]
 
     ## Energy-based: Creates always a full sample!
     # Can be used for sample (temperatures converging to 1) or for maximum search (temperature converging to 0)

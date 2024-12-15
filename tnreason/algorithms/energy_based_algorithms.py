@@ -22,7 +22,7 @@ def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
     elif method == meanFieldMethodString:
         approximator = NaiveMeanFieldApproximator(energyDict=energyDict, **specDict)
         approximator.anneal(
-            approximationTemperatureList=specDict.get("approximationTemperatureList", [1 for i in range(10)]))
+            approximationTemperatureList=specDict.get("approximationTemperatureList", [1 for _ in range(10)]))
 
         #return EnergyGibbsSampleCore(energyDict=approximator.get_energyDict(), **specDict)
         return approximator.draw_sample()
@@ -30,16 +30,12 @@ def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
         """
         Potential: Sparse Cores -> HUBO!
         """
-        contracted = engine.create_trivial_core("contracted", [specDict.get("dimDict", dict())[color] for color in
-                                                               specDict.get("colors", [])], specDict.get("colors", []),
-                                                coreType=specDict.get("coreType", None))
-        for energyKey in energyDict:
-            contracted = contracted.sum_with(
-                engine.contract(energyDict[energyKey][0], openColors=specDict.get("colors", []),
-                                dimDict=specDict.get("dimDict", dict()),
-                                contractionMethod=specDict.get("contractionMethod", None)).multiply(
-                    energyDict[energyKey][1]))
-        return contracted.get_argmax()
+        return engine.sum_contract(energyDict_to_weightedCoresDicts(energyDict),
+                                         openColors=specDict.get("colors", []),
+                                         coreType=specDict.get("coreType", None),
+                                         contractionMethod=specDict.get("contractionMethod", None),
+                                         dimensionDict = specDict.get("dimensionDict", dict())
+                                         ).get_argmax()
     else:
         raise ValueError("Energy Optimization Method {} not implemented.".format(energyMaximumMethodString,
                                                                                  method))
@@ -103,11 +99,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
         self.energyDict = energyDict
 
         self.affectionDict = create_affectionDict(energyDict, self.colors)
-
-        if partionColorDict is None:
-            self.partitionColorDict = {color: [color] for color in self.colors}
-        else:
-            self.partitionColorDict = partionColorDict
+        self.partitionColorDict = partionColorDict or {color: [color] for color in self.colors}
 
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
         self.meanCores = {parKey: engine.create_trivial_core(parKey, [self.dimensionDict[color] for color in
@@ -163,11 +155,7 @@ class EnergyGibbsSampleCore(sh.SampleCoreBase):
         self.energyDict = energyDict
         self.affectionDict = create_affectionDict(energyDict, self.colors)
         self.temperatureList = temperatureList
-
-        if partitionColorDict is None:
-            self.partitionColorDict = {color: [color] for color in self.colors}
-        else:
-            self.partitionColorDict = partitionColorDict
+        self.partitionColorDict = partitionColorDict or {color: [color] for color in self.colors}
 
     def draw_sample(self, startAssignment=dict()):
         self.sample = startAssignment

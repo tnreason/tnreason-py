@@ -30,6 +30,8 @@ class ForwardSampleCore(sh.SampleCoreBase):
                                                                        [self.dimensionDict[oldColor]], [oldColor],
                                                                        sample[oldColor], coreType=self.coreType) for
                     oldColor in sample}},
-                openColors=[sampleColor], dimDict=self.dimensionDict, contractionMethod=self.contractionMethod)
-            sample[sampleColor] = condProb.draw_sample(asEnergy=False)[sampleColor]
+                openColors=[sampleColor], dimDict=self.dimensionDict, contractionMethod=self.contractionMethod,
+                coreType=self.coreType)
+            ## Might add other random engines than numpy!
+            sample[sampleColor] = engine.convert(condProb, "NumpyCore").draw_sample(asEnergy=False)[sampleColor]
         return sample

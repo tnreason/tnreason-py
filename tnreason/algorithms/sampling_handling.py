@@ -5,14 +5,10 @@ class SampleCoreBase(engine.EngineUser):
     Sampling is done via iterators over the datapoints
     """
     def __init__(self, sampleNum = 1, startSlices = None, colors=[], **engineSpec):
-        super().__init__()
-
+        super().__init__(**engineSpec)
         ## StartSlice initalizer
         self.sampleNum = sampleNum # Not required any more! Just an alternative initialization of start slices
-        if startSlices is None:
-            self.startSlices = [(1, dict()) for i in range(self.sampleNum)]
-        else:
-            self.startSlices = startSlices
+        self.startSlices = startSlices or [(1, dict()) for _ in range(self.sampleNum)]
         self.colors = colors
 
         # DimensionDict correction and usage
