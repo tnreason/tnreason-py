@@ -8,7 +8,7 @@ method = {"coreType": "HypertrieCore", "contractionMethod": "TentrisEinsum"}
 
 cores = encoding.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
 contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
-                                    method=method["contractionMethod"])
+                                    contractionMethod=method["contractionMethod"])
 
 assert contractionResult[0] == 0
 assert contractionResult[1] == 1
@@ -16,14 +16,14 @@ assert contractionResult[1] == 1
 cores = encoding.create_formulas_cores({"f1": ["and", ["not", "a"], ["or", "b", "c"]]},
                                        coreType=method["coreType"])
 contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
-                                    method=method["contractionMethod"])
+                                    contractionMethod=method["contractionMethod"])
 
 assert contractionResult[0] == 3
 assert contractionResult[1] == 0
 
 cores = encoding.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
 contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
-                                    method=method["contractionMethod"])
+                                    contractionMethod=method["contractionMethod"])
 
 npCore = engine.convert(cores["(and_a_b)_cCore"], "NumpyCore")
 htCore = engine.convert(npCore, "HypertrieCore")

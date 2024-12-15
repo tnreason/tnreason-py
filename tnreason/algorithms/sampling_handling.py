@@ -1,13 +1,21 @@
-class SampleCoreBase:
-    def __init__(self, **specDict):
-        """
-        Can pass the iteration of any core in startSliceIterator
-        """
-        self.sampleNum = specDict.get("sampleNum", 1)
-        self.startSlices = specDict.get("startSlices", [(1, dict()) for i in range(self.sampleNum)])
-        self.colors = specDict.get("colors", [])
-        self.dimensionDict = specDict.get("dimDict", dict())
+from tnreason import engine
 
+class SampleCoreBase(engine.EngineUser):
+    """
+    Sampling is done via iterators over the datapoints
+    """
+    def __init__(self, sampleNum = 1, startSlices = None, colors=[], **engineSpec):
+        super().__init__()
+
+        ## StartSlice initalizer
+        self.sampleNum = sampleNum # Not required any more! Just an alternative initialization of start slices
+        if startSlices is None:
+            self.startSlices = [(1, dict()) for i in range(self.sampleNum)]
+        else:
+            self.startSlices = startSlices
+        self.colors = colors
+
+        # DimensionDict correction and usage
         if self.dimensionDict is None:
             self.dimensionDict = dict()
 
@@ -19,9 +27,6 @@ class SampleCoreBase:
                     self.dimensionDict[color] = 2
 
         self.shape = [self.dimensionDict[color] for color in self.colors]
-
-        self.coreType = specDict.get("coreType", None)
-        self.contractionMethod = specDict.get("contractionMethod", None)
 
     def __iter__(self):
         self.startSliceIterator = iter(self.startSlices)

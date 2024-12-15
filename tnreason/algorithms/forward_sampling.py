@@ -8,8 +8,8 @@ class ForwardSampleCore(sh.SampleCoreBase):
     Iteratable SampleCore, can be converted into a contractable TensorCore
     """
 
-    def __init__(self, dist, dimDictFromCores=True, **specDict):
-        super().__init__(**specDict)
+    def __init__(self, dist, dimDictFromCores=True, **samplingSpec):
+        super().__init__(**samplingSpec)
         self.distribution = dist
 
         if dimDictFromCores:

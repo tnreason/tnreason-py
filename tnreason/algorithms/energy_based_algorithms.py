@@ -157,13 +157,17 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
 
 
 class EnergyGibbsSampleCore(sh.SampleCoreBase):
-    def __init__(self, energyDict, **specDict):
-        super().__init__(**specDict)
+    def __init__(self, energyDict, temperatureList = [1], partitionColorDict  = None, **samplingSpec):
+        super().__init__(**samplingSpec)
 
         self.energyDict = energyDict
         self.affectionDict = create_affectionDict(energyDict, self.colors)
-        self.temperatureList = specDict.get("temperatureList", [1])
-        self.partitionColorDict = specDict.get("partitionColorDict", {color: [color] for color in self.colors})
+        self.temperatureList = temperatureList
+
+        if partitionColorDict is None:
+            self.partitionColorDict = {color: [color] for color in self.colors}
+        else:
+            self.partitionColorDict = partitionColorDict
 
     def draw_sample(self, startAssignment=dict()):
         self.sample = startAssignment

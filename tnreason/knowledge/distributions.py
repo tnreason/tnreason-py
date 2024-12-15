@@ -8,22 +8,21 @@ categoricalsKey = "categoricalConstraints"
 evidenceKey = "evidence"
 
 
-class DistributionBase:
+class DistributionBase(engine.EngineUser):
     """
     Distributions have two methods:
         * create_cores(): returning the factor cores -> customized!
         * get_partition_function(allAtoms): returning the partition function given the atomic variables of interest
     """
 
-    def __init__(self, **specDict):
-        self.partitionFunction = specDict.get("partitionFunction", None)
-        self.coreType = specDict.get("coreType", None)
-        self.contractionMethod = specDict.get("contractionMethod", None)
+    def __init__(self, partitionFunction=None, **engineSpec):
+        super().__init__(**engineSpec)
+        self.partitionFunction = partitionFunction
 
     def get_partition_function(self, addDimDict={}):
         if self.partitionFunction is None:
-            self.partitionFunction = engine.contract(self.create_cores(), openColors=[], contractionMethod=self.contractionMethod)[
-                                     :]
+            self.partitionFunction = engine.contract(self.create_cores(), openColors=[],
+                                                     contractionMethod=self.contractionMethod)[:]
         return math.prod(
             [addDimDict[color] for color in addDimDict if color not in self.dimDict]) * self.partitionFunction
 
@@ -33,8 +32,8 @@ class MarkovNetwork(DistributionBase):
     Interprets a Tensor Network as a distribution
     """
 
-    def __init__(self, coreDict, **specDict):
-        super().__init__(**specDict)
+    def __init__(self, coreDict, **distributionSpec):
+        super().__init__(**distributionSpec)
 
         self.coreDict = coreDict
         self.dimDict = engine.get_dimDict(coreDict)
@@ -70,8 +69,9 @@ class HybridKnowledgeBase(DistributionBase):
     * dimensionDict: Dictionary of dimensions for in the formulas appearing categorical variables
     """
 
-    def __init__(self, weightedFormulas={}, facts={}, categoricalConstraints={}, evidence={}, backCores={}, **specDict):
-        super().__init__(**specDict)
+    def __init__(self, weightedFormulas={}, facts={}, categoricalConstraints={}, evidence={}, backCores={},
+                 **distributionSpec):
+        super().__init__(**distributionSpec)
 
         self.weightedFormulas = {key: weightedFormulas[key][:-1] + [float(weightedFormulas[key][-1])] for key in
                                  weightedFormulas}
