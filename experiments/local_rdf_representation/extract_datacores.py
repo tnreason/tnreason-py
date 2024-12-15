@@ -13,11 +13,11 @@ def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j", 
     importanceQueryCore.enumerate_slices(enumerationColor=dataColor)
     dataCores = {atomKey + "_dataCore": core_to_relational_encoding(
         core=engine.contract({"imCore": importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
-                             openColors=[dataColor], method=contractionMethod), headColor=atomKey,
+                             openColors=[dataColor], contractionMethod=contractionMethod), headColor=atomKey,
         outCoreType=coreType)[0] for atomKey in atomQueryCoreDict}
     if not len(categoricalColors) == 0:
         dataCores["_".join([color for color in categoricalColors]) + "_dataCore"] = engine.contract(
-            {"imCore": importanceQueryCore}, openColors=[dataColor] + categoricalColors, method=contractionMethod)
+            {"imCore": importanceQueryCore}, openColors=[dataColor] + categoricalColors, contractionMethod=contractionMethod)
     return dataCores
 
 

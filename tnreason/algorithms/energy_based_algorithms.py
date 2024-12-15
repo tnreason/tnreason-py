@@ -37,7 +37,7 @@ def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
             contracted = contracted.sum_with(
                 engine.contract(energyDict[energyKey][0], openColors=specDict.get("colors", []),
                                 dimDict=specDict.get("dimDict", dict()),
-                                method=specDict.get("contractionMethod", None)).multiply(
+                                contractionMethod=specDict.get("contractionMethod", None)).multiply(
                     energyDict[energyKey][1]))
         return contracted.get_argmax()
     else:
@@ -132,7 +132,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
         self.meanCores[upKey] = contracted.multiply(1 / temperature).exponentiate().normalize()
 
         angle = engine.contract({"old": oldMean, "new": self.meanCores[upKey]}, openColors=[],
-                                method=self.contractionMethod)
+                                contractionMethod=self.contractionMethod)
         return angle.values
 
     def anneal(self, approximationTemperatureList):

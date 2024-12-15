@@ -44,7 +44,7 @@ class MomentMatcher:
         self.networkCores[updateColor + momentCoreSuffix] = engine.create_tensor_encoding(
             inshape=[self.dimDict[updateColor]], incolors=[updateColor], function=solve_moment_equation(
                 satVect=engine.contract(coreDict=self.networkCores, openColors=[updateColor],
-                                        method=self.contractionMethod).values,
+                                        contractionMethod=self.contractionMethod).values,
                 empVect=self.targetCores[updateColor + targetCoreSuffix].values
             ), name=updateColor + momentCoreSuffix, coreType=self.coreType
         )

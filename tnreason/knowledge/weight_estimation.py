@@ -54,7 +54,7 @@ class EntropyMaximizer:
     def local_condition_satisfier(self, optKey, empRate):
         optColor = encoding.get_formula_color(self.expressionsDict[optKey])
         tboCoreKey = optColor + encoding.suf.headCoreSuffix
-        negValue, posValue = engine.contract(method=self.contractionMethod,
+        negValue, posValue = engine.contract(contractionMethod=self.contractionMethod,
                                              coreDict={**self.backCores,
                                                        **{key: self.formulaCores[key] for key in self.formulaCores if
                                                           key != tboCoreKey}},

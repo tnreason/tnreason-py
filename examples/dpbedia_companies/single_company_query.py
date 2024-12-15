@@ -14,7 +14,7 @@ print(polCoresDict["com"].shape)
 
 branchLocationList = engine.contract(polCoresDict, openColors=["branch" + suf.termVariableSuffix,
                                                                "location" + suf.termVariableSuffix],
-                                     method="CorewiseContractor")
+                                     contractionMethod="CorewiseContractor")
 branchLocationList.add_identical_slices()
 print(branchLocationList.values)
 

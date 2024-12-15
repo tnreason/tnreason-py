@@ -46,7 +46,7 @@ def clauseList_to_core(clauseList, coreType=defaultSparseCoreType, contractionMe
         coreDict={"c" + str(i): clause_to_core(variablesDict, coreType=coreType) for i, variablesDict in
                   enumerate(clauseList)},
         openColors=list(set.union(*[set(clauses.keys()) for clauses in clauseList])),
-        method=contractionMethod,
+        contractionMethod=contractionMethod,
         coreType=coreType
     )
 

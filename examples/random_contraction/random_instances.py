@@ -23,7 +23,7 @@ def create_random_tensor_network(nodeNum, edgeNum, edgeLength, nodeDim):
 def measure_contraction(method, tensorNetwork, openColors):
     try:
         startTime = time.time()
-        engine.contract(method=method, coreDict=tensorNetwork, openColors=openColors)
+        engine.contract(contractionMethod=method, coreDict=tensorNetwork, openColors=openColors)
         endTime = time.time()
     except:
         return -1

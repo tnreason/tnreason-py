@@ -11,21 +11,21 @@ class EngineUser:
 
 def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={}, contractionMethod=None, coreType=None):
     if len(weightedCoreDicts) == 0:
-        return contract(backCores, openColors=openColors, dimDict=dimensionDict, method=contractionMethod, coreType=coreType)
+        return contract(backCores, openColors=openColors, dimDict=dimensionDict, contractionMethod=contractionMethod, coreType=coreType)
     else:
         contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors, dimDict=dimensionDict,
-                              method=contractionMethod,
+                              contractionMethod=contractionMethod,
                               coreType=coreType).multiply(weightedCoreDicts[0][0])
         for i in range(1, len(weightedCoreDicts)):
             contracted = contracted.sum_with(
                 contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimDict=dimensionDict,
-                         method=contractionMethod,
+                         contractionMethod=contractionMethod,
                          coreType=coreType).multiply(weightedCoreDicts[i][0])
             )
         return contracted
 
 
-def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
+def contract(coreDict, openColors, dimDict={}, contractionMethod=None, coreType=None):
     """
     Contractors are initialized with
         * coreDict: Dictionary of colored tensor cores specifying a network
@@ -34,8 +34,8 @@ def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
         * method:
         * coreType: Required for the empty Initialization
     """
-    if method is None:
-        method = defaultContractionMethod
+    if contractionMethod is None:
+        contractionMethod = defaultContractionMethod
 
     ## Handling trivial colors (not appearing in coreDict)
     from tnreason.engine.auxiliary_cores import create_trivial_core
@@ -49,26 +49,26 @@ def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
                                                                    colors=[color], coreType=coreType)
 
     ## Einstein Summation Contractors
-    if method == "NumpyEinsum":
+    if contractionMethod == "NumpyEinsum":
         from tnreason.engine.workload_to_numpy import NumpyEinsumContractor
         return NumpyEinsumContractor(coreDict=coreDict, openColors=openColors).contract()
-    elif method == "TensorFlowEinsum":
+    elif contractionMethod == "TensorFlowEinsum":
         from tnreason.engine.workload_to_tensorflow import TensorFlowContractor
         return TensorFlowContractor(coreDict=coreDict, openColors=openColors).einsum().to_NumpyCore()
-    elif method == "TorchEinsum":
+    elif contractionMethod == "TorchEinsum":
         from tnreason.engine.workload_to_torch import TorchContractor
         return TorchContractor(coreDict=coreDict, openColors=openColors).einsum().to_NumpyCore()
-    elif method == "TentrisEinsum":
+    elif contractionMethod == "TentrisEinsum":
         from tnreason.engine.workload_to_tentris import HypertrieContractor
         return HypertrieContractor(coreDict=coreDict, openColors=openColors).einsum()
 
     ## Variable Elimination Contractors
-    elif method == "PgmpyVariableEliminator":
+    elif contractionMethod == "PgmpyVariableEliminator":
         from tnreason.engine.workload_to_pgmpy import PgmpyVariableEliminator
         return PgmpyVariableEliminator(coreDict=coreDict, openColors=openColors).contract()
 
     ## Corewise Contractor
-    elif method == "CorewiseContractor":
+    elif contractionMethod == "CorewiseContractor":
         """
         Requires the contract_with() method of cores
         """
@@ -76,16 +76,16 @@ def contract(coreDict, openColors, dimDict={}, method=None, coreType=None):
 
 
     else:
-        raise ValueError("Contractor Type {} not known.".format(method))
+        raise ValueError("Contractor Type {} not known.".format(contractionMethod))
 
 
 def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=None):
-    contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, method=method, coreType=coreType)
+    contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, contractionMethod=method, coreType=coreType)
     if len(inColors) == 0:
         return contracted
 
     # Need to clone in order to avoid cross reference manipulation!
-    sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimDict=dimDict, method=method,
+    sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimDict=dimDict, contractionMethod=method,
                           coreType=coreType)
     for x in np.ndindex(tuple(sliceNorms.shape)):
         if sliceNorms[x] == 0:

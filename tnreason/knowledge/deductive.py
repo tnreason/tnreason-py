@@ -29,6 +29,7 @@ class InferenceProvider:
             return contingentString
 
     def ask(self, queryFormula, evidenceDict={}):
+        queryColor = encoding.get_formula_color(queryFormula)
 
         contracted = engine.contract(
             coreDict={
@@ -36,15 +37,14 @@ class InferenceProvider:
                 **encoding.create_atom_evidence_cores(evidenceDict),
                 **encoding.create_raw_formula_cores(queryFormula)
             },
-            method=self.contractionMethod, openColors=[encoding.get_formula_color(queryFormula)]).values
-
-        return contracted[1] / (contracted[0] + contracted[1])
+            contractionMethod=self.contractionMethod, openColors=[queryColor])
+        return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])
 
     def query(self, variableList, evidenceDict={}):
-        return engine.contract(method=self.contractionMethod, coreDict={
+        return engine.contract(contractionMethod=self.contractionMethod, coreDict={
             **self.distribution.create_cores(),
             **encoding.create_atom_evidence_cores(evidenceDict),
-        }, openColors=variableList).normalize()
+        }, openColors=variableList).normalize() #multiply(1 / self.distribution.get_partition_function())    Avoid .normalize() by partition function of the Markov Network?
 
     def exact_map_query(self, variableList, evidenceDict={}):
         """
@@ -74,7 +74,7 @@ class InferenceProvider:
             sampler = algorithms.ForwardSampleCore(self.distribution, colors=variableList, sampleNum=sampleNum)
         else:
             raise ValueError("Sampling Method {} not implemented.".format(method))
-        return engine.convert(sampler, "PandasCore").values[variableList].astype(outType)
+        return engine.convert(sampler, "PandasCore").values[variableList].astype(outType) # Flexibilize to arbitrary output CoreType!
 
     ## Energy-based: Creates always a full sample!
     # Can be used for sample (temperatures converging to 1) or for maximum search (temperature converging to 0)
@@ -82,6 +82,6 @@ class InferenceProvider:
     def energy_based_sample(self, method, temperatureList=[1 for i in range(10)]):
         return algorithms.optimize_energy(energyDict={**self.distribution.get_energy_dict()},
                                           colors=list(self.distribution.distributedVariables),
-                                          dimDict={color : 2 for color in self.distribution.distributedVariables},
+                                          dimDict={color: 2 for color in self.distribution.distributedVariables},
                                           method=method,
                                           temperatureList=temperatureList)

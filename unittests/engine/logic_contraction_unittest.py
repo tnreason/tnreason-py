@@ -18,7 +18,7 @@ class TensorLogicTest(unittest.TestCase):
         for method in methodList:
             cores = encoding.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
-                                                method=method["contractionMethod"])
+                                                contractionMethod=method["contractionMethod"])
 
             self.assertEqual(contractionResult[0], 0)
             self.assertEqual(contractionResult[1], 1)
@@ -29,7 +29,7 @@ class TensorLogicTest(unittest.TestCase):
             cores = encoding.create_formulas_cores({"f1": ["and", ["not", "a"], ["or", "b", "c"]]},
                                                    coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
-                                                method=method["contractionMethod"])
+                                                contractionMethod=method["contractionMethod"])
 
             self.assertEqual(contractionResult[0], 3)
             self.assertEqual(contractionResult[1], 0)
@@ -40,7 +40,7 @@ class TensorLogicTest(unittest.TestCase):
             cores = encoding.create_formulas_cores({"a": ["imp", "a", "b"]}, coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
-                                                method=method["contractionMethod"])
+                                                contractionMethod=method["contractionMethod"])
             contractionResult.reorder_colors(["a" + aSuf, "b" + aSuf])
 
             self.assertEqual(contractionResult[1, 0], 0)
@@ -55,7 +55,7 @@ class TensorLogicTest(unittest.TestCase):
                                                    coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
-                                                method=method["contractionMethod"])
+                                                contractionMethod=method["contractionMethod"])
             contractionResult.reorder_colors(
                 ["a" + aSuf, "b" + aSuf])
 
@@ -71,7 +71,7 @@ class TensorLogicTest(unittest.TestCase):
                                                    coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
-                                                method=method["contractionMethod"])
+                                                contractionMethod=method["contractionMethod"])
             contractionResult.reorder_colors(
                 ["a" + aSuf, "b" + aSuf])
 
@@ -88,12 +88,12 @@ class TensorLogicTest(unittest.TestCase):
                                                      "f2": "b"}, coreType=method["coreType"])
             result0 = engine.contract(coreDict=cores0, openColors=["a" + aSuf,
                                                                    "b" + aSuf],
-                                      method=method["contractionMethod"])
+                                      contractionMethod=method["contractionMethod"])
             result0.reorder_colors(["a" + aSuf, "b" + aSuf])
 
             result1 = engine.contract(coreDict=cores1, openColors=["a" + aSuf,
                                                                    "b" + aSuf],
-                                      method=method["contractionMethod"])
+                                      contractionMethod=method["contractionMethod"])
             result1.reorder_colors(["a" + aSuf, "b" + aSuf])
 
             for i in range(2):

@@ -16,7 +16,7 @@ print(polCoresDict["size"].shape)
 
 branch_revenue_contraction = engine.contract(polCoresDict, openColors=["branch" + suf.termVariableSuffix,
                                                                        "revenue" + suf.termVariableSuffix],
-                                             method="CorewiseContractor")
+                                             contractionMethod="CorewiseContractor")
 branch_revenue_contraction.add_identical_slices()
 
 print(branch_revenue_contraction.shape)

@@ -22,7 +22,7 @@ class DistributionBase:
 
     def get_partition_function(self, addDimDict={}):
         if self.partitionFunction is None:
-            self.partitionFunction = engine.contract(self.create_cores(), openColors=[], method=self.contractionMethod)[
+            self.partitionFunction = engine.contract(self.create_cores(), openColors=[], contractionMethod=self.contractionMethod)[
                                      :]
         return math.prod(
             [addDimDict[color] for color in addDimDict if color not in self.dimDict]) * self.partitionFunction

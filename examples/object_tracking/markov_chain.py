@@ -26,6 +26,6 @@ def create_evidence(variable, dimension, index):
 
 if __name__ == "__main__":
     mc = create_markov_chain(3)
-    res = engine.contract(method="PgmpyVariableEliminator", coreDict={**mc, "evidence": create_evidence("x3", 3, 1)}, openColors=["y3"])
+    res = engine.contract(contractionMethod="PgmpyVariableEliminator", coreDict={**mc, "evidence": create_evidence("x3", 3, 1)}, openColors=["y3"])
 
     print("y2", res.values / res.values.sum())

@@ -91,7 +91,7 @@ class ALS:
                                                          updateKey)
 
     def compute_conOperator(self, updateColors, importanceCores={}, weight=1):
-        return engine.contract(method=self.contractionMethod,
+        return engine.contract(contractionMethod=self.contractionMethod,
                                coreDict={
                                    **importanceCores,
                                    **self.networkCores,
@@ -100,14 +100,14 @@ class ALS:
                                                              updateColors]).multiply(weight)
 
     def compute_conTarget(self, updateColors, importanceCores={}, weight=1):
-        conTarget = engine.contract(method=self.contractionMethod,
+        conTarget = engine.contract(contractionMethod=self.contractionMethod,
                                     coreDict={
                                         **importanceCores,
                                         **self.networkCores,
                                         **self.targetList[0][0],
                                     }, openColors=updateColors).multiply(weight * self.targetList[0][1])
         for targetCores, targetWeight in self.targetList[1:]:
-            conTarget = conTarget.sum_with(engine.contract(method=self.contractionMethod,
+            conTarget = conTarget.sum_with(engine.contract(contractionMethod=self.contractionMethod,
                                                            coreDict={
                                                                **importanceCores,
                                                                **self.networkCores,
@@ -116,14 +116,14 @@ class ALS:
         return conTarget
 
     def compute_residuum(self):
-        prediction = engine.contract(method=self.contractionMethod,
+        prediction = engine.contract(contractionMethod=self.contractionMethod,
                                      coreDict=self.networkCores,
                                      openColors=self.importanceColors)
-        target = engine.contract(method=self.contractionMethod,
+        target = engine.contract(contractionMethod=self.contractionMethod,
                                  coreDict=self.targetList[0][0],
                                  openColors=self.importanceColors).multiply(self.targetList[0][1])
         for targetCores, targetWeight in self.targetList[1:]:
-            target = target.sum_with(engine.contract(method=self.contractionMethod,
+            target = target.sum_with(engine.contract(contractionMethod=self.contractionMethod,
                                                      coreDict=targetCores,
                                                      openColors=self.importanceColors).multiply(targetWeight))
         prediction.reorder_colors(target.colors)
