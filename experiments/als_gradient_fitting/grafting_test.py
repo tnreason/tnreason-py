@@ -39,9 +39,9 @@ fitter = algorithms.ALS(networkCores=networkCores, importanceColors=['n1_actVar'
 residua = fitter.alternating_optimization(["n_a","n_b","n_c"], computeResiduum=True)
 
 calibrationClusters = {
-    "c0" : {"n_a" : fitter.networkCores["n_a"]},
-    "c1" : {"n_b" : fitter.networkCores["n_b"]},
-    "c2" : {"n_c" : fitter.networkCores["n_c"]},
+    "c0" : {"n_a" : fitter.structureCores["n_a"]},
+    "c1" : {"n_b" : fitter.structureCores["n_b"]},
+    "c2" : {"n_c" : fitter.structureCores["n_c"]},
             }
 maximizer = mc.MaxCalibrator(calibrationClusters)
 maximizer.max_propagation([("c0","c1"),("c0","c2"),("c1","c0"),("c1","c2")])

@@ -107,5 +107,7 @@ def solve_moment_equation(satVect, empVect):
 
 
 def solve_binary_moment_equation(satVect, empVect):
+    if satVect[0] == 0 or satVect[1] == 0:
+        return lambda *i: 1, 0
     return lambda *i: (satVect[0] / empVect[0]) * (empVect[tuple(i)] / satVect[tuple(i)]), np.log(
         (satVect[0] / satVect[1]) * (empVect[1] / empVect[0]))

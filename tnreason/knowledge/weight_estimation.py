@@ -39,7 +39,7 @@ class WeightEstimator:
                 self.hybridKB.facts[key] = formula[:-1]
                 self.satisfactionDict.pop(key)
 
-    def calibrate_weights(self, sweepNum, engineSpec):
+    def calibrate_weights(self, sweepNum, engineSpec=dict()):
         """
         Optimizes the weights of the remaining formulas
         """
@@ -64,7 +64,7 @@ class WeightEstimator:
         for key in self.satisfactionDict:
             self.hybridKB.weightedFormulas[key][-1] = calibrator.weightDict[key + momentCoreSuffix][-1]
 
-
+        return calibrator.weightDict
 
 class EntropyMaximizer(engine.EngineUser):
     """
