@@ -5,8 +5,6 @@ Cores
 headCoreSuffix = "_hCore"
 evidenceCoreSuffix = "_ev"
 domainCoreSuffix = "_dm"
-momentCoreSuffix = "_mm"
-targetCoreSuffix = "_tg"
 
 connectiveCoreSuffix = "_cCore"
 

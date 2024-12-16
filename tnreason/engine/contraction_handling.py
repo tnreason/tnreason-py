@@ -2,6 +2,7 @@ import numpy as np
 
 defaultContractionMethod = "NumpyEinsum"
 
+
 class EngineUser:
     def __init__(self, **engineSpec):
         self.coreType = engineSpec.get("coreType", "NumpyCore")
@@ -9,23 +10,26 @@ class EngineUser:
         self.dimensionDict = engineSpec.get("dimensionDict", dict())
 
 
-def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={}, contractionMethod=None, coreType=None):
+def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={}, contractionMethod=None,
+                 coreType=None):
     if len(weightedCoreDicts) == 0:
-        return contract(backCores, openColors=openColors, dimDict=dimensionDict, contractionMethod=contractionMethod, coreType=coreType)
+        return contract(backCores, openColors=openColors, dimensionDict=dimensionDict,
+                        contractionMethod=contractionMethod, coreType=coreType)
     else:
-        contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors, dimDict=dimensionDict,
+        contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors,
+                              dimensionDict=dimensionDict,
                               contractionMethod=contractionMethod,
                               coreType=coreType).multiply(weightedCoreDicts[0][0])
         for i in range(1, len(weightedCoreDicts)):
             contracted = contracted.sum_with(
-                contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimDict=dimensionDict,
+                contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimensionDict=dimensionDict,
                          contractionMethod=contractionMethod,
                          coreType=coreType).multiply(weightedCoreDicts[i][0])
             )
         return contracted
 
 
-def contract(coreDict, openColors, dimDict={}, contractionMethod=None, coreType=None):
+def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, coreType=None):
     """
     Contractors are initialized with
         * coreDict: Dictionary of colored tensor cores specifying a network
@@ -42,10 +46,11 @@ def contract(coreDict, openColors, dimDict={}, contractionMethod=None, coreType=
     appearingColors = list(set().union(*[coreDict[coreKey].colors for coreKey in coreDict]))
     for color in openColors:
         if color not in appearingColors:
-            if color not in dimDict:
-                dimDict[color] = 2
+            if color not in dimensionDict:
+                dimensionDict[color] = 2
                 print("Color {} handled trivially, not appearing in coreDict or dimDict.".format(color))
-            coreDict[color + "_trivialCore"] = create_trivial_core(color + "_trivialCore", shape=[dimDict[color]],
+            coreDict[color + "_trivialCore"] = create_trivial_core(color + "_trivialCore",
+                                                                   shape=[dimensionDict[color]],
                                                                    colors=[color], coreType=coreType)
 
     ## Einstein Summation Contractors
@@ -79,12 +84,14 @@ def contract(coreDict, openColors, dimDict={}, contractionMethod=None, coreType=
         raise ValueError("Contractor Type {} not known.".format(contractionMethod))
 
 
-def normate(coreDict, outColors, inColors, dimDict={}, method=None, coreType=None):
-    contracted = contract(coreDict, openColors=outColors + inColors, dimDict=dimDict, contractionMethod=method, coreType=coreType)
-    sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimDict=dimDict, contractionMethod=method,
+def normate(coreDict, outColors, inColors, dimensionDict={}, contractionMethod=None, coreType=None):
+    contracted = contract(coreDict, openColors=outColors + inColors, dimensionDict=dimensionDict,
+                          contractionMethod=contractionMethod, coreType=coreType)
+    sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimensionDict=dimensionDict,
+                          contractionMethod=contractionMethod,
                           coreType=coreType)
     if len(inColors) == 0:
-        return contracted.multiply(1/sliceNorms[:])
+        return contracted.multiply(1 / sliceNorms[:])
 
     # Need to clone in order to avoid cross reference manipulation!
     for x in np.ndindex(tuple(sliceNorms.shape)):

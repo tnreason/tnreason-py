@@ -3,6 +3,8 @@ from tnreason.knowledge import grafting as gf
 from tnreason.knowledge import distributions as dist
 from tnreason.knowledge import deductive as ded
 
+from tnreason import algorithms, encoding
+
 
 class HybridLearner:
     """
@@ -47,24 +49,23 @@ class HybridLearner:
                 specDict["calibrationSweeps"] = 10
             self.calibrate_weights_on_data(specDict, empDistribution)
 
-    def calibrate_weights_on_data(self, specDict, empDistribution, formulaKeys=None):
-        if formulaKeys is None:
-            formulaKeys = self.hybridKB.weightedFormulas.keys()
+    def calibrate_weights_on_data(self, specDict, empDistribution, engineSpec=dict()):
+        calibrator = wees.WeightEstimator(self.hybridKB)
+        calibrator.get_satisfaction_dict(empDistribution)
+        calibrator.fact_check()
+        calibrator.calibrate_weights(specDict["calibrationSweeps"], engineSpec)
+        self.hybridKB = calibrator.hybridKB
 
-        tboFormulas = {
-            key: self.hybridKB.weightedFormulas[key][:-1] for key in formulaKeys}
-
-        empDistributionInferer = ded.InferenceProvider(empDistribution)
-        satDict = {key: empDistributionInferer.ask(tboFormulas[key]) for key in tboFormulas}
-        calibrator = wees.EntropyMaximizer(expressionsDict=tboFormulas, satisfactionDict=satDict,
-                                           backCores=self.hybridKB.create_hard_cores())
-
-        weightDict, factsDict = calibrator.alternating_optimization(sweepNum=specDict["calibrationSweeps"])
-        for key in weightDict:
-            self.hybridKB.weightedFormulas[key][-1] = weightDict[key][-1]
-        for key in factsDict:
-            formula = self.hybridKB.weightedFormulas.pop(key)
-            if factsDict[key]:
-                self.hybridKB.facts[key] = formula[:-1]
-            else:
-                self.hybridKB.facts[key] = ["not", formula[:-1]]
+        ## OLD: Via wees.EntropyMaximizer
+        #calibrator = wees.EntropyMaximizer(expressionsDict=tboFormulas, satisfactionDict=satDict,
+        #                                 backCores=self.hybridKB.create_hard_cores())
+        #weightDict, factsDict = calibrator.alternating_optimization(sweepNum=specDict["calibrationSweeps"])
+        #for key in weightDict:
+        #    print(weightDict[key][-1])
+        #    self.hybridKB.weightedFormulas[key][-1] = weightDict[key][-1]
+        # for key in factsDict:
+        #     formula = self.hybridKB.weightedFormulas.pop(key)
+        #     if factsDict[key]:
+        #         self.hybridKB.facts[key] = formula[:-1]
+        #     else:
+        #         self.hybridKB.facts[key] = ["not", formula[:-1]]

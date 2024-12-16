@@ -44,7 +44,7 @@ class InferenceProvider(engine.EngineUser):
         return engine.normate(coreDict={**self.distribution.create_cores(),
                                         **encoding.create_atom_evidence_cores(evidenceDict)},
                               inColors=[], outColors=variableList,
-                              method=self.contractionMethod
+                              contractionMethod=self.contractionMethod
                               )
 
     def exact_map_query(self, variableList, evidenceDict={}):

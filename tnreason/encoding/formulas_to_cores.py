@@ -99,6 +99,8 @@ def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
         headFunction = lambda x: 1 - x
     elif headType == "expFactor":
         headFunction = lambda x: math.exp(weight * x)
+    elif headType == "uncertaintyAsWeight":
+        headFunction = lambda x: (1 - x) * (1 - weight) + x * weight
     else:
         raise ValueError("Headtype {} not understood!".format(headType))
     if name is None:
@@ -163,7 +165,7 @@ def get_formula_string(expression):
     if isinstance(expression, str):  ## Expression is atomic
         return expression
     elif len(expression) == 1:  ## Expression is atomic, but provided in nested form
-        assert isinstance(expression[0], str)
+        assert isinstance(expression[0], str), "Not string: {} of len {}".format(expression[0])
         return expression[0]
     else:
         if not isinstance(expression[0], str):
@@ -184,9 +186,9 @@ def get_all_atoms(expressionsDict):
 
 def get_atoms(expression):
     if isinstance(expression, str):  ## Then an atom
-        return {expression+suf.atomicVariableSuffix}
+        return {expression + suf.atomicVariableSuffix}
     elif len(expression) == 1:  ## Then an atomic formula
-        return {expression[0]+suf.atomicVariableSuffix}
+        return {expression[0] + suf.atomicVariableSuffix}
     else:  ## Then a formula with connective in first position
         atoms = set()
         for subExpression in expression[1:]:

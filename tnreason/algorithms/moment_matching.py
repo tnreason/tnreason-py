@@ -1,74 +1,89 @@
+import numpy as np
+
 from tnreason import engine
-from tnreason.encoding import suffixes as suf
-
-momentCoreSuffix = suf.momentCoreSuffix + suf.headCoreSuffix
-targetCoreSuffix = suf.targetCoreSuffix + suf.headCoreSuffix
 
 
-class MomentMatcher:
+class MomentMatcher(engine.EngineUser):
     """
     Fits alternatingly local cores to reproduce local expected Statistics.
     Equals to coordinate descent with optimal steplength of the likelihood.
         * targetCores: Vector Cores storing the local expected statistics to be matched
         * networkCores: Static Cores shaping the basis
     Generalizes the weight estimation (which is the special case of leg dimension 2 and fitting of exponentiated first coordinate.
+
+    ! TargetCore and HeadCores have same keys and cannot be put together into a coreDict !
     """
 
-    def __init__(self, networkCores, targetCores, coreType=None, contractionMethod=None):
-        self.networkCores = networkCores
+    def __init__(self, structureCores, targetCores, headCores=None, binaryMoments=True, **engineSpec):
+        super().__init__(**engineSpec)
 
-        self.targetCores = {targetCores[key].colors[0] + targetCoreSuffix: targetCores[key] for key in targetCores}
+        self.structureCores = structureCores
+        self.targetCores = targetCores
+        self.headCores = headCores or {key: engine.create_trivial_core(
+            name=key, shape=targetCores[key].shape, colors=targetCores[key].colors, coreType=self.coreType
+        ) for key in targetCores}
 
-        self.updateDimDict = {self.targetCores[key].colors[0]: self.targetCores[key].values.shape[0] for key in
-                              self.targetCores}
-        self.dimDict = engine.get_dimDict(self.networkCores)
+        self.dimensionDict.update(engine.get_dimDict({**self.structureCores, **self.targetCores}))
 
-        self.coreType = coreType
-        self.contractionMethod = contractionMethod
+        self.binaryMoments = binaryMoments
+        if self.binaryMoments:
+            self.weightDict = {key: [] for key in targetCores}
 
-    def ones_initialization(self):
-        """
-        varDimDict: Dictionary with keys the colors of the moments and the shape the dimension of the axis
-        """
-        self.networkCores.update(
-            engine.create_trivial_cores(list(self.updateDimDict.keys()),
-                                        shapeDict={key: [self.updateDimDict[key]] for key in self.updateDimDict},
-                                        suffix=momentCoreSuffix,
-                                        coreType=self.coreType
-                                        )
+    def compute_satVector(self, tboCore, normation=True):
+        if normation:
+            return engine.normate(coreDict={**self.structureCores, **self.headCores},
+                                  outColors=tboCore.colors, inColors=[],
+                                  contractionMethod=self.contractionMethod,
+                                  coreType=self.coreType, dimensionDict=self.dimensionDict
+                                  )
+        else:
+            return engine.contract(coreDict={**self.structureCores, **self.headCores},
+                                   openColors=tboCore.colors,
+                                   contractionMethod=self.contractionMethod,
+                                   coreType=self.coreType, dimensionDict=self.dimensionDict
+                                   )
+
+    def binary_matching_step(self, headCoreKey, normation=True):
+        tboCore = self.headCores.pop(headCoreKey)
+        satVector = self.compute_satVector(tboCore, normation=normation)
+        function, weight = solve_binary_moment_equation(
+            satVect=satVector,
+            empVect=self.targetCores[headCoreKey]
+        )
+        self.headCores[headCoreKey] = engine.create_tensor_encoding(
+            inshape=[self.dimensionDict[color] for color in tboCore.colors],
+            incolors=tboCore.colors,
+            function=function, name=headCoreKey, coreType=self.coreType
+        )
+        self.weightDict[headCoreKey].append(weight)
+
+    def matching_step(self, headCoreKey, normation=True):
+        tboCore = self.headCores.pop(headCoreKey)
+        satVector = self.compute_satVector(tboCore, normation=normation)
+        self.headCores[headCoreKey] = engine.create_tensor_encoding(
+            inshape=[self.dimensionDict[color] for color in tboCore.colors],
+            incolors=tboCore.colors,
+            function=solve_moment_equation(
+                satVect=satVector,
+                empVect=self.targetCores[headCoreKey]
+            ), name=headCoreKey, coreType=self.coreType
         )
 
-    def matching_step(self, updateColor):
-        self.networkCores.pop(updateColor + momentCoreSuffix)
-
-        self.networkCores[updateColor + momentCoreSuffix] = engine.create_tensor_encoding(
-            inshape=[self.dimDict[updateColor]], incolors=[updateColor], function=solve_moment_equation(
-                satVect=engine.contract(coreDict=self.networkCores, openColors=[updateColor],
-                                        contractionMethod=self.contractionMethod).values,
-                empVect=self.targetCores[updateColor + targetCoreSuffix].values
-            ), name=updateColor + momentCoreSuffix, coreType=self.coreType
-        )
-        # self.networkCores[updateColor + momentCoreSuffix] = engine.get_core()(
-        #     values=solve_moment_equation(
-        #         satVect=engine.contract(coreDict=self.networkCores, openColors=[updateColor]).values,
-        #         empVect=self.targetCores[updateColor + targetCoreSuffix].values
-        #     ), colors=[updateColor], name=updateColor + momentCoreSuffix)
-
-        print(self.networkCores[updateColor + momentCoreSuffix].values)
-
-    def alternating_matching(self, sweepNum=10, updateColors=None):
-        if updateColors is None:
-            updateColors = list(self.updateDimDict.keys())
-        for sweep in range(sweepNum):
-            for updateColor in updateColors:
-                self.matching_step(updateColor)
+    def alternating_matching(self, sweepNum=10):
+        for _ in range(sweepNum):
+            for headCoreKey in list(self.headCores.keys()):
+                if self.binaryMoments:
+                    self.binary_matching_step(headCoreKey)
+                else:
+                    self.matching_step(headCoreKey)
 
 
 def find_common_nonzero(vect1, vec2):
     """
     Searching for a reference position for quotients in moment match.
+    -> Should be first entry of binary vector storing variable satisfaction
     """
-    for i in range(vect1.shape[0]):
+    for i in np.ndindex(vect1.shape):
         if vect1[i] > 0 and vec2[i] > 0:
             return i
     else:
@@ -77,15 +92,20 @@ def find_common_nonzero(vect1, vec2):
 
 def solve_moment_equation(satVect, empVect):
     """
-    Solves the local expected statistics matching of
+    Solves the local expected statistics matching of the subscribable cores
         * satVect: Marginal probability of color wrt alien cores
         * empVect: Desired marginal probability (expected statistics)
     To Do: Update, such that partition function constant and not one reference coordinate!
+    Special case of binary: Included!
     """
     refPos = find_common_nonzero(satVect, empVect)
     if refPos == -1:
         print("Warning: Moments cannot be matched!")
         return lambda i: 1
 
-    # return solVect
-    return lambda i: (satVect[refPos] / empVect[refPos]) * (empVect[int(i)] / satVect[int(i)])
+    return lambda *i: (satVect[refPos] / empVect[refPos]) * (empVect[tuple(i)] / satVect[tuple(i)])
+
+
+def solve_binary_moment_equation(satVect, empVect):
+    return lambda *i: (satVect[0] / empVect[0]) * (empVect[tuple(i)] / satVect[tuple(i)]), np.log(
+        (satVect[0] / satVect[1]) * (empVect[1] / empVect[0]))
