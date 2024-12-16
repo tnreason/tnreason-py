@@ -43,7 +43,7 @@ class MNTest(unittest.TestCase):
             )
 
             sampleNum = 10
-            sampleDf = generatingKB.draw_samples(sampleNum)
+            sampleDf = generatingKB.draw_samples(sampleNum, dfOutput=True)
 
             knowledge.get_empirical_distribution(sampleDf)
 

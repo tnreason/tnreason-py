@@ -21,7 +21,7 @@ generatingModel = knowledge.HybridKnowledgeBase(weightedFormulas={
     "w2" : ["imp","a","b", 2],
     "w3" : ["c", 0.3]
 })
-samples = knowledge.InferenceProvider(generatingModel).draw_samples(10)
+samples = knowledge.InferenceProvider(generatingModel).draw_samples(10, dfOutput=True)
 
 negativeCores = {**encoding.create_formulas_cores(currentModel.weightedFormulas),
                  **encoding.create_architecture(architecture)}

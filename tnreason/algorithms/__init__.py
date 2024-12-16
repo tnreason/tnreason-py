@@ -9,3 +9,6 @@ from tnreason.algorithms.moment_matching import MomentMatcher
 
 from tnreason.algorithms.optimization_handling import core_based_optimize, energy_based_optimize, \
     energyOptimizationMethods, coreOptimizationMethods
+
+from tnreason.algorithms.sampling_handling import get_core_based_sampler, get_energy_based_sampler, coreSamplingMethods, \
+    energySamplingMethods

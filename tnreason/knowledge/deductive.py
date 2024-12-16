@@ -6,6 +6,7 @@ entailedString = "entailed"
 contradictingString = "contradicting"
 contingentString = "contingent"
 
+
 class InferenceProvider(engine.EngineUser):
     """
     Answering queries on a distribution by contracting its cores.
@@ -46,6 +47,14 @@ class InferenceProvider(engine.EngineUser):
                               contractionMethod=self.contractionMethod
                               )
 
+    def exact_map_query(self, variableList, evidenceDict={}):
+        """
+        When distributionCore is a
+            * PolynomialCore, uses gurobi optimizer on integer linear program
+            * NumpyCore uses the argmax method of numpy
+        """
+        return self.query(variableList, evidenceDict).get_argmax()
+
     def search_mode(self, variableList=None, optimizationMethod="numpyArgmax", **specDict):
         variableList = variableList or self.distribution.distributedVariables
         if optimizationMethod in algorithms.coreOptimizationMethods:
@@ -57,34 +66,32 @@ class InferenceProvider(engine.EngineUser):
                                                     variableList=variableList,
                                                     optimizationMethod=optimizationMethod, **specDict)
 
-    def exact_map_query(self, variableList, evidenceDict={}):
-        """
-        When distributionCore is a
-            * PolynomialCore, uses gurobi optimizer on integer linear program
-            * NumpyCore uses the argmax method of numpy
-        """
-        return self.query(variableList, evidenceDict).get_argmax()
-
-    def draw_samples(self, sampleNum, variableList=None, outType="int64", method="ForwardSampling"):
+    def draw_samples(self, sampleNum, colors=None, method="ForwardSampling", dfOutput=False):
         """
         Initializes a Sampler being an iteratable core
-        To Do: Provide options like Energy-based and flexibilize output core to be any (most efficient: Sparse Core).
         """
-        if variableList is None:
-            variableList = self.distribution.distributedVariables
-        if method == "ForwardSampling":
-            sampler = algorithms.ForwardSampleCore(self.distribution, sampleNum=sampleNum, colors=variableList,
-                                                   contractionMethod=self.contractionMethod,
-                                                   coreType=self.coreType)
+        if colors is None:
+            colors = self.distribution.distributedVariables
+        if method in algorithms.energySamplingMethods:
+            sampler = algorithms.get_energy_based_sampler(self.distribution.get_energy_dict(), samplingMethod=method,
+                                                          sampleNum=sampleNum,
+                                                          colors=colors,
+                                                          contractionMethod=self.contractionMethod,
+                                                          coreType=self.coreType)
+        elif method in algorithms.coreSamplingMethods:
+            sampler = algorithms.get_core_based_sampler(self.distribution.create_cores(), samplingMethod=method,
+                                                        sampleNum=sampleNum,
+                                                        colors=colors,
+                                                        contractionMethod=self.contractionMethod,
+                                                        coreType=self.coreType)
         else:
             raise ValueError("Sampling Method {} not implemented.".format(method))
-        return engine.convert(sampler, "PandasCore").values[variableList].astype(
-            outType)  # Flexibilize to arbitrary output CoreType!
+        if dfOutput:
+            return engine.convert(sampler, "PandasCore").values.astype("int64")
+        else:
+            return sampler
 
-    def forward_sample(self, variableList, dimDict=None):
-        """
-        To Do: Include in draw_samples as special case
-        """
-        sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, colors=variableList)
+    def draw_sample(self, colors=None, method="ForwardSampling"):
+        sampler = self.draw_samples(sampleNum=1, colors=colors, method=method, dfOutput=False)
         iter(sampler)
         return next(sampler)[1]

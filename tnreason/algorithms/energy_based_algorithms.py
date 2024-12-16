@@ -1,6 +1,6 @@
 from tnreason import engine
 
-from tnreason.algorithms import sampling_handling as sh
+from tnreason.algorithms import sampling_base as sh
 
 import numpy as np
 

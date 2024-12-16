@@ -1,4 +1,5 @@
 from tnreason import engine
+from tnreason.algorithms import energy_based_algorithms as eba
 
 ## Energy-based
 gibbsMethodString = "gibbsSample"
@@ -13,7 +14,6 @@ numpyMethodString = "numpyArgMax"
 coreOptimizationMethods = [gurobiMethodString, numpyMethodString]
 
 def energy_based_optimize(energyDict=[], optimizationMethod=gibbsMethodString, **specDict):
-    from tnreason.algorithms import energy_based_algorithms as eba
     """
     Mixes two steps! Approximation (EnergyMeanFieldApproximator) and Sample Drawing (EnergyGibbsSampleCore)
     """

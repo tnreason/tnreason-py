@@ -16,7 +16,7 @@ genKB = knowledge.HybridKnowledgeBase(
         "wf2": ["not", "a3", 5.2]
     }
 )
-sampleDf = knowledge.InferenceProvider(genKB).draw_samples(100)
+sampleDf = knowledge.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
 
 
 class FormulaBoostingTest(unittest.TestCase):

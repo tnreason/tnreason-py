@@ -6,7 +6,7 @@ samples = knowledge.InferenceProvider(
     knowledge.HybridKnowledgeBase(
         weightedFormulas={"w": ["imp", "a", "b", 1]}
     )
-).draw_samples(10)
+).draw_samples(10, dfOutput=True)
 
 print(samples)
 dataCores = encoding.create_data_cores(samples, ["a", "b"])

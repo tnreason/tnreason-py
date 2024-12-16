@@ -88,10 +88,10 @@ if __name__ == "__main__":
         "f2" : ["gamma",0.3]
     })
 
-    sampleDf_to_naiveKG(knowledge.InferenceProvider(dist).draw_samples(10), "http://fun.org").serialize(
+    sampleDf_to_naiveKG(knowledge.InferenceProvider(dist).draw_samples(10, dfOutput=True), "http://fun.org").serialize(
         destination="./generated/naiveKG.ttl",format="turtle")
 
-    factoredKG = sampleDf_to_factoredKG(knowledge.InferenceProvider(dist).draw_samples(10), "http://fun.org",
+    factoredKG = sampleDf_to_factoredKG(knowledge.InferenceProvider(dist).draw_samples(10, dfOutput=True), "http://fun.org",
                                         projectionVariables=["v1","v2","v3"], # v1 -> Beleg, v2 -> Buchung
                                         importanceQuery={
                                             "con1" : ["v1", "extractionRelation", "v2"],

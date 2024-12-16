@@ -13,7 +13,7 @@ generatingKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(weighte
 }))
 
 sampleNum = 200
-sampleDf = generatingKB.draw_samples(sampleNum)
+sampleDf = generatingKB.draw_samples(sampleNum, dfOutput=True)
 
 hSuf = encoding.suf.headCoreSuffix
 

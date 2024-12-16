@@ -71,7 +71,7 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask("a1"))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf])
             self.assertEqual(0, sample["a1" + aSuf])
 
         for rep in range(sampleRepetition):
@@ -87,7 +87,7 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["not", "a1"]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf, "a2" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf, "a2" + aSuf])
             self.assertTrue((int(sample["a1" + aSuf]) + int(sample["a2" + aSuf])) == 2)
 
         for rep in range(sampleRepetition):
@@ -103,7 +103,7 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", ["not", "a1"], ["not", "a2"]]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf, "a2" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf, "a2" + aSuf])
             self.assertTrue((int(sample["a1" + aSuf]) + int(sample["a2" + aSuf])) >= 1)
 
         for rep in range(sampleRepetition):
@@ -119,7 +119,7 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", "a1", "a2"]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf, "a2" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf, "a2" + aSuf])
             self.assertEqual(1 - sample["a1" + aSuf], sample["a2" + aSuf])
 
         for rep in range(sampleRepetition):
@@ -135,7 +135,7 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", "a1", ["not", "a2"]]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf, "a2" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf, "a2" + aSuf])
             self.assertEqual(sample["a1" + aSuf], sample["a2" + aSuf])
 
         for rep in range(sampleRepetition):
@@ -151,7 +151,7 @@ class HybridKBTest(unittest.TestCase):
                          hybridKB.ask(["and", "a1", ["not", "a2"]]))
 
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf, "a2" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf, "a2" + aSuf])
             self.assertEqual(0, int(sample["a1" + aSuf]) - int(sample["a1" + aSuf]) * int(sample["a2" + aSuf]))
 
         for rep in range(sampleRepetition):
@@ -164,8 +164,8 @@ class HybridKBTest(unittest.TestCase):
             weightedFormulas={"f1": ["a1", 2]},
             facts={"constraint1": ["imp", "a1", "a2"]}
         ))
-        self.assertEqual(3, len(hybridKB.forward_sample(["a3", "a4", "a1"])))
-        self.assertEqual(3, len(hybridKB.forward_sample(["fun1", "fun4", "fun5"])))
+        self.assertEqual(3, len(hybridKB.draw_sample(["a3", "a4", "a1"])))
+        self.assertEqual(3, len(hybridKB.draw_sample(["fun1", "fun4", "fun5"])))
 
     def test_evidence_evaluation(self):
         hybridKB = knowledge.HybridKnowledgeBase(
@@ -187,7 +187,7 @@ class HybridKBTest(unittest.TestCase):
             sample = hybridKB.exact_map_query(["a1" + aSuf, "a2" + aSuf, "a3" + aSuf])
             self.assertTrue(int(sample["a1" + aSuf]) + int(sample["a2" + aSuf]) + int(sample["a3" + aSuf]) == 1)
         for rep in range(sampleRepetition):
-            sample = hybridKB.forward_sample(["a1" + aSuf, "a2" + aSuf, "a3" + aSuf])
+            sample = hybridKB.draw_sample(["a1" + aSuf, "a2" + aSuf, "a3" + aSuf])
             self.assertTrue(int(sample["a1" + aSuf]) + int(sample["a2" + aSuf]) + int(sample["a3" + aSuf]) == 1)
 
 
