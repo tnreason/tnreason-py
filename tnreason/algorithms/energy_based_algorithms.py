@@ -4,42 +4,6 @@ from tnreason.algorithms import sampling_handling as sh
 
 import numpy as np
 
-## Energy-based
-gibbsMethodString = "gibbsSample"
-meanFieldMethodString = "meanFieldSample"
-energyMaximumMethodString = "exactEnergyMax"
-energyOptimizationMethods = [gibbsMethodString, meanFieldMethodString, energyMaximumMethodString]
-
-
-def optimize_energy(energyDict=[], method=gibbsMethodString, **specDict):
-    """
-    Mixes two steps! Approximation (EnergyMeanFieldApproximator) and Sample Drawing (EnergyGibbsSampleCore)
-    """
-    if method == gibbsMethodString:
-        sampler = EnergyGibbsSampleCore(energyDict=energyDict, **specDict)
-        sampler.draw_sample()
-        return sampler.sample
-    elif method == meanFieldMethodString:
-        approximator = NaiveMeanFieldApproximator(energyDict=energyDict, **specDict)
-        approximator.anneal(
-            approximationTemperatureList=specDict.get("approximationTemperatureList", [1 for _ in range(10)]))
-
-        #return EnergyGibbsSampleCore(energyDict=approximator.get_energyDict(), **specDict)
-        return approximator.draw_sample()
-    elif method == energyMaximumMethodString:
-        """
-        Potential: Sparse Cores -> HUBO!
-        """
-        return engine.sum_contract(energyDict_to_weightedCoresDicts(energyDict),
-                                         openColors=specDict.get("colors", []),
-                                         coreType=specDict.get("coreType", None),
-                                         contractionMethod=specDict.get("contractionMethod", None),
-                                         dimensionDict = specDict.get("dimensionDict", dict())
-                                         ).get_argmax()
-    else:
-        raise ValueError("Energy Optimization Method {} not implemented.".format(energyMaximumMethodString,
-                                                                                 method))
-
 
 class GenericMeanFieldApproximator(engine.EngineUser):
     def __init__(self, energyDict, colors=[], edgeColorDict=None, **engineSpec):
@@ -149,7 +113,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
 
 
 class EnergyGibbsSampleCore(sh.SampleCoreBase):
-    def __init__(self, energyDict, temperatureList = [1], partitionColorDict  = None, **samplingSpec):
+    def __init__(self, energyDict, temperatureList=[1], partitionColorDict=None, **samplingSpec):
         super().__init__(**samplingSpec)
 
         self.energyDict = energyDict
@@ -187,6 +151,9 @@ def create_affectionDict(energyDict, colors):
 
 
 def energyDict_to_weightedCoresDicts(energyDict, useKeys=None):
+    """
+    WeightsCoresDict: Same structure as slice iterators, when understanding slice iterator as elementary tensor network of basis cores
+    """
     if useKeys is None:
         useKeys = list(energyDict.keys())
-    return [(energyDict[useKey][1], energyDict[useKey][0]) for useKey in useKeys]
+    return [energyDict[useKey] for useKey in useKeys]

@@ -2,6 +2,9 @@ from tnreason import algorithms
 from tnreason import encoding
 from tnreason import engine
 
+from tnreason.knowledge import distributions as dist
+from tnreason.knowledge import deductive as ded
+
 headNeuronString = "headNeurons"
 architectureString = "architecture"
 acceptanceCriterionString = "acceptanceCriterion"
@@ -36,41 +39,17 @@ class Grafter:
         """
         Searches for a candidate formula
         """
-        atomDimDict = {atomColor : 2 for atomColor in encoding.find_atom_colors(self.specDict[architectureString])}
-        selectionColors = encoding.find_selection_colors(self.specDict[architectureString])
-
-        statisticCores = encoding.create_architecture(
-            encoding.parse_neuronNameDict_to_neuronColorDict(self.specDict[architectureString]),
-            self.specDict[headNeuronString])
-
-        energyDict = {"pos": ({**statisticCores, **empiricalDistribution.create_cores()},
-                              1 / empiricalDistribution.get_partition_function({color : 2 for color in atomDimDict})),
-                      "neg": ({**statisticCores, **self.knowledgeBase.create_cores()},
-                              -1 / self.knowledgeBase.get_partition_function({color : 2 for color in atomDimDict}))}
-        dimDict = engine.get_dimDict(statisticCores)
-
-        ## Energy optimization methods: Ignores constrastive structure of energyDict
-        if self.specDict[methodSelectionString] in algorithms.energyOptimizationMethods:
-            if annealingArgumentString in self.specDict:
-                temperatureList = self.specDict[annealingArgumentString]
-            else:
-                temperatureList = [1 for i in range(10)]
-            solutionDict = algorithms.optimize_energy(energyDict=energyDict, colors=selectionColors, dimDict=dimDict,
-                                                      method=self.specDict[methodSelectionString],
-                                                      temperatureList=temperatureList)
-
-        ## Brute force KL Divergence method: Makes usage of the contrastive structure
-        elif self.specDict[methodSelectionString] == klMaximumMethodString:
-            posPhase = engine.contract(energyDict["pos"][0],
-                                       openColors=encoding.find_selection_colors(
-                                           self.specDict[architectureString])).multiply(energyDict["pos"][1])
-            negPhase = engine.contract(energyDict["neg"][0],
-                                       openColors=encoding.find_selection_colors(
-                                           self.specDict[architectureString])).multiply(-energyDict["neg"][1])
-            klDivergences = posPhase.calculate_coordinatewise_kl_to(negPhase)
-            solutionDict = klDivergences.get_argmax()
-        else:
-            raise ValueError("Sampling Method {} not known!".format(self.specDict[methodSelectionString]))
+        self.proposalDistribution = dist.ProposalDistribution(
+            positivePhase=empiricalDistribution,
+            negativePhase=self.knowledgeBase,
+            statisticCores=encoding.create_architecture(
+                encoding.parse_neuronNameDict_to_neuronColorDict(self.specDict[architectureString]),
+                self.specDict[headNeuronString])
+        )
+        solutionDict = ded.InferenceProvider(self.proposalDistribution).search_mode(
+            variableList=encoding.find_selection_colors(self.specDict[architectureString]),
+            optimizationMethod=self.specDict.get("method", "numpyArgMax")
+        )
 
         self.candidates = encoding.create_solution_expression(self.specDict[architectureString], solutionDict)
 

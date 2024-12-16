@@ -10,21 +10,42 @@ evidenceKey = "evidence"
 
 class DistributionBase(engine.EngineUser):
     """
-    Distributions have two methods:
+    Distributions have methods:
         * create_cores(): returning the factor cores -> customized!
         * get_partition_function(allAtoms): returning the partition function given the atomic variables of interest
+        *
     """
 
-    def __init__(self, partitionFunction=None, **engineSpec):
+    def __init__(self, partitionFunction=None, distributedVariables=None, **engineSpec):
         super().__init__(**engineSpec)
         self.partitionFunction = partitionFunction
+        self.distributedVariables = distributedVariables or dict()
 
     def get_partition_function(self, addDimDict={}):
         if self.partitionFunction is None:
             self.partitionFunction = engine.contract(self.create_cores(), openColors=[],
                                                      contractionMethod=self.contractionMethod)[:]
         return math.prod(
-            [addDimDict[color] for color in addDimDict if color not in self.dimDict]) * self.partitionFunction
+            [addDimDict[color] for color in addDimDict if color not in self.dimensionDict]) * self.partitionFunction
+
+
+class ProposalDistribution(DistributionBase):
+
+    def __init__(self, positivePhase, negativePhase, statisticCores, **distributionSpec):
+        super().__init__(**distributionSpec)
+        self.positivePhase = positivePhase
+        self.negativePhase = negativePhase
+        self.statisticCores = statisticCores
+
+    def create_cores(self):
+        raise ValueError("Cores of Proposal Distribution cannot be instantiated, only its energy can!")
+
+    def get_energy_dict(self):
+        correctionColorDict = {color: self.dimensionDict[color] for color in self.distributedVariables}
+        return {"pos": (1 / self.positivePhase.get_partition_function(correctionColorDict),
+                        {**self.statisticCores, **self.positivePhase.create_cores()}),
+                "neg": (-1 / self.negativePhase.get_partition_function(correctionColorDict),
+                        {**self.statisticCores, **self.negativePhase.create_cores()})}
 
 
 class MarkovNetwork(DistributionBase):
@@ -179,17 +200,19 @@ class HybridKnowledgeBase(DistributionBase):
     ## Energy Representation
     def get_energy_dict(self, cutoffWeight=100):
         weightedEnergyDict = {
-            formulaKey: [{**encoding.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]),
+            formulaKey: (self.weightedFormulas[formulaKey][-1],
+                         {**encoding.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]),
                           **encoding.create_formula_head(self.weightedFormulas[formulaKey][:-1],
                                                          headType="truthEvaluation")
-                          }, self.weightedFormulas[formulaKey][-1]] for formulaKey in self.weightedFormulas}
-        factsEnergyDict = {formulaKey: [{**encoding.create_raw_formula_cores(self.facts[formulaKey]),
-                                         **encoding.create_formula_head(self.facts[formulaKey],
-                                                                        headType="truthEvaluation")
-                                         }, cutoffWeight] for formulaKey in
+                          }) for formulaKey in self.weightedFormulas}
+        factsEnergyDict = {formulaKey: (cutoffWeight, {**encoding.create_raw_formula_cores(self.facts[formulaKey]),
+                                                       **encoding.create_formula_head(self.facts[formulaKey],
+                                                                                      headType="truthEvaluation")
+                                                       }) for formulaKey in
                            self.facts}
-        constraintsEnergyDict = {constraintKey: [
-            encoding.create_constraintCoresDict(self.categoricalConstraints[constraintKey], constraintKey),
-            cutoffWeight] for constraintKey in self.categoricalConstraints}
+        constraintsEnergyDict = {constraintKey: (cutoffWeight,
+                                                 encoding.create_constraintCoresDict(
+                                                     self.categoricalConstraints[constraintKey], constraintKey)) for
+                                 constraintKey in self.categoricalConstraints}
 
         return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}

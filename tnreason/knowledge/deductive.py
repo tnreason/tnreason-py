@@ -6,7 +6,6 @@ entailedString = "entailed"
 contradictingString = "contradicting"
 contingentString = "contingent"
 
-
 class InferenceProvider(engine.EngineUser):
     """
     Answering queries on a distribution by contracting its cores.
@@ -47,6 +46,17 @@ class InferenceProvider(engine.EngineUser):
                               contractionMethod=self.contractionMethod
                               )
 
+    def search_mode(self, variableList=None, optimizationMethod="numpyArgmax", **specDict):
+        variableList = variableList or self.distribution.distributedVariables
+        if optimizationMethod in algorithms.coreOptimizationMethods:
+            return algorithms.core_based_optimize(self.distribution.create_cores(),
+                                                  variableList=variableList,
+                                                  optimizationMethod=optimizationMethod, **specDict)
+        elif optimizationMethod in algorithms.energyOptimizationMethods:
+            return algorithms.energy_based_optimize(energyDict=self.distribution.get_energy_dict(),
+                                                    variableList=variableList,
+                                                    optimizationMethod=optimizationMethod, **specDict)
+
     def exact_map_query(self, variableList, evidenceDict={}):
         """
         When distributionCore is a
@@ -78,13 +88,3 @@ class InferenceProvider(engine.EngineUser):
         sampler = algorithms.ForwardSampleCore(self.distribution, dimDict=dimDict, colors=variableList)
         iter(sampler)
         return next(sampler)[1]
-
-    ## Energy-based: Creates always a full sample!
-    # Can be used for sample (temperatures converging to 1) or for maximum search (temperature converging to 0)
-    ## TO DO: Add support for evidenceDict
-    def energy_based_sample(self, method, temperatureList=[1 for i in range(10)]):
-        return algorithms.optimize_energy(energyDict={**self.distribution.get_energy_dict()},
-                                          colors=list(self.distribution.distributedVariables),
-                                          dimDict={color: 2 for color in self.distribution.distributedVariables},
-                                          method=method,
-                                          temperatureList=temperatureList)
