@@ -18,6 +18,7 @@ class InferenceProvider(engine.EngineUser):
         """
         super().__init__(**engineSpec)
         self.distribution = distribution
+        self.engineSpec = engineSpec
 
     def ask_constraint(self, constraint):
         probability = self.ask(constraint, evidenceDict={})
@@ -60,11 +61,16 @@ class InferenceProvider(engine.EngineUser):
         if optimizationMethod in algorithms.coreOptimizationMethods:
             return algorithms.core_based_optimize(self.distribution.create_cores(),
                                                   variableList=variableList,
-                                                  optimizationMethod=optimizationMethod, **specDict)
+                                                  optimizationMethod=optimizationMethod,
+                                                  #approximationTemperatureList=specDict.get(
+                                                  #    "approximationTemperatureList", None),
+                                                  **specDict,
+                                                  **self.engineSpec)
         elif optimizationMethod in algorithms.energyOptimizationMethods:
             return algorithms.energy_based_optimize(energyDict=self.distribution.get_energy_dict(),
                                                     variableList=variableList,
-                                                    optimizationMethod=optimizationMethod, **specDict)
+                                                    optimizationMethod=optimizationMethod,
+                                                    **self.engineSpec)
 
     def draw_samples(self, sampleNum, colors=None, method="ForwardSampling", dfOutput=False):
         """

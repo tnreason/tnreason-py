@@ -198,21 +198,37 @@ class HybridKnowledgeBase(DistributionBase):
                                openColors=[]).values > 0
 
     ## Energy Representation
-    def get_energy_dict(self, cutoffWeight=100):
-        weightedEnergyDict = {
-            formulaKey: (self.weightedFormulas[formulaKey][-1],
-                         {**encoding.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]),
-                          **encoding.create_formula_head(self.weightedFormulas[formulaKey][:-1],
-                                                         headType="truthEvaluation")
-                          }) for formulaKey in self.weightedFormulas}
-        factsEnergyDict = {formulaKey: (cutoffWeight, {**encoding.create_raw_formula_cores(self.facts[formulaKey]),
-                                                       **encoding.create_formula_head(self.facts[formulaKey],
-                                                                                      headType="truthEvaluation")
-                                                       }) for formulaKey in
-                           self.facts}
-        constraintsEnergyDict = {constraintKey: (cutoffWeight,
-                                                 encoding.create_constraintCoresDict(
-                                                     self.categoricalConstraints[constraintKey], constraintKey)) for
-                                 constraintKey in self.categoricalConstraints}
+    def get_energy_dict(self, cutoffWeight=100, sliceSparse=False, outCoreType="PolynomialCore"):
+        """
+        ToDo: Implement Slice-Sparse version! (refer to encoding.cnf_to_cores)
+        """
+        if sliceSparse:
+            weightedFactsEnergyDict = encoding.weightedFormulas_to_sparseCore(
+                {**self.weightedFormulas,
+                 **{key: self.facts[key] + [cutoffWeight] for key in self.facts},
+                 }, coreType=outCoreType
+            )
+            constraintsEnergyDict = {constraintKey: (cutoffWeight,
+                                                     encoding.create_constraintCoresDict(
+                                                         self.categoricalConstraints[constraintKey], constraintKey,
+                                                         coreType=outCoreType)) for
+                                     constraintKey in self.categoricalConstraints}
+            return {"energy": (1, {"energyCore": weightedFactsEnergyDict}), **constraintsEnergyDict}
+        else:
+            weightedEnergyDict = {
+                formulaKey: (self.weightedFormulas[formulaKey][-1],
+                             {**encoding.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]),
+                              **encoding.create_formula_head(self.weightedFormulas[formulaKey][:-1],
+                                                             headType="truthEvaluation")
+                              }) for formulaKey in self.weightedFormulas}
+            factsEnergyDict = {formulaKey: (cutoffWeight, {**encoding.create_raw_formula_cores(self.facts[formulaKey]),
+                                                           **encoding.create_formula_head(self.facts[formulaKey],
+                                                                                          headType="truthEvaluation")
+                                                           }) for formulaKey in
+                               self.facts}
+            constraintsEnergyDict = {constraintKey: (cutoffWeight,
+                                                     encoding.create_constraintCoresDict(
+                                                         self.categoricalConstraints[constraintKey], constraintKey)) for
+                                     constraintKey in self.categoricalConstraints}
 
-        return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}
+            return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}

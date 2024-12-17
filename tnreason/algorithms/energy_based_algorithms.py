@@ -65,6 +65,9 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
         self.affectionDict = create_affectionDict(energyDict, self.colors)
         self.partitionColorDict = partionColorDict or {color: [color] for color in self.colors}
 
+        for key in self.energyDict:
+            self.dimensionDict.update(engine.get_dimDict(self.energyDict[key][1]))
+
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
         self.meanCores = {parKey: engine.create_trivial_core(parKey, [self.dimensionDict[color] for color in
                                                                       self.partitionColorDict[parKey]],
@@ -91,22 +94,22 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
                                 contractionMethod=self.contractionMethod)
         return angle.values
 
-    def anneal(self, approximationTemperatureList):
+    def anneal(self, approximationTemperatureList=[1 + i for i in range(10)]):
         angles = np.empty(shape=(len(approximationTemperatureList), len(self.partitionColorDict)))
         for i, temperature in enumerate(approximationTemperatureList):
             for j, upKey in enumerate(self.partitionColorDict):
                 angles[i, j] = self.update_meanCore(upKey, temperature=temperature)
         return angles
 
-    def draw_sample(self):
+    def get_maxima(self):
         """
-        Draws a sample from the approximating independent distribution
-        -> Better to use EnergyGibbs for that!
+        Only precise, when disjoint partition!
         """
         sample = {}
         for coreKey in self.meanCores:
-            sample.update(self.meanCores[coreKey].draw_sample(temperature=1))
+            sample.update(self.meanCores[coreKey].get_argmax())
         return sample
+        #return {colorKey: self.meanCores[colorKey].get_argmax()[colorKey] for colorKey in self.colors}
 
     def get_energyDict(self):
         return [(1, {coreKey: self.meanCores[coreKey].build_ln()}) for coreKey in self.meanCores]
@@ -146,7 +149,7 @@ class EnergyGibbsSampleCore(sh.SampleCoreBase):
 
 def create_affectionDict(energyDict, colors):
     return {color: [energyKey for energyKey in energyDict if
-                    any([color in energyDict[energyKey][0][coreKey].colors for coreKey in energyDict[energyKey][0]])]
+                    any([color in energyDict[energyKey][1][coreKey].colors for coreKey in energyDict[energyKey][1]])]
             for color in colors}
 
 

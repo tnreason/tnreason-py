@@ -8,3 +8,5 @@ from tnreason.encoding.data_to_cores import create_data_cores
 from tnreason.encoding.storage import save_as_yaml, load_from_yaml
 
 from tnreason.encoding import suffixes as suf
+
+from tnreason.encoding.cnf_to_cores import weightedFormulas_to_sparseCore
