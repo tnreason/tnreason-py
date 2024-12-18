@@ -28,6 +28,10 @@ class DistributionBase(engine.EngineUser):
         return math.prod(
             [addDimDict[color] for color in addDimDict if color not in self.dimensionDict]) * self.partitionFunction
 
+    def as_core(self):
+        return engine.contract(self.create_cores(), openColors=self.distributedVariables,
+                               contractionMethod=self.contractionMethod)
+
 
 class ProposalDistribution(DistributionBase):
 

@@ -44,11 +44,11 @@ def energy_based_optimize(energyDict=[], optimizationMethod=gibbsMethodString, *
             return core_based_optimize(contracted, "numpyArgMax", coreConversion=True)
 
     elif optimizationMethod == klMaximumMethodString:
-        posPhase = engine.contract(energyDict["pos"][1],
+        posDist = engine.contract(energyDict["pos"][1],
                                    openColors=specDict["variableList"]).multiply(energyDict["pos"][0])
-        negPhase = engine.contract(energyDict["neg"][1],
-                                   openColors=specDict["variableList"]).multiply(energyDict["neg"][0])
-        return core_based_optimize(posPhase.calculate_coordinatewise_kl_to(negPhase), "numpyArgMax")
+        negDist = engine.contract(energyDict["neg"][1],
+                                   openColors=specDict["variableList"]).multiply(-energyDict["neg"][0])
+        return core_based_optimize(posDist.calculate_coordinatewise_kl_to(negDist), "numpyArgMax")
 
     else:
         raise ValueError("Energy Optimization Method {} not implemented.".format(energyMaximumMethodString,

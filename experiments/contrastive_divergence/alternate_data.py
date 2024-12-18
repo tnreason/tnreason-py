@@ -17,6 +17,8 @@ if __name__ == "__main__":
                                         sampleNum=3
                                         )
 
+    print(sampler.to_core("PandasCore").values)
+    exit()
     core = engine.convert(iter(sampler), "PandasCore")
     for entry in core:
         print(entry)

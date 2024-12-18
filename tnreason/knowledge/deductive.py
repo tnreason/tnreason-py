@@ -18,7 +18,6 @@ class InferenceProvider(engine.EngineUser):
         """
         super().__init__(**engineSpec)
         self.distribution = distribution
-        self.engineSpec = engineSpec
 
     def ask_constraint(self, constraint):
         probability = self.ask(constraint, evidenceDict={})
@@ -57,22 +56,27 @@ class InferenceProvider(engine.EngineUser):
         return self.query(variableList, evidenceDict).get_argmax()
 
     def search_mode(self, variableList=None, optimizationMethod="numpyArgmax", **specDict):
+        """
+        SpecDict: Includes engineSpec, when empty takes the
+        """
+        if not "coreType" in specDict:
+            specDict["coreType"] = self.coreType
+        if not "contractionMethod" in specDict:
+            specDict["contraction"] = self.contractionMethod
+
         variableList = variableList or self.distribution.distributedVariables
         if optimizationMethod in algorithms.coreOptimizationMethods:
             return algorithms.core_based_optimize(self.distribution.create_cores(),
                                                   variableList=variableList,
                                                   optimizationMethod=optimizationMethod,
-                                                  #approximationTemperatureList=specDict.get(
-                                                  #    "approximationTemperatureList", None),
-                                                  **specDict,
-                                                  **self.engineSpec)
+                                                  **specDict)
         elif optimizationMethod in algorithms.energyOptimizationMethods:
             return algorithms.energy_based_optimize(energyDict=self.distribution.get_energy_dict(),
                                                     variableList=variableList,
                                                     optimizationMethod=optimizationMethod,
-                                                    **self.engineSpec)
+                                                    **specDict)
 
-    def draw_samples(self, sampleNum, colors=None, method="ForwardSampling", dfOutput=False):
+    def draw_samples(self, sampleNum, colors=None, method="forwardSampling", dfOutput=False):
         """
         Initializes a Sampler being an iteratable core
         """
@@ -97,7 +101,7 @@ class InferenceProvider(engine.EngineUser):
         else:
             return sampler
 
-    def draw_sample(self, colors=None, method="ForwardSampling"):
+    def draw_sample(self, colors=None, method="forwardSampling"):
         sampler = self.draw_samples(sampleNum=1, colors=colors, method=method, dfOutput=False)
         iter(sampler)
         return next(sampler)[1]

@@ -38,3 +38,5 @@ class SampleCoreBase(engine.EngineUser):
     def draw_sample(self, startAssignment=dict()):
         return startAssignment
 
+    def to_core(self, coreType="PandasCore"):
+        return engine.convert(self, coreType)

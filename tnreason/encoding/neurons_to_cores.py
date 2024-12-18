@@ -41,7 +41,7 @@ def create_architecture(neuronColorDict, headNeuronNames=[], coreType=None):
     for headNeuronName in headNeuronNames:
         architectureCores = {**architectureCores,
                              **enform.create_boolean_head(color=headNeuronName + suf.neurVariableSuffix,
-                                                          headType="truthEvaluation")}
+                                                          headType="truthEvaluation", coreType=coreType)}
     return architectureCores
 
 
