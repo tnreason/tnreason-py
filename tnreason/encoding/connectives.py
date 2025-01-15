@@ -9,10 +9,17 @@ def get_connectives(connectiveKey):
         return lambda a, b: [int(a ^ b)]
     elif connectiveKey == "eq":
         return lambda a, b: [int(a == b)]
+    elif connectiveKey == "lpas":
+        return lambda a, b: [int(a)]
+    elif connectiveKey == "rpas":
+        return lambda a, b: [int(b)]
     elif connectiveKey == "id":
         return lambda a: [int(a)]
     elif connectiveKey == "not":
         return lambda a: [int(not a)]
+    else:
+        raise ValueError("Connective {} not implemented!".format(connectiveKey))
+
 
 def get_unary_connective_selector(connectiveList):
     return lambda l, a: get_connectives(connectiveList[l])(a)
