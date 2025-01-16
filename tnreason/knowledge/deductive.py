@@ -40,10 +40,13 @@ class InferenceProvider(engine.EngineUser):
             contractionMethod=self.contractionMethod, openColors=[queryColor])
         return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])
 
-    def query(self, variableList, evidenceDict={}):
+    def query(self, colorList, evidenceDict={}):
+        """
+        While colorList is a list of colors, evidenceDict entries will get atom suffix!
+        """
         return engine.normate(coreDict={**self.distribution.create_cores(),
                                         **encoding.create_atom_evidence_cores(evidenceDict)},
-                              inColors=[], outColors=variableList,
+                              inColors=[], outColors=colorList,
                               contractionMethod=self.contractionMethod
                               )
 

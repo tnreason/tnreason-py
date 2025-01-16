@@ -12,4 +12,7 @@ def get_naive_parentsDict(featureColors=[], classColor=[]):
             classColor: []}
 
 
-
+def check_normedCoreDict(normedCoreDict):
+    for key in normedCoreDict.keys():
+        for value, row in iter(normedCoreDict[key]):
+            assert value <= 1, str((value, row))

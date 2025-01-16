@@ -5,8 +5,6 @@ import pandas as pd
 
 from examples.bayesian_networks import parameter_estimation as pe
 
-dbpediaEndpointString = "https://dbpedia.org/sparql"
-
 termCore = wtp.PandasTermCore(valueDf=pd.read_csv(
         "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/tests/assets/california_housing_test.csv").head())
 
