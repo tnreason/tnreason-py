@@ -29,9 +29,18 @@ def get_selection_colors(sparsityOrder):
 
 if __name__ == "__main__":
     sparsityOrder = 2
-    varNum = 1
+    varNum = 3
     variableList = ["a" + str(i) for i in range(varNum)]
 
+    selectionTN = create_slice_selecting_tn(variableList, sparsityOrder)
+    contracted = engine.contract(selectionTN, openColors=["a0", "a1","a2"],
+                                 colorEvidenceDict={selColor : 0 for selColor in get_selection_colors(sparsityOrder)},
+                                 dimensionDict={**{"posNeur" + str(k) + encoding.suf.actSelVarSuffix : 3 for k in range(sparsityOrder)},
+                                                **{"posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix : varNum for k in
+        range(sparsityOrder)}})
+    print(contracted.values)
+
+    exit()
     basePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/experiments/collapsed_approximation/diagrams/"
     engine.draw_factor_graph(create_slice_selecting_tn(variableList, sparsityOrder),
                              storePath=basePath + "slice_selection_tn.png")

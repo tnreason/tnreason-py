@@ -1,3 +1,5 @@
+from tnreason.engine import auxiliary_cores as ac
+
 import numpy as np
 
 defaultContractionMethod = "NumpyEinsum"
@@ -29,7 +31,7 @@ def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={
         return contracted
 
 
-def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, coreType=None):
+def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, coreType=None, colorEvidenceDict={}):
     """
     Contractors are initialized with
         * coreDict: Dictionary of colored tensor cores specifying a network
@@ -38,6 +40,12 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         * method:
         * coreType: Required for the empty Initialization
     """
+    if colorEvidenceDict:
+        # More efficient: Do reduction on each old factor!
+        coreDict.update({color + "_evCore": ac.create_basis_core(name=color + "_evCore", shape=[dimensionDict[color]],
+                                                                 colors=[color],
+                                                                 numberTuple=(colorEvidenceDict[color]),
+                                                                 coreType=coreType) for color in colorEvidenceDict})
     if contractionMethod is None:
         contractionMethod = defaultContractionMethod
 
