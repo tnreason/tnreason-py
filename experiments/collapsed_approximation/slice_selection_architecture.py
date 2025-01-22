@@ -17,8 +17,14 @@ def get_leg_neurons(variableColorList, order):
 
 def create_slice_selecting_tn(variableColorList, sparsityOrder):
     return {**get_leg_neurons(variableColorList, order=sparsityOrder),
-            "headAnd": get_and_core(
-                ["posNeur" + str(k) + encoding.suf.neurVariableSuffix for k in range(sparsityOrder)])}
+        "headAnd": get_and_core(
+            ["posNeur" + str(k) + encoding.suf.neurVariableSuffix for k in range(sparsityOrder)])}
+
+
+def get_selection_colors(sparsityOrder):
+    return ["posNeur" + str(k) + encoding.suf.actSelVarSuffix for k in range(sparsityOrder)] + [
+        "posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix for k in
+        range(sparsityOrder)]
 
 
 if __name__ == "__main__":

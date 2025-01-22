@@ -1,7 +1,7 @@
 import unittest
 
 from tnreason import engine
-from experiments.als_gradient_fitting import alternating_least_squares as als
+from tnreason.algorithms import alternating_least_squares as als
 
 import numpy as np
 
