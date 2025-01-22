@@ -1,4 +1,4 @@
-from experiments.collapsed_approximation import selection_architecture_creation as sela
+from experiments.collapsed_approximation import old_selection_architecture_creation as sela
 
 from tnreason import engine, encoding
 
