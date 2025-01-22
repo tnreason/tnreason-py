@@ -31,6 +31,12 @@ if __name__ == "__main__":
     sparsityOrder = 2
     varNum = 1
     variableList = ["a" + str(i) for i in range(varNum)]
-    engine.draw_factor_graph(create_slice_selecting_tn(variableList, sparsityOrder))
 
-
+    basePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/experiments/collapsed_approximation/diagrams/"
+    engine.draw_factor_graph(create_slice_selecting_tn(variableList, sparsityOrder),
+                             storePath=basePath + "slice_selection_tn.png")
+    engine.draw_factor_graph({**create_slice_selecting_tn(variableList, sparsityOrder),
+                              "parCore" : engine.create_trivial_core(name="parCore",
+                                     shape=[3 for _ in range(sparsityOrder)] + [2 for _ in range(sparsityOrder)],
+                                     colors=get_selection_colors(sparsityOrder=2))},
+                             storePath=basePath + "slice_energy_tn.png")

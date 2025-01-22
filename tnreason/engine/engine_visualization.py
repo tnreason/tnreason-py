@@ -1,4 +1,4 @@
-def draw_factor_graph(coreDict, fontsize=10, title="Factor Graph", pos=None, bipartite=False):
+def draw_factor_graph(coreDict, fontsize=10, title="Factor Graph", pos=None, bipartite=False, storePath=None):
 
     import networkx as nx
     import matplotlib.pyplot as plt
@@ -18,9 +18,12 @@ def draw_factor_graph(coreDict, fontsize=10, title="Factor Graph", pos=None, bip
     graph.add_nodes_from(colorNodes)
     graph.add_edges_from(ccEdges)
 
-    if pos is None:
-        pos = nx.spring_layout(graph)
-    if bipartite:
+    if pos is None and not bipartite:
+        try:
+            pos = nx.planar_layout(graph)
+        except nx.NetworkXException:
+            pos = nx.spring_layout(graph)
+    elif bipartite:
         pos = nx.bipartite_layout(graph, coreNodes)
 
     nx.draw_networkx_labels(graph, pos, {atom:atom for atom in coreNodes}, font_size=fontsize,
@@ -33,4 +36,7 @@ def draw_factor_graph(coreDict, fontsize=10, title="Factor Graph", pos=None, bip
                            arrowstyle="-",
                            width=2, alpha=1, edge_color='tab:grey')
     plt.title(title)
-    plt.show()
+    if storePath is not None:
+        plt.savefig(storePath)
+    else:
+        plt.show()
