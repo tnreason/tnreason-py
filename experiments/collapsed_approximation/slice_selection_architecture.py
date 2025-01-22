@@ -38,7 +38,9 @@ if __name__ == "__main__":
                                  dimensionDict={**{"posNeur" + str(k) + encoding.suf.actSelVarSuffix : 3 for k in range(sparsityOrder)},
                                                 **{"posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix : varNum for k in
         range(sparsityOrder)}})
-    print(contracted.values)
+
+    assert contracted.values[0,1,0] == 1
+    assert contracted.values[1,0,1] == 0
 
     exit()
     basePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/experiments/collapsed_approximation/diagrams/"

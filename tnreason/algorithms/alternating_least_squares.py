@@ -15,8 +15,8 @@ class ALS:
         * trivialKeys: Specifying cores of singe coordinates, which contribute only factors
     """
 
-    def __init__(self, networkCores, importanceColors=[], importanceList=[({}, 1)],
-                 contractionMethod=None, targetCores=None, targetList=[({}, 1)]):
+    def __init__(self, networkCores, importanceColors=[], importanceList=[(1, {})],
+                 contractionMethod=None, targetCores={}):
         self.networkCores = networkCores
 
         self.importanceColors = importanceColors
@@ -24,11 +24,7 @@ class ALS:
         self.contractionMethod = contractionMethod
 
         # To ease case, where only one element in targetList
-        if targetCores is not None:
-            self.targetList = [(targetCores, 1)]
-        else:
-            self.targetList = targetList
-
+        self.targetCores = targetCores
         self.trivialKeys = []  # Keys with single position, trivial in the sense that they will not be updated
 
     def random_initialize(self, updateKeys, shapesDict={}, colorsDict={}):
@@ -42,7 +38,7 @@ class ALS:
                 upColors = colorsDict[updateKey]
             if np.prod(upShape) > 1:
                 self.networkCores[updateKey] = engine.create_random_core(updateKey, upShape, upColors,
-                                                                           randomEngine="NumpyUniform")
+                                                                         randomEngine="NumpyUniform")
             else:
                 self.trivialKeys.append(updateKey)
                 self.networkCores[updateKey] = engine.create_trivial_core(updateKey, upShape, upColors)
@@ -59,75 +55,70 @@ class ALS:
         if computeResiduum:
             return residua
 
-    def get_color_argmax(self, updateKeys):
-        # ! Only working for vectors -> Can be replaced by .get_maximal_index of NumpyCore
-        return {self.networkCores[key].colors[0]: np.argmax(np.abs(self.networkCores[key].values)) for key in
-                updateKeys}
+    ## Functionality now in algorithm.optimization_handling!
+    # def get_color_argmax(self, updateKeys):
+    #     # ! Only working for vectors -> Can be replaced by .get_maximal_index of NumpyCore
+    #     return {self.networkCores[key].colors[0]: np.argmax(np.abs(self.networkCores[key].values)) for key in
+    #             updateKeys}
 
     def optimize_core(self, updateKey):
         ## Trivialize the core to be updated (serving as a placeholder)
         tbUpdated = self.networkCores.pop(updateKey)
-        self.networkCores[updateKey] = engine.create_trivial_core(updateKey, tbUpdated.values.shape, tbUpdated.colors)
-
-        ## Compute flattened operator and target
         updateColors = tbUpdated.colors
-        conOperator = self.compute_conOperator(updateColors, importanceCores=self.importanceList[0][0],
-                                               weight=self.importanceList[0][1])
-        conTarget = self.compute_conTarget(updateColors, importanceCores=self.importanceList[0][0],
-                                           weight=self.importanceList[0][1])
-        for importanceCores, weight in self.importanceList[1:]:
-            conOperator = conOperator.sum_with(
-                self.compute_conOperator(updateColors, importanceCores, weight))
-            conTarget = conTarget.sum_with(self.compute_conTarget(updateColors, importanceCores, weight))
+        updateShape = tbUpdated.shape
+        dimDict = {color: updateShape[i] for i, color in enumerate(tbUpdated.colors)}
 
-        resultDim = int(np.prod(conTarget.values.shape))
-        conOperator.reorder_colors(conTarget.colors + [color + "_out" for color in conTarget.colors])
+        conOperator = engine.sum_contract(self.importanceList,
+                                          backCores={**self.networkCores,
+                                                     **copy_cores(self.networkCores, "_out", self.importanceColors)},
+                                          openColors=updateColors + [updateColor + "_out" for updateColor in
+                                                                     updateColors],
+                                          dimensionDict=dimDict
+                                          )
+        conTarget = engine.sum_contract(self.importanceList,
+                                        backCores={**self.targetCores, **self.networkCores},
+                                        openColors=updateColors,
+                                        dimensionDict=dimDict)
+
+        # engine.draw_factor_graph({**self.networkCores,
+        #                                             **copy_cores(self.networkCores, "_out", self.importanceColors)})
+
+        resultDim = int(np.prod(updateShape))
+        conOperator.reorder_colors(updateColors + [color + "_out" for color in updateColors])
         flattenedOperator = conOperator.values.reshape(resultDim, resultDim)
         flattenedTarget = conTarget.values.flatten()
 
         ## Update the core by solution of least squares problem
         solution, res, rank, s = np.linalg.lstsq(flattenedOperator, flattenedTarget, rcond=None)
-        self.networkCores[updateKey] = engine.get_core()(solution.reshape(tbUpdated.values.shape), updateColors,
+
+        controlRes = np.linalg.norm(np.matmul(flattenedOperator, solution) - flattenedTarget)
+        if controlRes > 0.00001:
+            print("Remaining Gradient {} at prediction scale {}".format(controlRes, np.linalg.norm(
+                np.matmul(flattenedOperator, solution))))
+
+        self.networkCores[updateKey] = engine.get_core()(solution.reshape(updateShape), updateColors,
                                                          updateKey)
 
-    def compute_conOperator(self, updateColors, importanceCores={}, weight=1):
-        return engine.contract(contractionMethod=self.contractionMethod,
-                               coreDict={
-                                   **importanceCores,
-                                   **self.networkCores,
-                                   **copy_cores(self.networkCores, "_out", self.importanceColors)
-                               }, openColors=updateColors + [updateColor + "_out" for updateColor in
-                                                             updateColors]).multiply(weight)
-
-    def compute_conTarget(self, updateColors, importanceCores={}, weight=1):
-        conTarget = engine.contract(contractionMethod=self.contractionMethod,
-                                    coreDict={
-                                        **importanceCores,
-                                        **self.networkCores,
-                                        **self.targetList[0][0],
-                                    }, openColors=updateColors).multiply(weight * self.targetList[0][1])
-        for targetCores, targetWeight in self.targetList[1:]:
-            conTarget = conTarget.sum_with(engine.contract(contractionMethod=self.contractionMethod,
-                                                           coreDict={
-                                                               **importanceCores,
-                                                               **self.networkCores,
-                                                               **targetCores,
-                                                           }, openColors=updateColors).multiply(weight * targetWeight))
-        return conTarget
+        # print("PAR", res, rank, self.importanceColors)
+        # contractedValues = engine.contract({updateKey: self.networkCores[updateKey],
+        #                             **{key : self.networkCores[key] for key in self.networkCores if key !=updateKey},
+        #                                     **copy_cores({key : self.networkCores[key] for key in self.networkCores if key !=updateKey}, "_out", self.importanceColors)},
+        #                                    openColors=updateColors).values
+        # conTarget.reorder_colors(updateColors)
+        # #conTarget = engine.contract({**{key : self.networkCores[key] for key in self.networkCores if key !=updateKey},
+        # #                                    **copy_cores(self.networkCores, "_out", self.importanceColors)},
+        # #                                   openColors=updateColors).values
+        #
+        # print(np.linalg.norm(contractedValues-conTarget.values), np.linalg.norm(contractedValues))
 
     def compute_residuum(self):
         prediction = engine.contract(contractionMethod=self.contractionMethod,
                                      coreDict=self.networkCores,
                                      openColors=self.importanceColors)
         target = engine.contract(contractionMethod=self.contractionMethod,
-                                 coreDict=self.targetList[0][0],
-                                 openColors=self.importanceColors).multiply(self.targetList[0][1])
-        for targetCores, targetWeight in self.targetList[1:]:
-            target = target.sum_with(engine.contract(contractionMethod=self.contractionMethod,
-                                                     coreDict=targetCores,
-                                                     openColors=self.importanceColors).multiply(targetWeight))
+                                 coreDict=self.targetCores,
+                                 openColors=self.importanceColors)
         prediction.reorder_colors(target.colors)
-        ## Not using the weightings by the importanceList!
         return np.linalg.norm(prediction.values - target.values)
 
 

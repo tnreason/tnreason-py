@@ -25,23 +25,23 @@ optimizer = als.ALS(
 
 
 class AlsKnowledgeTest(unittest.TestCase):
-    def test_operator_check(self):
-        conOperator = optimizer.compute_conOperator(
-            updateColors=["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix])
-        self.assertEqual(conOperator.values[1, 1], 3)
-        self.assertEqual(conOperator.values[1, 0], 0)
-        self.assertEqual(conOperator.values[0, 1], 0)
-        self.assertEqual(conOperator.values[0, 0], 1)
-
-        operator = engine.contract(coreDict={
-            **networkCores,
-            **als.copy_cores(networkCores, "_out",
-                             ["a1" + encoding.suf.atomicVariableSuffix, "a2" + encoding.suf.atomicVariableSuffix])},
-            openColors=["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix,
-                        "(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix + "_out"])
-
-        self.assertEqual(operator.values[0, 0], conOperator.values[0, 0])
-        self.assertEqual(operator.values[0, 1], conOperator.values[0, 1])
+    # def test_operator_check(self):
+    #     conOperator = optimizer.compute_conOperator(
+    #         updateColors=["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix])
+    #     self.assertEqual(conOperator.values[1, 1], 3)
+    #     self.assertEqual(conOperator.values[1, 0], 0)
+    #     self.assertEqual(conOperator.values[0, 1], 0)
+    #     self.assertEqual(conOperator.values[0, 0], 1)
+    #
+    #     operator = engine.contract(coreDict={
+    #         **networkCores,
+    #         **als.copy_cores(networkCores, "_out",
+    #                          ["a1" + encoding.suf.atomicVariableSuffix, "a2" + encoding.suf.atomicVariableSuffix])},
+    #         openColors=["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix,
+    #                     "(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix + "_out"])
+    #
+    #     self.assertEqual(operator.values[0, 0], conOperator.values[0, 0])
+    #     self.assertEqual(operator.values[0, 1], conOperator.values[0, 1])
 
     def test_world_recovery(self):
         optimizer.random_initialize(["estHead"], {"estHead": 2},
@@ -63,7 +63,7 @@ class AlsKnowledgeTest(unittest.TestCase):
             networkCores=encoding.create_raw_formula_cores(["imp", "a1", "a2"]),
             targetCores={"tarCore": engine.get_core()(values=np.ones(dataNum), colors=["dat"])},
             importanceList=[
-                ({"dataTensor": engine.get_core()(values=data, colors=["a1" + aSuf, "a2" + aSuf, "dat"])}, 1)],
+                (1, {"dataTensor": engine.get_core()(values=data, colors=["a1" + aSuf, "a2" + aSuf, "dat"])})],
             importanceColors=["a1" + aSuf, "a2" + aSuf]
         )
 
