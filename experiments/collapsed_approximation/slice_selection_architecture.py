@@ -32,3 +32,5 @@ if __name__ == "__main__":
     varNum = 1
     variableList = ["a" + str(i) for i in range(varNum)]
     engine.draw_factor_graph(create_slice_selecting_tn(variableList, sparsityOrder))
+
+

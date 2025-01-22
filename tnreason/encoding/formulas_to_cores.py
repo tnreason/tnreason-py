@@ -47,17 +47,10 @@ def create_raw_formula_cores(expression, alreadyCreated=[], coreType=None):
     elif len(expression) == 1:
         assert isinstance(expression[0], str)
         return {}
-
-    elif len(expression) == 2:
-        return {**create_connective_core(expression, coreType=coreType),
-                **create_raw_formula_cores(expression[1], alreadyCreated=alreadyCreated, coreType=coreType)}
-    elif len(expression) == 3:
-        return {**create_connective_core(expression, coreType=coreType),
-                **create_raw_formula_cores(expression[1], alreadyCreated=alreadyCreated, coreType=coreType),
-                **create_raw_formula_cores(expression[2], alreadyCreated=alreadyCreated, coreType=coreType)
-                }
-    else:
-        raise ValueError("Expression {} not understood!".format(expression))
+    formulaCores = create_connective_core(expression, coreType=coreType)
+    for subExpression in expression[1:]:
+        formulaCores.update(create_raw_formula_cores(subExpression, alreadyCreated=alreadyCreated, coreType=coreType))
+    return formulaCores
 
 
 def create_connective_core(expression, coreType=None):
@@ -66,27 +59,14 @@ def create_connective_core(expression, coreType=None):
     """
     if isinstance(expression, str):
         return {}
-
-    elif len(expression) == 2:
-        return {get_formula_string(expression) + suf.connectiveCoreSuffix:
-                    engine.create_relational_encoding(inshape=[2], outshape=[2],
-                                                      incolors=[get_formula_color(expression[1])],
-                                                      outcolors=[get_formula_color(expression)],
-                                                      function=con.get_connectives(expression[0]),
-                                                      coreType=coreType,
-                                                      name=get_formula_string(expression) + suf.connectiveCoreSuffix)}
-
-    elif len(expression) == 3:
-        return {get_formula_string(expression) + suf.connectiveCoreSuffix:
-                    engine.create_relational_encoding(inshape=[2, 2], outshape=[2],
-                                                      incolors=[get_formula_color(expression[1]),
-                                                                get_formula_color(expression[2])],
-                                                      outcolors=[get_formula_color(expression)],
-                                                      function=con.get_connectives(expression[0]),
-                                                      coreType=coreType,
-                                                      name=get_formula_string(expression) + suf.connectiveCoreSuffix)}
-    else:
-        raise ValueError("Expression {} not understood!".format(expression))
+    return {get_formula_string(expression) + suf.connectiveCoreSuffix:
+                engine.create_relational_encoding(inshape=[2 for _ in range(1, len(expression))], outshape=[2],
+                                                  incolors=[get_formula_color(expression[i]) for i in
+                                                            range(1, len(expression))],
+                                                  outcolors=[get_formula_color(expression)],
+                                                  function=con.get_connectives(expression[0]),
+                                                  coreType=coreType,
+                                                  name=get_formula_string(expression) + suf.connectiveCoreSuffix)}
 
 
 def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
