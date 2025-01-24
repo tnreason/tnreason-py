@@ -127,7 +127,7 @@ class PandasCore:
     def get_slice(self, colorEvidenceDict={}):
         query = None
         for color in colorEvidenceDict:
-            condition = self.values[color] == colorEvidenceDict[color]
+            condition = (self.values[color] == colorEvidenceDict[color]) | (self.values[color] == self.nanValue)
             query = condition if query is None else query & condition
         newValues = self.values[query].drop(columns=colorEvidenceDict.keys())
         newColors = [color for color in self.colors if color not in colorEvidenceDict]
