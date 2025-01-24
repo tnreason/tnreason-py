@@ -79,6 +79,12 @@ class NumpyCore:
         self.values = np.einsum(subc.get_reorder_substring(self.colors, newColors), self.values)
         self.colors = newColors
 
+    def slice(self, colorEvidenceDict={}):
+        self.values = self.values[tuple(colorEvidenceDict.get(color, slice(None))
+                                        for i, color in enumerate(self.colors))]
+        self.colors = [color for color in self.colors if color not in colorEvidenceDict]
+        return self
+
     def sum_with(self, sumCore):
         if set(self.colors) != set(sumCore.colors):
             raise ValueError("Colors of summands {} and {} do not match!".format(self.name, sumCore.name))

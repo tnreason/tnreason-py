@@ -103,6 +103,12 @@ class PolynomialCore:
                            val, posDict in self]
             return self
 
+    def slice(self, colorEvidenceDict={}):
+        self.values = [(entry[0], {key: entry[1][key] for key in entry[1] if key not in colorEvidenceDict})
+                       for entry in self.values if agreeing_dicts(colorEvidenceDict, entry[1])]
+        self.colors = [color for color in self.colors if color not in colorEvidenceDict]
+        return self
+
     def sum_with(self, sumCore):
         colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},
                            **{color: sumCore.shape[i] for i, color in enumerate(sumCore.colors)}}

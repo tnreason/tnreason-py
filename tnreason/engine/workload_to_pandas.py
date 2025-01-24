@@ -124,6 +124,15 @@ class PandasCore:
             self.values.loc[combined_condition, self.valueColumn] *= weight
             return self
 
+    def slice(self, colorEvidenceDict={}):
+        query = None
+        for color in colorEvidenceDict:
+            condition = self.values[color] == colorEvidenceDict[color]
+            query = condition if query is None else query & condition
+        self.values = self.values[query].drop(columns=colorEvidenceDict.keys())
+        self.colors = [color for color in self.colors if color not in colorEvidenceDict]
+        return self
+
     def sum_with(self, sumCore):
         sumCore.values = sumCore.values.rename(columns={sumCore.valueColumn: self.valueColumn})
 

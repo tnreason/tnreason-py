@@ -1,5 +1,3 @@
-from tnreason.engine import auxiliary_cores as ac
-
 import numpy as np
 
 defaultContractionMethod = "NumpyEinsum"
@@ -41,11 +39,8 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         * coreType: Required for the empty Initialization
     """
     if colorEvidenceDict:
-        # More efficient: Do reduction on each old factor!
-        coreDict.update({color + "_evCore": ac.create_basis_core(name=color + "_evCore", shape=[dimensionDict[color]],
-                                                                 colors=[color],
-                                                                 numberTuple=(colorEvidenceDict[color]),
-                                                                 coreType=coreType) for color in colorEvidenceDict})
+        coreDict = {key : coreDict[key].slice(colorEvidenceDict) for key in coreDict}
+
     if contractionMethod is None:
         contractionMethod = defaultContractionMethod
 
