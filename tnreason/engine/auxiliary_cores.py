@@ -18,6 +18,7 @@ def create_trivial_core(name, shape, colors, coreType=None):
                                          name=name)
 
 
+## Should not be used, more efficient handling of slices by .get_slice() of cores possible.
 def create_basis_core(name, shape, colors, numberTuple, coreType=None):
     if isinstance(numberTuple, tuple) or isinstance(numberTuple, list):
         numberTuple = tuple([int(number) for number in numberTuple])

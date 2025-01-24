@@ -109,7 +109,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
         for coreKey in self.meanCores:
             sample.update(self.meanCores[coreKey].get_argmax())
         return sample
-        #return {colorKey: self.meanCores[colorKey].get_argmax()[colorKey] for colorKey in self.colors}
+        # return {colorKey: self.meanCores[colorKey].get_argmax()[colorKey] for colorKey in self.colors}
 
     def get_energyDict(self):
         return [(1, {coreKey: self.meanCores[coreKey].build_ln()}) for coreKey in self.meanCores]
@@ -137,14 +137,11 @@ class EnergyGibbsSampleCore(sh.SampleCoreBase):
 
     def calculate_energy(self, upColors):
         affectedEnergyKeys = list(set().union(*[self.affectionDict[color] for color in upColors]))
-        sampleCores = {
-            color + "_sampleCore": engine.create_basis_core(color + "_sampleCore", [self.dimensionDict[color]], [color],
-                                                            (self.sample[color]), coreType=self.coreType) for
-            color in self.sample if color not in upColors}
-
         return engine.sum_contract(energyDict_to_weightedCoresDicts(self.energyDict, affectedEnergyKeys),
-                                   backCores=sampleCores, openColors=upColors, dimensionDict=self.dimensionDict,
-                                   contractionMethod=self.contractionMethod, coreType=self.coreType)
+                                   openColors=upColors, dimensionDict=self.dimensionDict,
+                                   contractionMethod=self.contractionMethod, coreType=self.coreType,
+                                   colorEvidenceDict={color: self.sample[color] for color in self.sample if
+                                                      color not in upColors})
 
 
 def create_affectionDict(energyDict, colors):

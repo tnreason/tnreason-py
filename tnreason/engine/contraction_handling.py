@@ -11,20 +11,22 @@ class EngineUser:
 
 
 def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={}, contractionMethod=None,
-                 coreType=None):
+                 coreType=None, colorEvidenceDict={}):
     if len(weightedCoreDicts) == 0:
         return contract(backCores, openColors=openColors, dimensionDict=dimensionDict,
-                        contractionMethod=contractionMethod, coreType=coreType)
+                        contractionMethod=contractionMethod, coreType=coreType, colorEvidenceDict=colorEvidenceDict)
     else:
         contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors,
                               dimensionDict=dimensionDict,
                               contractionMethod=contractionMethod,
-                              coreType=coreType).multiply(weightedCoreDicts[0][0])
+                              coreType=coreType,
+                              colorEvidenceDict=colorEvidenceDict).multiply(weightedCoreDicts[0][0])
         for i in range(1, len(weightedCoreDicts)):
             contracted = contracted.sum_with(
                 contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimensionDict=dimensionDict,
                          contractionMethod=contractionMethod,
-                         coreType=coreType).multiply(weightedCoreDicts[i][0])
+                         coreType=coreType,
+                         colorEvidenceDict=colorEvidenceDict).multiply(weightedCoreDicts[i][0])
             )
         return contracted
 
