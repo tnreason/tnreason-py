@@ -10,7 +10,7 @@ defaultNanValue = -1
 
 class PandasCore:
 
-    def __init__(self, values=None, colors=None, name=None, shape=None, valueColumn=defaultValueColumnString,
+    def __init__(self, values=None, colors=None, name="NoName", shape=None, valueColumn=defaultValueColumnString,
                  nanValue=defaultNanValue):
         self.colors = colors
         self.name = name
@@ -124,14 +124,15 @@ class PandasCore:
             self.values.loc[combined_condition, self.valueColumn] *= weight
             return self
 
-    def slice(self, colorEvidenceDict={}):
+    def get_slice(self, colorEvidenceDict={}):
         query = None
         for color in colorEvidenceDict:
             condition = self.values[color] == colorEvidenceDict[color]
             query = condition if query is None else query & condition
-        self.values = self.values[query].drop(columns=colorEvidenceDict.keys())
-        self.colors = [color for color in self.colors if color not in colorEvidenceDict]
-        return self
+        newValues = self.values[query].drop(columns=colorEvidenceDict.keys())
+        newColors = [color for color in self.colors if color not in colorEvidenceDict]
+        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
+        return PandasCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def sum_with(self, sumCore):
         sumCore.values = sumCore.values.rename(columns={sumCore.valueColumn: self.valueColumn})

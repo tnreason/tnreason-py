@@ -13,7 +13,7 @@ def np_random_core(shape, colors, randomEngine, name):
 
 
 class NumpyCore:
-    def __init__(self, values=None, colors=None, name=None, shape=None):
+    def __init__(self, values=None, colors=None, name="NoName", shape=None):
 
         if values is None:  # Empty initialization based on shape
             self.values = np.zeros(shape=shape).astype(float)
@@ -33,7 +33,7 @@ class NumpyCore:
         self.index = 0
 
     def __str__(self):
-        return "## Numpy Core " + str(self.name) + " ##\nValues with shape: " + str(self.shape) + "\nColors: " + str(
+        return "## Numpy Core " + self.name + " ##\nValues with shape: " + str(self.shape) + "\nColors: " + str(
             self.colors)
 
     def __getitem__(self, item):
@@ -79,11 +79,12 @@ class NumpyCore:
         self.values = np.einsum(subc.get_reorder_substring(self.colors, newColors), self.values)
         self.colors = newColors
 
-    def slice(self, colorEvidenceDict={}):
-        self.values = self.values[tuple(colorEvidenceDict.get(color, slice(None))
+    def get_slice(self, colorEvidenceDict={}):
+        newValues = self.values[tuple(colorEvidenceDict.get(color, slice(None))
                                         for i, color in enumerate(self.colors))]
-        self.colors = [color for color in self.colors if color not in colorEvidenceDict]
-        return self
+        newColors = [color for color in self.colors if color not in colorEvidenceDict]
+        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
+        return NumpyCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def sum_with(self, sumCore):
         if set(self.colors) != set(sumCore.colors):
@@ -125,7 +126,7 @@ class NumpyCore:
         klDivergences = np.empty(self.values.shape)
         for x in np.ndindex(self.values.shape):
             klDivergences[x] = bernoulli_kl_divergence(self.values[x], secondCore.values[x])
-        return NumpyCore(values=klDivergences, colors=self.colors, name=str(self.name) + "_kl_" + str(secondCore.name))
+        return NumpyCore(values=klDivergences, colors=self.colors, name=self.name + "_kl_" + secondCore.name)
 
 
 class NumpyEinsumContractor:

@@ -11,7 +11,7 @@ class PolynomialCore:
     Each monomial seen as a tensor is specified by a weighted trivial slice.
     """
 
-    def __init__(self, values=None, colors=None, name=None, shape=None):
+    def __init__(self, values=None, colors=None, name="NoName", shape=None):
 
         if values is None:  # Empty intialization
             self.values = []
@@ -24,7 +24,7 @@ class PolynomialCore:
         self.shape = shape
 
     def __str__(self):
-        return "## Polynomial Core " + str(self.name) + " ##\nValues: " + str(self.values) + "\nColors: " + str(
+        return "## Polynomial Core " + self.name + " ##\nValues: " + str(self.values) + "\nColors: " + str(
             self.colors)
 
     def __getitem__(self, item):
@@ -64,7 +64,7 @@ class PolynomialCore:
             values=slice_contraction(self.values, core2.values),
             shape=newShapes,
             colors=newColors,
-            name=str(self.name) + "_" + str(core2.name)
+            name=self.name + "_" + str(core2.name)
         )
 
     def reduce_colors(self, newColors):
@@ -103,11 +103,12 @@ class PolynomialCore:
                            val, posDict in self]
             return self
 
-    def slice(self, colorEvidenceDict={}):
-        self.values = [(entry[0], {key: entry[1][key] for key in entry[1] if key not in colorEvidenceDict})
+    def get_slice(self, colorEvidenceDict={}):
+        newValues = [(entry[0], {key: entry[1][key] for key in entry[1] if key not in colorEvidenceDict})
                        for entry in self.values if agreeing_dicts(colorEvidenceDict, entry[1])]
-        self.colors = [color for color in self.colors if color not in colorEvidenceDict]
-        return self
+        newColors = [color for color in self.colors if color not in colorEvidenceDict]
+        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
+        return PolynomialCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def sum_with(self, sumCore):
         colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},

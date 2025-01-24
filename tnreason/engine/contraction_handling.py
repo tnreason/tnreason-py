@@ -39,7 +39,7 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         * coreType: Required for the empty Initialization
     """
     if colorEvidenceDict:
-        coreDict = {key : coreDict[key].slice(colorEvidenceDict) for key in coreDict}
+        coreDict = {key : coreDict[key].get_slice(colorEvidenceDict) for key in coreDict}
 
     if contractionMethod is None:
         contractionMethod = defaultContractionMethod
