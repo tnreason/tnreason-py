@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name="tnreason",
-    version="1.0.2",
+    version="1.0.3",
     author="Alex Goessmann",
     author_email="alex.goessmann@web.de",
     description="A package for reasoning based on tensor networks",
