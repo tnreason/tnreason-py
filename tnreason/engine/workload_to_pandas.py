@@ -114,18 +114,15 @@ class PandasCore:
         self.values[self.valueColumn] = scalar * self.values[self.valueColumn]
         return self
 
-    def multiply(self, weight, sliceDict=dict()):
+    def slice_multiply(self, weight, sliceDict=dict()):
         """
         Cannot handle yet situation of nans in sliceDict
         """
-        if len(sliceDict) == 0:
-            return weight * self
-        else:
-            combined_condition = np.ones(self.values.shape[0], dtype=bool)
-            for col, value in sliceDict.items():
-                combined_condition &= (self.values[col] == value)
-            self.values.loc[combined_condition, self.valueColumn] *= weight
-            return self
+        combined_condition = np.ones(self.values.shape[0], dtype=bool)
+        for col, value in sliceDict.items():
+            combined_condition &= (self.values[col] == value)
+        self.values.loc[combined_condition, self.valueColumn] *= weight
+        return self
 
     def get_slice(self, colorEvidenceDict={}):
         query = None
@@ -136,9 +133,6 @@ class PandasCore:
         newColors = [color for color in self.colors if color not in colorEvidenceDict]
         newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
         return PandasCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_" + self.name)
-
-    def sum_with(self, sumCore):
-        return self + sumCore
 
     def __add__(self, otherCore):
         otherCore.values = otherCore.values.rename(columns={otherCore.valueColumn: self.valueColumn})

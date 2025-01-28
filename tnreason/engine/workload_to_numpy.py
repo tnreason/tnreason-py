@@ -86,9 +86,6 @@ class NumpyCore:
         newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
         return NumpyCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
-    def sum_with(self, sumCore):
-        return self + sumCore
-
     def __add__(self, otherCore):
         if set(self.colors) != set(otherCore.colors):
             raise ValueError("Colors of summands {} and {} do not match!".format(self.name, otherCore.name))
@@ -101,18 +98,10 @@ class NumpyCore:
         return self
 
 
-    def multiply(self, weight, sliceDict=dict()):
-        # To Do: call it slice_multiply and use it only for nontrivial sliceDicts!
-        if len(sliceDict) == 0:
-            return weight * self
-        else:
-            subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
-            self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]
-            return self
-
-    #def exponentiate(self):
-    #    # To be replaced by creation_handling.coordinatewise_tranform
-    #    return NumpyCore(np.exp(self.values), self.colors, self.name)
+    def slice_multiply(self, weight, sliceDict=dict()):
+        subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
+        self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]
+        return self
 
     #def build_ln(self, threshold=1e-8):
     #    # To be replaced by creation_handling.coordinatewise_tranform
@@ -132,14 +121,6 @@ class NumpyCore:
             self.values.shape)
         return {color: sample[i] for i, color in enumerate(self.colors)}
 
-    # def calculate_coordinatewise_kl_to(self, secondCore):
-    #     # To be replaced by creation_handling.coordinatewise_tranform
-    #     klDivergences = np.empty(self.values.shape)
-    #     for x in np.ndindex(self.values.shape):
-    #         klDivergences[x] = bernoulli_kl_divergence(self.values[x], secondCore.values[x])
-    #     return NumpyCore(values=klDivergences, colors=self.colors, name=self.name + "_kl_" + secondCore.name)
-
-
 class NumpyEinsumContractor:
     def __init__(self, coreDict={}, openColors=[]):
         self.coreDict = {key: coreDict[key].clone() for key in coreDict}
@@ -150,14 +131,3 @@ class NumpyEinsumContractor:
         return NumpyCore(
             np.einsum(substring, *[self.coreDict[key].values for key in coreOrder]),
             [color for color in colorOrder if color in self.openColors])
-
-
-# def bernoulli_kl_divergence(p1, p2):
-#     """
-#     Calculates the Kullback Leibler Divergence between two Bernoulli distributions with parameters p1, p2
-#     """
-#     if p1 == 0:
-#         return np.log(1 / (1 - p2))
-#     elif p1 == 1:
-#         return np.log(1 / p2)
-#     return p1 * np.log(p1 / p2) + (1 - p1) * np.log((1 - p1) / (1 - p2))

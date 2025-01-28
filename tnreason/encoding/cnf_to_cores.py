@@ -10,9 +10,8 @@ def weightedFormulas_to_sparseCore(weightedFormulas, coreType=defaultSparseCoreT
     """
     sumCore = engine.get_core(coreType)(values=[], colors=[], shape=[])
     for key in weightedFormulas:
-        sumCore = sumCore.sum_with(
-            formula_to_sparseCore(weightedFormulas[key][:-1], coreType=coreType).multiply(weightedFormulas[key][-1])
-        )
+        sumCore = sumCore + (
+                    weightedFormulas[key][-1] * formula_to_sparseCore(weightedFormulas[key][:-1], coreType=coreType))
     sumCore.add_identical_slices()
     return sumCore
 

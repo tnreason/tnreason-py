@@ -46,14 +46,12 @@ def energy_based_optimize(energyDict=[], optimizationMethod=gibbsMethodString, *
             return core_based_optimize(contracted, "numpyArgMax", coreConversion=True)
 
     elif optimizationMethod == klMaximumMethodString:
-        posDist = engine.contract(energyDict["pos"][1],
-                                  openColors=specDict["variableList"]).multiply(energyDict["pos"][0])
-        negDist = engine.contract(energyDict["neg"][1],
-                                  openColors=specDict["variableList"]).multiply(-energyDict["neg"][0])
+        posDist = energyDict["pos"][0] * engine.contract(energyDict["pos"][1],
+                                                         openColors=specDict["variableList"])
+        negDist = (-energyDict["neg"][0]) * engine.contract(energyDict["neg"][1],
+                                                            openColors=specDict["variableList"])
         return core_based_optimize(engine.coordinatewise_transform([posDist, negDist], bernoulli_kl_divergence),
                                    "numpyArgMax")
-        # return core_based_optimize(posDist.calculate_coordinatewise_kl_to(negDist), "numpyArgMax")
-
     else:
         raise ValueError("Energy Optimization Method {} not implemented.".format(energyMaximumMethodString,
                                                                                  optimizationMethod))

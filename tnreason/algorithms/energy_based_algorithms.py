@@ -20,12 +20,11 @@ class GenericMeanFieldApproximator(engine.EngineUser):
         else:
             self.edgeColorDict = edgeColorDict
 
-        self.approxCores = {parKey: engine.create_trivial_core(parKey, [self.dimensionDict[color] for color in
-                                                                        self.edgeColorDict[parKey]],
-                                                               self.edgeColorDict[parKey],
-                                                               coreType=self.coreType).multiply(
-            1 / np.prod([self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) for parKey in
-            self.edgeColorDict}
+        self.approxCores = {parKey: (1 / np.prod(
+            [self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) * engine.create_trivial_core(parKey, [
+            self.dimensionDict[color] for color in
+            self.edgeColorDict[parKey]], self.edgeColorDict[parKey], coreType=self.coreType) for parKey in
+                            self.edgeColorDict}
 
     def update_core(self, approxCoreKey):
 
@@ -49,7 +48,7 @@ class GenericMeanFieldApproximator(engine.EngineUser):
             coordinate = np.exp(contracted[posDict] / denominator[posDict])
             update[posDict] = coordinate
             sum += 1
-        self.approxCores[approxCoreKey] = update.multiply(1 / sum)
+        self.approxCores[approxCoreKey] = (1 / sum) * update
 
     def get_energyDict(self):
         # In general the energy transform of Markov Networks -> to distributions?
@@ -71,12 +70,13 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
             self.dimensionDict.update(engine.get_dimDict(self.energyDict[key][1]))
 
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
-        self.meanCores = {parKey: engine.create_trivial_core(parKey, [self.dimensionDict[color] for color in
-                                                                      self.partitionColorDict[parKey]],
-                                                             self.partitionColorDict[parKey],
-                                                             coreType=self.coreType).multiply(
-            1 / np.prod([self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) for parKey
-            in self.partitionColorDict}
+        self.meanCores = {parKey: (1 / np.prod(
+            [self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) * engine.create_trivial_core(
+            parKey, [self.dimensionDict[color] for color in
+                     self.partitionColorDict[parKey]],
+            self.partitionColorDict[parKey],
+            coreType=self.coreType) for parKey
+                          in self.partitionColorDict}
 
     def update_meanCore(self, upKey, temperature=1):
 
@@ -91,7 +91,6 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
                                          coreType=self.coreType)
         self.meanCores[upKey] = engine.coordinatewise_transform([contracted],
                                                                 lambda x: np.exp(1 / temperature * x)).normalize()
-        #self.meanCores[upKey] = contracted.multiply(1 / temperature).exponentiate().normalize()
 
         angle = engine.contract({"old": oldMean, "new": self.meanCores[upKey]}, openColors=[],
                                 contractionMethod=self.contractionMethod)

@@ -101,16 +101,13 @@ class PolynomialCore:
         self.values = [(scalar * val, posDict) for val, posDict in self]
         return self
 
-    def multiply(self, weight, sliceDict=dict()):
+    def slice_multiply(self, weight, sliceDict=dict()):
         """
         Cannot handle yet situation of nans in sliceDict
         """
-        if len(sliceDict) == 0:
-            return weight * self
-        else:
-            self.values = [(weight * val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for
+        self.values = [(weight * val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for
                            val, posDict in self]
-            return self
+        return self
 
     def get_slice(self, colorEvidenceDict={}):
         newValues = [(entry[0], {key: entry[1][key] for key in entry[1] if key not in colorEvidenceDict})
@@ -118,9 +115,6 @@ class PolynomialCore:
         newColors = [color for color in self.colors if color not in colorEvidenceDict]
         newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
         return PolynomialCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
-
-    def sum_with(self, sumCore):
-        return self + sumCore
 
     def enumerate_slices(self, enumerationColor="j"):
         self.colors = self.colors + [enumerationColor]

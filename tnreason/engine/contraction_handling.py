@@ -16,18 +16,18 @@ def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={
         return contract(backCores, openColors=openColors, dimensionDict=dimensionDict,
                         contractionMethod=contractionMethod, coreType=coreType, colorEvidenceDict=colorEvidenceDict)
     else:
-        contracted = contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors,
+        contracted = weightedCoreDicts[0][0] * contract({**weightedCoreDicts[0][1], **backCores}, openColors=openColors,
                               dimensionDict=dimensionDict,
                               contractionMethod=contractionMethod,
                               coreType=coreType,
-                              colorEvidenceDict=colorEvidenceDict).multiply(weightedCoreDicts[0][0])
+                              colorEvidenceDict=colorEvidenceDict)
         for i in range(1, len(weightedCoreDicts)):
-            contracted = contracted.sum_with(
-                contract({**weightedCoreDicts[i][1], **backCores}, openColors=openColors, dimensionDict=dimensionDict,
-                         contractionMethod=contractionMethod,
-                         coreType=coreType,
-                         colorEvidenceDict=colorEvidenceDict).multiply(weightedCoreDicts[i][0])
-            )
+            contracted = contracted + (weightedCoreDicts[i][0] * contract({**weightedCoreDicts[i][1], **backCores},
+                                                                          openColors=openColors,
+                                                                          dimensionDict=dimensionDict,
+                                                                          contractionMethod=contractionMethod,
+                                                                          coreType=coreType,
+                                                                          colorEvidenceDict=colorEvidenceDict))
         return contracted
 
 
@@ -41,7 +41,7 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         * coreType: Required for the empty Initialization
     """
     if colorEvidenceDict:
-        coreDict = {key : coreDict[key].get_slice(colorEvidenceDict) for key in coreDict}
+        coreDict = {key: coreDict[key].get_slice(colorEvidenceDict) for key in coreDict}
 
     if contractionMethod is None:
         contractionMethod = defaultContractionMethod
@@ -96,14 +96,14 @@ def normate(coreDict, outColors, inColors, dimensionDict={}, contractionMethod=N
                           contractionMethod=contractionMethod,
                           coreType=coreType)
     if len(inColors) == 0:
-        return contracted.multiply(1 / sliceNorms[:])
+        return (1 / sliceNorms[:]) * contracted
 
     # Need to clone in order to avoid cross reference manipulation!
     for x in np.ndindex(tuple(sliceNorms.shape)):
         if sliceNorms[x] == 0:
             print("Slice {} cannot be normated!".format(x))
         else:
-            contracted.multiply(1 / sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
+            contracted.slice_multiply(1 / sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
     return contracted
 
 
