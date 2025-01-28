@@ -52,3 +52,11 @@ class IteratorConversionTest(unittest.TestCase):
 
                     for ind, val in checkDict[testKey]:
                         self.assertEqual(toCore[ind], val)
+
+    def test_reduce_empty(self):
+        for coreType in ["PolynomialCore"]:
+            core = engine.create_from_slice_iterator(shape=[2, 19, 3, 12, 1], colors=["a2", "a1", "a3", "someC", "a"],
+                                                     sliceIterator=iter([]), coreType=coreType)
+            core.reduce_colors(["someC", "a2", "a"])
+            assert core.colors == ["someC", "a2", "a"]
+            assert core.shape == [12, 2, 1]

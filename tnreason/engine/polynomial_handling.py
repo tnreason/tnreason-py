@@ -74,7 +74,7 @@ class PolynomialCore:
                                        col not in self.values[j][1] and col not in newColors]) * self.values[j][0],
                               {key: self.values[j][1][key] for key in self.values[j][1] if key in newColors}))
         self.values = newValues
-        self.shape = [self.shape[k] for k, col in enumerate(self.colors) if col in newColors]
+        self.shape = [self.shape[self.colors.index(col)] for col in newColors]
         self.colors = newColors
 
     def add_identical_slices(self):
@@ -97,6 +97,7 @@ class PolynomialCore:
         return PolynomialCore(values=self.values + otherCore.values,
                               shape=list(colorsShapeDict.values()), colors=list(colorsShapeDict.keys()),
                               name=self.name)
+
     def __rmul__(self, scalar):
         self.values = [(scalar * val, posDict) for val, posDict in self]
         return self
@@ -106,15 +107,15 @@ class PolynomialCore:
         Cannot handle yet situation of nans in sliceDict
         """
         self.values = [(weight * val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for
-                           val, posDict in self]
+                       val, posDict in self]
         return self
 
     def get_slice(self, colorEvidenceDict={}):
         newValues = [(entry[0], {key: entry[1][key] for key in entry[1] if key not in colorEvidenceDict})
-                       for entry in self.values if agreeing_dicts(colorEvidenceDict, entry[1])]
+                     for entry in self.values if agreeing_dicts(colorEvidenceDict, entry[1])]
         newColors = [color for color in self.colors if color not in colorEvidenceDict]
         newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
-        return PolynomialCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
+        return PolynomialCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_" + self.name)
 
     def enumerate_slices(self, enumerationColor="j"):
         self.colors = self.colors + [enumerationColor]
