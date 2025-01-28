@@ -32,8 +32,8 @@ class GenericMeanFieldApproximator(engine.EngineUser):
         restApproxCores = {key: self.approxCores[key] for key in self.approxCores if key != approxCoreKey}
         contracted = engine.sum_contract(
             weightedCoreDicts=energyDict_to_weightedCoresDicts(self.energyDict) +
-                              [(-1, {key: self.approxCores[key].build_ln()}) for key in self.approxCores if
-                               key != approxCoreKey],
+                              [(-1, {key: engine.coordinatewise_transform([self.approxCores[key]], np.log)})
+                               for key in self.approxCores if key != approxCoreKey],
             backCores=restApproxCores, openColors=self.edgeColorDict[approxCoreKey],
             coreType=self.coreType,
             contractionMethod=self.contractionMethod
@@ -52,7 +52,9 @@ class GenericMeanFieldApproximator(engine.EngineUser):
         self.approxCores[approxCoreKey] = update.multiply(1 / sum)
 
     def get_energyDict(self):
-        return [(1, {coreKey: self.approxCores[coreKey].build_ln()}) for coreKey in self.approxCores]
+        # In general the energy transform of Markov Networks -> to distributions?
+        return [(1, {coreKey: engine.coordinatewise_transform([self.approxCores[coreKey]], np.log)}) for coreKey in
+                self.approxCores]
 
 
 class NaiveMeanFieldApproximator(engine.EngineUser):
@@ -87,8 +89,9 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
                                          backCores=restMeanCores, openColors=self.partitionColorDict[upKey],
                                          dimensionDict=self.dimensionDict, contractionMethod=self.contractionMethod,
                                          coreType=self.coreType)
-
-        self.meanCores[upKey] = contracted.multiply(1 / temperature).exponentiate().normalize()
+        self.meanCores[upKey] = engine.coordinatewise_transform([contracted],
+                                                                lambda x: np.exp(1 / temperature * x)).normalize()
+        #self.meanCores[upKey] = contracted.multiply(1 / temperature).exponentiate().normalize()
 
         angle = engine.contract({"old": oldMean, "new": self.meanCores[upKey]}, openColors=[],
                                 contractionMethod=self.contractionMethod)
@@ -112,7 +115,9 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
         # return {colorKey: self.meanCores[colorKey].get_argmax()[colorKey] for colorKey in self.colors}
 
     def get_energyDict(self):
-        return [(1, {coreKey: self.meanCores[coreKey].build_ln()}) for coreKey in self.meanCores]
+        # In general the energy transform of Markov Networks -> to distributions?
+        return [(1, {coreKey: engine.coordinatewise_transform([self.meanCores[coreKey]], np.log)}) for coreKey in
+                self.meanCores]
 
 
 class EnergyGibbsSampleCore(sh.SampleCoreBase):

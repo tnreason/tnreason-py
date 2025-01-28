@@ -102,11 +102,13 @@ class NumpyCore:
             self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]
             return self
 
-    def exponentiate(self):
-        return NumpyCore(np.exp(self.values), self.colors, self.name)
+    #def exponentiate(self):
+    #    # To be replaced by creation_handling.coordinatewise_tranform
+    #    return NumpyCore(np.exp(self.values), self.colors, self.name)
 
-    def build_ln(self, threshold=1e-8):
-        return NumpyCore(np.log(np.clip(self.values, threshold, None)), self.colors, self.name)
+    #def build_ln(self, threshold=1e-8):
+    #    # To be replaced by creation_handling.coordinatewise_tranform
+    #    return NumpyCore(np.log(np.clip(self.values, threshold, None)), self.colors, self.name)
 
     def get_argmax(self):
         return {self.colors[i]: maxPos for i, maxPos in
@@ -122,11 +124,12 @@ class NumpyCore:
             self.values.shape)
         return {color: sample[i] for i, color in enumerate(self.colors)}
 
-    def calculate_coordinatewise_kl_to(self, secondCore):
-        klDivergences = np.empty(self.values.shape)
-        for x in np.ndindex(self.values.shape):
-            klDivergences[x] = bernoulli_kl_divergence(self.values[x], secondCore.values[x])
-        return NumpyCore(values=klDivergences, colors=self.colors, name=self.name + "_kl_" + secondCore.name)
+    # def calculate_coordinatewise_kl_to(self, secondCore):
+    #     # To be replaced by creation_handling.coordinatewise_tranform
+    #     klDivergences = np.empty(self.values.shape)
+    #     for x in np.ndindex(self.values.shape):
+    #         klDivergences[x] = bernoulli_kl_divergence(self.values[x], secondCore.values[x])
+    #     return NumpyCore(values=klDivergences, colors=self.colors, name=self.name + "_kl_" + secondCore.name)
 
 
 class NumpyEinsumContractor:
@@ -141,12 +144,12 @@ class NumpyEinsumContractor:
             [color for color in colorOrder if color in self.openColors])
 
 
-def bernoulli_kl_divergence(p1, p2):
-    """
-    Calculates the Kullback Leibler Divergence between two Bernoulli distributions with parameters p1, p2
-    """
-    if p1 == 0:
-        return np.log(1 / (1 - p2))
-    elif p1 == 1:
-        return np.log(1 / p2)
-    return p1 * np.log(p1 / p2) + (1 - p1) * np.log((1 - p1) / (1 - p2))
+# def bernoulli_kl_divergence(p1, p2):
+#     """
+#     Calculates the Kullback Leibler Divergence between two Bernoulli distributions with parameters p1, p2
+#     """
+#     if p1 == 0:
+#         return np.log(1 / (1 - p2))
+#     elif p1 == 1:
+#         return np.log(1 / p2)
+#     return p1 * np.log(p1 / p2) + (1 - p1) * np.log((1 - p1) / (1 - p2))

@@ -6,7 +6,7 @@ from tnreason.engine.contraction_handling import contract, sum_contract, normate
 
 from tnreason.engine.creation_handling import get_core, create_tensor_encoding, \
     create_relational_encoding, create_partitioned_relational_encoding, create_random_core, convert, \
-    create_from_slice_iterator
+    create_from_slice_iterator, coordinatewise_transform
 
 
 def get_dimDict(coreDict):

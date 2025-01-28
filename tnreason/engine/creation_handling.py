@@ -113,3 +113,17 @@ def create_partitioned_relational_encoding(inshape, outshape, incolors, outcolor
                                            coreType=coreType,
                                            name=parKey + nameSuffix)
             for parKey in partitionDict}
+
+
+## Coordinate Calculus -> Generalizing Numpy
+def coordinatewise_transform(coreList, rDrFunction, outCoreType=None, outName="Transformed"):
+    """
+    Computed the coordiantewise transform of tensors
+    * coreList: List of d tensor cores of same shape and colors
+    * rDrFunction: Function from \mathbb{R}^d to \mathbb{R}, computing the coordinate of the output core
+    """
+    newCore = get_core(coreType=outCoreType)(shape=coreList[0].shape, colors=coreList[0].colors, name=outName)
+    for index in np.ndindex(coreList[0].shape):
+        newCore[{color: index[k] for k, color in enumerate(coreList[0].colors)}] = rDrFunction(
+            *[core[index] for core in coreList])
+    return newCore
