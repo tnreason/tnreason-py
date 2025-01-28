@@ -87,16 +87,24 @@ class NumpyCore:
         return NumpyCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def sum_with(self, sumCore):
-        if set(self.colors) != set(sumCore.colors):
-            raise ValueError("Colors of summands {} and {} do not match!".format(self.name, sumCore.name))
+        return self + sumCore
+
+    def __add__(self, otherCore):
+        if set(self.colors) != set(otherCore.colors):
+            raise ValueError("Colors of summands {} and {} do not match!".format(self.name, otherCore.name))
         else:
-            self.reorder_colors(sumCore.colors)
-            return NumpyCore(self.values + sumCore.values, self.colors, self.name)
+            self.reorder_colors(otherCore.colors)
+            return NumpyCore(self.values + otherCore.values, self.colors, self.name)
+
+    def __rmul__(self, scalar):
+        self.values = scalar * self.values
+        return self
+
 
     def multiply(self, weight, sliceDict=dict()):
+        # To Do: call it slice_multiply and use it only for nontrivial sliceDicts!
         if len(sliceDict) == 0:
-            self.values = weight * self.values
-            return self
+            return weight * self
         else:
             subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
             self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]

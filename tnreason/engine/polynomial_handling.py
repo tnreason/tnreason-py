@@ -90,14 +90,23 @@ class PolynomialCore:
                 newSlices.append((val, pos))
         self.values = newSlices
 
-    def multiply(self, weight, sliceDict=dict()):
+    def __add__(self, otherCore):
+        ## Speciality: Can extend the colors by trivial extension
+        colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},
+                           **{color: otherCore.shape[i] for i, color in enumerate(otherCore.colors)}}
+        return PolynomialCore(values=self.values + otherCore.values,
+                              shape=list(colorsShapeDict.values()), colors=list(colorsShapeDict.keys()),
+                              name=self.name)
+    def __rmul__(self, scalar):
+        self.values = [(scalar * val, posDict) for val, posDict in self]
+        return self
 
+    def multiply(self, weight, sliceDict=dict()):
         """
         Cannot handle yet situation of nans in sliceDict
         """
         if len(sliceDict) == 0:
-            self.values = [(weight * val, posDict) for val, posDict in self]
-            return self
+            return weight * self
         else:
             self.values = [(weight * val, posDict) if agreeing_dicts(sliceDict, posDict) else (val, posDict) for
                            val, posDict in self]
@@ -111,11 +120,7 @@ class PolynomialCore:
         return PolynomialCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def sum_with(self, sumCore):
-        colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},
-                           **{color: sumCore.shape[i] for i, color in enumerate(sumCore.colors)}}
-        return PolynomialCore(values=self.values + sumCore.values,
-                              shape=list(colorsShapeDict.values()), colors=list(colorsShapeDict.keys()),
-                              name=self.name)
+        return self + sumCore
 
     def enumerate_slices(self, enumerationColor="j"):
         self.colors = self.colors + [enumerationColor]

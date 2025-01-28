@@ -99,8 +99,8 @@ class PandasCore:
                                                             self.values.loc[
                                                                 j, col] == self.nanValue and col not in newColors]) * \
                                                    self.values.loc[j, self.valueColumn]
-        if len(newColors)==0:
-            self.values = pd.DataFrame({self.valueColumn : [self.values[self.valueColumn].sum()]})
+        if len(newColors) == 0:
+            self.values = pd.DataFrame({self.valueColumn: [self.values[self.valueColumn].sum()]})
         else:
             self.values = self.values.groupby(newColors)[self.valueColumn].sum().reset_index()
 
@@ -110,13 +110,16 @@ class PandasCore:
     def add_identical_slices(self):
         self.values = self.values.groupby(self.colors)[self.valueColumn].sum().reset_index()
 
+    def __rmul__(self, scalar):
+        self.values[self.valueColumn] = scalar * self.values[self.valueColumn]
+        return self
+
     def multiply(self, weight, sliceDict=dict()):
         """
         Cannot handle yet situation of nans in sliceDict
         """
         if len(sliceDict) == 0:
-            self.values[self.valueColumn] = weight * self.values[self.valueColumn]
-            return self
+            return weight * self
         else:
             combined_condition = np.ones(self.values.shape[0], dtype=bool)
             for col, value in sliceDict.items():
@@ -132,14 +135,17 @@ class PandasCore:
         newValues = self.values[query].drop(columns=colorEvidenceDict.keys())
         newColors = [color for color in self.colors if color not in colorEvidenceDict]
         newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
-        return PandasCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
+        return PandasCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_" + self.name)
 
     def sum_with(self, sumCore):
-        sumCore.values = sumCore.values.rename(columns={sumCore.valueColumn: self.valueColumn})
+        return self + sumCore
+
+    def __add__(self, otherCore):
+        otherCore.values = otherCore.values.rename(columns={otherCore.valueColumn: self.valueColumn})
 
         colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},
-                           **{color: sumCore.shape[i] for i, color in enumerate(sumCore.colors)}}
-        return PandasCore(values=pd.concat([self.values, sumCore.values], ignore_index=True),
+                           **{color: otherCore.shape[i] for i, color in enumerate(otherCore.colors)}}
+        return PandasCore(values=pd.concat([self.values, otherCore.values], ignore_index=True),
                           colors=list(colorsShapeDict.keys()),
                           shape=list(colorsShapeDict.values()),
                           valueColumn=self.valueColumn)
