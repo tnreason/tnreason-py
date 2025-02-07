@@ -26,6 +26,12 @@ def get_selection_colors(sparsityOrder):
         "posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix for k in
         range(sparsityOrder)]
 
+def get_selection_dimDict(sparsityOrder, variableNumber):
+    return {**{"posNeur" + str(k) + encoding.suf.actSelVarSuffix : 3 for k in range(sparsityOrder)},
+            **{"posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix: variableNumber for k in
+               range(sparsityOrder)}
+            }
+
 
 if __name__ == "__main__":
     sparsityOrder = 2
@@ -35,9 +41,7 @@ if __name__ == "__main__":
     selectionTN = create_slice_selecting_tn(variableList, sparsityOrder)
     contracted = engine.contract(selectionTN, openColors=["a0", "a1","a2"],
                                  colorEvidenceDict={selColor : 0 for selColor in get_selection_colors(sparsityOrder)},
-                                 dimensionDict={**{"posNeur" + str(k) + encoding.suf.actSelVarSuffix : 3 for k in range(sparsityOrder)},
-                                                **{"posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix : varNum for k in
-        range(sparsityOrder)}})
+                                 dimensionDict=get_selection_dimDict(sparsityOrder, varNum))
 
     assert contracted.values[0,1,0] == 1
     assert contracted.values[1,0,1] == 0
