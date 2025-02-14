@@ -104,7 +104,7 @@ class PandasCore:
         else:
             self.values = self.values.groupby(newColors)[self.valueColumn].sum().reset_index()
 
-        self.shape = [self.shape[i] for i, color in enumerate(self.colors) if color in newColors]
+        self.shape = [self.shape[self.colors.index(color)] for i, color in enumerate(newColors) if color in newColors]
         self.colors = newColors
 
     def add_identical_slices(self):

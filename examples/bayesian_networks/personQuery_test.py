@@ -35,7 +35,9 @@ bnCores = pe.estimate_bn(qCoresDict, parentsDict, contractionMethod="CorewiseCon
 
 for coreKey in bnCores:
     print("##" + coreKey)
-    print(bnCores[coreKey].values)
+
+    # Only for PandasCores
+    print(bnCores[coreKey].values.sort_values("values",ascending=False))
 
     # Only for PolynomialCores
     #for entry in bnCores[coreKey].values:
