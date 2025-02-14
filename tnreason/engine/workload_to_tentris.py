@@ -1,4 +1,4 @@
-from tentris_tests import tentris, Hypertrie
+from tentris import tentris, Hypertrie
 
 from tnreason.engine import subscript_creation as subc
 
