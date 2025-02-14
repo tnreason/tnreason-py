@@ -4,6 +4,7 @@ from tnreason import engine
 from examples.bayesian_networks import parameter_estimation as pe
 
 dbpediaEndpointString = "https://dbpedia.org/sparql"
+coreType = "PandasCore"
 
 personQuery = """
 PREFIX dbo: <http://dbpedia.org/ontology/>
@@ -22,7 +23,7 @@ WHERE {
 LIMIT 1000
 """
 
-qCoresDict, intDict = wts.queries_to_cores(dbpediaEndpointString, {"com": personQuery}, coreType="PandasCore")
+qCoresDict, intDict = wts.queries_to_cores(dbpediaEndpointString, {"com": personQuery}, coreType=coreType)
 
 parentsDict = {
     "nationality_tVar": ["birthPlace_tVar"],
@@ -30,8 +31,12 @@ parentsDict = {
     "birthPlace_tVar": []
 }
 
-bnCores = pe.estimate_bn(qCoresDict, parentsDict, contractionMethod="CorewiseContractor", coreType="PandasCore")
-engine.draw_factor_graph(bnCores)
+bnCores = pe.estimate_bn(qCoresDict, parentsDict, contractionMethod="CorewiseContractor", coreType=coreType)
 
 for coreKey in bnCores:
-    print(coreKey, bnCores[coreKey].shape, bnCores[coreKey].colors)
+    print("##" + coreKey)
+    print(bnCores[coreKey].values)
+
+    # Only for PolynomialCores
+    #for entry in bnCores[coreKey].values:
+    #    print(entry)
