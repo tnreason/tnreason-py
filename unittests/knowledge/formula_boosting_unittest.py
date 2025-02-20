@@ -5,8 +5,10 @@ from tnreason import encoding
 
 import pandas as pd
 
-backKb = knowledge.load_kb_from_yaml("./assets/fb_backKb.yaml")
-architecture = encoding.load_from_yaml("./assets/fb_architecture.yaml")
+assetsBasePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/unittests/knowledge/assets/"
+
+backKb = knowledge.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml")
+architecture = encoding.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
 
 genKB = knowledge.HybridKnowledgeBase(
     facts={"f1": ["a1"]},
@@ -22,47 +24,47 @@ sampleDf = knowledge.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
 class FormulaBoostingTest(unittest.TestCase):
     def test_yaml_als(self):
         booster = knowledge.Grafter(knowledgeBase=backKb,
-                                    specDict={**encoding.load_from_yaml("./assets/fb_als_boostSpec.yaml"),
-                                                     "headNeurons": ["neur1"], "architecture": architecture})
-        booster.find_candidate(sampleDf=pd.read_csv("assets/fb_sampleDf.csv"))
+                                    specDict={**encoding.load_from_yaml(assetsBasePath + "fb_energyMax_boostSpec.yaml"),
+                                              "headNeurons": ["neur1"], "architecture": architecture})
+        booster.find_candidate(knowledge.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
 
     def test_yaml_gibbs(self):
-        booster = knowledge.Grafter(knowledgeBase=backKb,
-                                    specDict={**encoding.load_from_yaml("./assets/fb_gibbs_boostSpec.yaml"),
-                                                     "headNeurons": ["neur1"], "architecture": architecture})
-        booster.find_candidate(sampleDf=pd.read_csv("assets/fb_sampleDf.csv"))
+        booster = knowledge.Grafter(knowledgeBase=knowledge.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
+                                    specDict={**encoding.load_from_yaml(assetsBasePath + "fb_gibbs_boostSpec.yaml"),
+                                              "headNeurons": ["neur1"], "architecture": architecture})
+        booster.find_candidate(knowledge.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
 
     def test_exact_implication_finding(self):
-        booster = knowledge.Grafter(knowledgeBase=knowledge.HybridKnowledgeBase(),
-                                    specDict= {
-            "method": "exactEnergyMax",
-            "sweeps": 10,
-            "headNeurons": ["neur1"],
-            "architecture":
-                {"neur1": [["imp"],
-                           ["a1"],
-                           ["a3", "a2"]]
-                 },
-            "acceptanceCriterion": "always",
-            "calibrationSweeps": 2
-        })
-        booster.find_candidate(sampleDf=sampleDf)
-        self.assertEquals(booster.candidates["neur1"][-1],"a2")
-
-    def test_gibbs_implication_finding(self):
-        booster = knowledge.Grafter(knowledgeBase=knowledge.HybridKnowledgeBase(),
+        booster = knowledge.Grafter(knowledgeBase=knowledge.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
                                     specDict={
-                                                   "method": "gibbsSample",
-                                                   "sweeps": 10,
-                                                   "headNeurons": ["neur1"],
-                                                   "architecture":
-                                                       {"neur1": [["imp"],
-                                                                  ["a1"],
-                                                                  ["a3", "a2"]]
-                                                        },
-                                                   "acceptanceCriterion": "always",
-                                                   "calibrationSweeps": 2
-                                               })
-        booster.find_candidate(sampleDf=sampleDf)
+                                        "method": "exactEnergyMax",
+                                        "sweeps": 10,
+                                        "headNeurons": ["neur1"],
+                                        "architecture":
+                                            {"neur1": [["imp"],
+                                                       ["a1"],
+                                                       ["a3", "a2"]]
+                                             },
+                                        "acceptanceCriterion": "always",
+                                        "calibrationSweeps": 2
+                                    })
+        booster.find_candidate(knowledge.get_empirical_distribution(sampleDf))
         self.assertEquals(booster.candidates["neur1"][-1], "a2")
 
+    def test_gibbs_implication_finding(self):
+        booster = knowledge.Grafter(
+            knowledgeBase=knowledge.HybridKnowledgeBase(partitionFunction=2 ** len(backKb.distributedVariables)),
+            specDict={
+                "method": "gibbsSample",
+                "sweeps": 10,
+                "headNeurons": ["neur1"],
+                "architecture":
+                    {"neur1": [["imp"],
+                               ["a1"],
+                               ["a3", "a2"]]
+                     },
+                "acceptanceCriterion": "always",
+                "calibrationSweeps": 2
+            })
+        booster.find_candidate(knowledge.get_empirical_distribution(sampleDf))
+        self.assertEquals(booster.candidates["neur1"][-1], "a2")

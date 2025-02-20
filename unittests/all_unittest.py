@@ -15,7 +15,7 @@ from encoding.cnf_representation_unittest import CNFTest
 
 from knowledge.entropy_maximization_unittest import WeightEstimationTest
 from knowledge.hybridKB_unittest import HybridKBTest
-#from knowledge.formula_boosting_unittest import FormulaBoostingTest
+from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_unittest import HybridLearnerTest
 from knowledge.distribution_unittest import MNTest
 

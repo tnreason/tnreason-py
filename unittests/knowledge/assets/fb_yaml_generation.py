@@ -39,7 +39,7 @@ boostSpecDict = {
     "sweeps": 5
 }
 
-encoding.save_as_yaml(modelSpec=boostSpecDict, savePath="./fb_als_boostSpec.yaml")
+encoding.save_as_yaml(modelSpec=boostSpecDict, savePath="./fb_energyMax_boostSpec.yaml")
 
 boostSpecDict = {
     "method": "gibbs",

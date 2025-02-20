@@ -22,7 +22,10 @@ def energy_based_optimize(energyDict=[], optimizationMethod=gibbsMethodString, *
     Mixes two steps! Approximation (EnergyMeanFieldApproximator) and Sample Drawing (EnergyGibbsSampleCore)
     """
     if optimizationMethod == gibbsMethodString:
-        sampler = eba.EnergyGibbsSampleCore(energyDict=energyDict, **specDict)
+        sampler = eba.EnergyGibbsSampleCore(energyDict=energyDict,
+                                            partitionColorDict={color: [color] for color in specDict["variableList"]},
+                                            colors=specDict["variableList"],
+                                            **specDict)
         sampler.draw_sample()
         return sampler.sample
     elif optimizationMethod == meanFieldMethodString:
