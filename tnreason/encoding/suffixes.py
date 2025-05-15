@@ -23,7 +23,7 @@ Colors
 """
 
 categoricalVariableSuffix = "_cVar"
-atomicVariableSuffix = "_aVar"
+atomicVariableSuffix = ""#_aVar"
 
 neurVariableSuffix = "_nVar"
 

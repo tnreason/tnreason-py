@@ -1,0 +1,32 @@
+categoricalConstraints:
+  account:
+  - ACCOUNT_Account_3300
+  - ACCOUNT_Account_3400
+  - ACCOUNT_Account_4605
+  product:
+  - PRODUCT_CLASS_SEA-CP_01
+  - PRODUCT_CLASS_SEA-CP_02
+  - PRODUCT_CLASS_SEA-CP_03
+  - PRODUCT_CLASS_SEA-CP_04
+  - PRODUCT_CLASS_SEA-CP_05
+  tax:
+  - TAX_RATE_19
+  - TAX_RATE_7
+evidence: {}
+facts:
+  coarse_0:
+  - imp
+  - TAX_RATE_7
+  - ACCOUNT_Account_3300
+  fineCorrection:
+  - imp
+  - - and
+    - TAX_RATE_19
+    - PRODUCT_CLASS_SEA-CP_01
+  - ACCOUNT_Account_3400
+weightedFormulas:
+  coarse_1:
+  - imp
+  - TAX_RATE_19
+  - ACCOUNT_Account_3400
+  - 1.3862943611198908

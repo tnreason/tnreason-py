@@ -159,7 +159,7 @@ class HybridKnowledgeBase(DistributionBase):
 
     def to_yaml(self, savePath):
         encoding.storage.save_as_yaml({
-            probFormulasKey: self.weightedFormulas,
+            probFormulasKey: {key : self.weightedFormulas[key][:-1] + [float(self.weightedFormulas[key][-1])] for key in self.weightedFormulas},
             logFormulasKey: self.facts,
             categoricalsKey: self.categoricalConstraints,
             evidenceKey: self.evidence
