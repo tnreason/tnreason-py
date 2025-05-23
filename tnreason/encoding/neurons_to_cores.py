@@ -25,12 +25,13 @@ def convert_candidateNames_to_colorList(candidatesList, neuronNames):
         return colorList
 
 
-def create_architecture(neuronColorDict, headNeuronNames=[], coreType=None):
+def create_architecture(neuronNameDict, headNeuronNames=[], coreType=None):
     """
     Creates a tensor network of neuron cores with selection colors
         * neuronDict: Dictionary specifying to each neuronName a list of candidates (for the connective and the arguments)
         * headNeurons: List of neuronNames to be associated with hard headCores
     """
+    neuronColorDict = parse_neuronNameDict_to_neuronColorDict(neuronNameDict)
     architectureCores = {}
     for neuronName in neuronColorDict.keys():
         architectureCores = {**architectureCores,
