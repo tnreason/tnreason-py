@@ -12,8 +12,8 @@ polCoresDict, intDict = wts.queries_to_cores(dbpediaEndpointString,
 
 print(polCoresDict["com"].shape)
 
-branchLocationList = engine.contract(polCoresDict, openColors=["branch" + suf.termVariableSuffix,
-                                                               "location" + suf.termVariableSuffix],
+branchLocationList = engine.contract(polCoresDict, openColors=["branch" + suf.terVarSuf,
+                                                               "location" + suf.terVarSuf],
                                      contractionMethod="CorewiseContractor")
 branchLocationList.add_identical_slices()
 print(branchLocationList.values)

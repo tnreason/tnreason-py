@@ -2,7 +2,7 @@ from tnreason import engine
 
 from tnreason import encoding
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 
 method = {"coreType": "HypertrieCore", "contractionMethod": "TentrisEinsum"}
 

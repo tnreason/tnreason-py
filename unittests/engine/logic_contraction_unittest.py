@@ -9,7 +9,7 @@ methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
               {"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"}
               ]
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 
 
 class TensorLogicTest(unittest.TestCase):

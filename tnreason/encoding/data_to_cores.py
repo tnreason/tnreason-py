@@ -2,8 +2,9 @@ from tnreason import engine
 
 from tnreason.encoding import suffixes as suf
 
+dataCoreSuffix = suf.datPre + suf.comCoreSuf
 
-def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.dataVariableSuffix, interpretation="atomic",
+def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datPre + suf.selVarSuf, interpretation="atomic",
                       dimensionsDict=None,
                       coreType=None, partitionDict=None):
     """
@@ -18,13 +19,13 @@ def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.dataVariableSuffix,
         return categorical_to_relational_encoding(sampleDf, atomKeys, dataColor, dimensionsDict=dimensionsDict,
                                                   coreType=coreType, partitionDict=partitionDict)
     elif interpretation == "atomic":
-        return {atomKey + suf.dataCoreSuffix: atomValues_from_sampleDf(sampleDf, atomKey, dataColor)
+        return {atomKey + dataCoreSuffix: atomValues_from_sampleDf(sampleDf, atomKey, dataColor)
                 for atomKey in atomKeys if atomKey in list(sampleDf.columns)}
     else:
         raise ValueError("Interpretation {} not understood!".format(interpretation))
 
 
-def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor=suf.dataVariableSuffix, dimensionsDict=None,
+def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor= suf.datPre + suf.selVarSuf, dimensionsDict=None,
                                        coreType=None, partitionDict=None):
     """
     Relational Encoding of samples, which are interpreted as certain states of categorical variables.
@@ -38,7 +39,7 @@ def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor=suf.da
         incolors=[dataColor], outcolors=atomKeys,
         function=lambda k: sampleDf[atomKeys].iloc[k].values,
         coreType=coreType,
-        nameSuffix=suf.dataCoreSuffix,
+        nameSuffix=dataCoreSuffix,
         partitionDict=partitionDict
     )
 
@@ -52,4 +53,4 @@ def atomValues_from_sampleDf(sampleDf, atomKey, dataColor, coreType=None):
     tensorFunc = lambda j, a: (1 - a) * (1 - dfEntries[int(j)]) + a * dfEntries[int(j)]
     return engine.create_tensor_encoding(inshape=[dataNum, 2], incolors=[dataColor, atomKey], function=tensorFunc,
                                          coreType=coreType,
-                                         name=atomKey + suf.dataCoreSuffix)
+                                         name=atomKey + dataCoreSuffix)

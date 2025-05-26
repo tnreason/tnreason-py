@@ -15,16 +15,18 @@ generatingKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(weighte
 sampleNum = 200
 sampleDf = generatingKB.draw_samples(sampleNum, dfOutput=True)
 
-hSuf = encoding.suf.headCoreSuffix
+hSuf = encoding.suf.actCoreSuf
+
 
 class WeightEstimationTest(unittest.TestCase):
     def test_convergence(self):
         expressionsDict = {"f1": ["imp", "a", "b"], "f2": ["imp", "a", "c"], "f3": ["a"]}
-        hybridKB = knowledge.HybridKnowledgeBase(weightedFormulas={key : expressionsDict[key] + [0] for key in expressionsDict})
+        hybridKB = knowledge.HybridKnowledgeBase(
+            weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict})
         calibrator = knowledge.WeightEstimator(hybridKB)
         calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
-        weights = calibrator.calibrate_weights(sweepNum = 10)
+        weights = calibrator.calibrate_weights(sweepNum=10)
         for key in weights:
             self.assertGreaterEqual(0.1, abs(weights[key][-1] - weights[key][-2]))
 
@@ -39,15 +41,16 @@ class WeightEstimationTest(unittest.TestCase):
     def test_infinity_handling(self):
         expressionsDict = {"f1": ["imp", "a", "b"], "f2": ["imp", "a", "c"], "f3": ["a"]}
 
-        hybridKB = knowledge.HybridKnowledgeBase(weightedFormulas={key : expressionsDict[key] + [0] for key in expressionsDict},
-                                                facts={"fact1" : ["imp", "a", "b"]})
+        hybridKB = knowledge.HybridKnowledgeBase(
+            weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict},
+            facts={"fact1": ["imp", "a", "b"]})
         calibrator = knowledge.WeightEstimator(hybridKB)
         calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
-        weights = calibrator.calibrate_weights(sweepNum = 10)
+        weights = calibrator.calibrate_weights(sweepNum=10)
 
-        self.assertEqual(0, weights["f1"+ encoding.suf.headCoreSuffix][0])
-        self.assertEqual(0, weights["f1"+encoding.suf.headCoreSuffix][1])
+        self.assertEqual(0, weights["f1" + hSuf][0])
+        self.assertEqual(0, weights["f1" + hSuf][1])
 
         # inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
         # satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
@@ -66,21 +69,24 @@ class WeightEstimationTest(unittest.TestCase):
         expressionsDict = {"f_a": ["a"],
                            "f_b": ["b"],
                            "f_c": ["c"]}
-        hybridKB = knowledge.HybridKnowledgeBase(weightedFormulas={key : expressionsDict[key] + [0] for key in expressionsDict})
+        hybridKB = knowledge.HybridKnowledgeBase(
+            weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict})
         calibrator = knowledge.WeightEstimator(hybridKB)
         calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
-        weights = calibrator.calibrate_weights(sweepNum = 2)
+        weights = calibrator.calibrate_weights(sweepNum=2)
 
         inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
         satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
 
-
-        self.assertAlmostEquals(satisfactionDict["f_a"], np.exp(weights["f_a"+hSuf][1]) / (1 + np.exp(weights["f_a"+hSuf][1])),
+        self.assertAlmostEquals(satisfactionDict["f_a"],
+                                np.exp(weights["f_a" + hSuf][1]) / (1 + np.exp(weights["f_a" + hSuf][1])),
                                 delta=0.01)
-        self.assertAlmostEquals(satisfactionDict["f_b"], np.exp(weights["f_b"+hSuf][1]) / (1 + np.exp(weights["f_b"+hSuf][1])),
+        self.assertAlmostEquals(satisfactionDict["f_b"],
+                                np.exp(weights["f_b" + hSuf][1]) / (1 + np.exp(weights["f_b" + hSuf][1])),
                                 delta=0.01)
-        self.assertAlmostEquals(satisfactionDict["f_c"], np.exp(weights["f_c"+hSuf][1]) / (1 + np.exp(weights["f_c"+hSuf][1])),
+        self.assertAlmostEquals(satisfactionDict["f_c"],
+                                np.exp(weights["f_c" + hSuf][1]) / (1 + np.exp(weights["f_c" + hSuf][1])),
                                 delta=0.01)
 
         # entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict)
@@ -99,23 +105,24 @@ class WeightEstimationTest(unittest.TestCase):
                            "f_b": ["b"],
                            "f_c": ["c"]}
 
-        hybridKB = knowledge.HybridKnowledgeBase(weightedFormulas={key : expressionsDict[key] + [0] for key in expressionsDict},
-                                                 backCores=knowledge.get_empirical_distribution(sampleDf).create_cores())
+        hybridKB = knowledge.HybridKnowledgeBase(
+            weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict},
+            backCores=knowledge.get_empirical_distribution(sampleDf).create_cores())
         calibrator = knowledge.WeightEstimator(hybridKB)
         calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
-        weights = calibrator.calibrate_weights(sweepNum = 2)
+        weights = calibrator.calibrate_weights(sweepNum=2)
 
-        if "f_a"+ hSuf in weights:
-            self.assertAlmostEqual(weights["f_a"+ hSuf][1], 0, delta=0.000001)
+        if "f_a" + hSuf in weights:
+            self.assertAlmostEqual(weights["f_a" + hSuf][1], 0, delta=0.000001)
         else:
             self.assertTrue("f_a" in calibrator.hybridKB.facts)
-        if "f_b"+ hSuf in weights:
-            self.assertAlmostEqual(weights["f_b"+ hSuf][1], 0, delta=0.000001)
+        if "f_b" + hSuf in weights:
+            self.assertAlmostEqual(weights["f_b" + hSuf][1], 0, delta=0.000001)
         else:
             self.assertTrue("f_b" in calibrator.hybridKB.facts)
-        if "f_c"+ hSuf in weights:
-            self.assertAlmostEqual(weights["f_c"+ hSuf][1], 0, delta=0.000001)
+        if "f_c" + hSuf in weights:
+            self.assertAlmostEqual(weights["f_c" + hSuf][1], 0, delta=0.000001)
         else:
             self.assertTrue("f_c" in calibrator.hybridKB.facts)
 

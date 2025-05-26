@@ -38,7 +38,7 @@ class WeightEstimator:
         """
         Optimizes the weights of the remaining formulas
         """
-        momentCoreSuffix = encoding.suf.headCoreSuffix
+        momentCoreSuffix = encoding.suf.actCoreSuf
         kbCores = self.hybridKB.create_cores()
 
         headCores = {}

@@ -11,8 +11,8 @@ if __name__ == "__main__":
 
     sampler = eba.EnergyGibbsSampleCore(dist.get_energy_dict(), colors=dist.distributedVariables,
                                         dimDict={color: 2 for color in dist.distributedVariables},
-                                        # startSliceIterator=iter([(1, {"a" + encoding.suf.atomicVariableSuffix: 1,
-                                        #                 "b" + encoding.suf.atomicVariableSuffix: 0})]),
+                                        # startSliceIterator=iter([(1, {"a" + encoding.suf.disVarSuf: 1,
+                                        #                 "b" + encoding.suf.disVarSuf: 0})]),
                                         temperatureList=[1 for i in range(5)],
                                         sampleNum=3
                                         )

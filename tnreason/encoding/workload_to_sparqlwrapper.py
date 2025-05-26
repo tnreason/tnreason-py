@@ -51,7 +51,7 @@ class SPARQLWrapperTermCore:
             self.adjust_interpretationsDict()
 
         ## Mimicking Properties of TensorCores for iterators
-        self.colors = [variable + suf.termVariableSuffix for variable in self.projectedVariables]
+        self.colors = [variable + suf.terVarSuf for variable in self.projectedVariables]
         self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
         self.name = name
 
@@ -81,5 +81,5 @@ class SPARQLWrapperTermCore:
                     self.interpretationDict[variable].append(identifierString)
 
         return (1, {
-            variable + suf.termVariableSuffix: self.interpretationDict[variable].index(str(entry[variable]["value"]))
+            variable + suf.terVarSuf: self.interpretationDict[variable].index(str(entry[variable]["value"]))
             for variable in self.projectedVariables})

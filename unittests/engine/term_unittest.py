@@ -3,7 +3,7 @@ import unittest
 from tnreason import engine
 from tnreason import encoding
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 
 class TermLoadingTest(unittest.TestCase):
 
@@ -20,8 +20,8 @@ class TermLoadingTest(unittest.TestCase):
         tCore = wtp.PandasTermCore()
         tCore.load(df, ["age", "city"])
 
-        self.assertTrue("id" + encoding.suf.termVariableSuffix not in tCore.colors)
-        self.assertTrue("age" + encoding.suf.termVariableSuffix in tCore.colors)
+        self.assertTrue("id" + encoding.suf.terVarSuf not in tCore.colors)
+        self.assertTrue("age" + encoding.suf.terVarSuf in tCore.colors)
 
         self.assertEqual(engine.convert(tCore, "PolynomialCore")[0, 0], 1)
         self.assertEqual(engine.convert(tCore, "NumpyCore").values.shape[1], 4)

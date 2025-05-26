@@ -14,8 +14,8 @@ polCoresDict, intDict = wts.queries_to_cores(dbpediaEndpointString,
 print(polCoresDict["branch"].shape)
 print(polCoresDict["size"].shape)
 
-branch_revenue_contraction = engine.contract(polCoresDict, openColors=["branch" + suf.termVariableSuffix,
-                                                                       "revenue" + suf.termVariableSuffix],
+branch_revenue_contraction = engine.contract(polCoresDict, openColors=["branch" + suf.terVarSuf,
+                                                                       "revenue" + suf.terVarSuf],
                                              contractionMethod="CorewiseContractor")
 branch_revenue_contraction.add_identical_slices()
 
@@ -24,7 +24,7 @@ print(branch_revenue_contraction.values)
 
 ## Atomization of the first branch
 pos = 1
-atomizationCoreDict = ctc.create_single_atomization(catColor="branch" + suf.termVariableSuffix,
+atomizationCoreDict = ctc.create_single_atomization(catColor="branch" + suf.terVarSuf,
                                                     catDim=len(intDict["branch"]), position=pos,
                                                     atomColor=intDict["branch"][pos])
 

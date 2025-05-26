@@ -4,7 +4,7 @@ from tnreason import engine, encoding
 
 import numpy as np
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 varNum = 2
 sparsityOrder = 2
 varColList = ["a" + str(k) + aSuf for k in range(varNum)]

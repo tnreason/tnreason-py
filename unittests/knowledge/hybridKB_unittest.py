@@ -4,7 +4,7 @@ from tnreason import knowledge, encoding
 
 sampleRepetition = 10
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 
 
 class HybridKBTest(unittest.TestCase):
@@ -175,7 +175,7 @@ class HybridKBTest(unittest.TestCase):
         entailedDict = knowledge.KnowledgePropagator(hybridKB, evidenceDict={"a1": 0, "a2": 1}).evaluate()
         self.assertTrue(entailedDict["a1" + aSuf] == 0)
         self.assertTrue(entailedDict["a2" + aSuf] == 1)
-        self.assertTrue(entailedDict["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix] == 1)
+        self.assertTrue(entailedDict["(imp_a1_a2)" + encoding.suf.comVarSuf] == 1)
 
     def test_categorical_constraint(self):
         hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(

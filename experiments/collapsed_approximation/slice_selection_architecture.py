@@ -1,5 +1,7 @@
 from tnreason import encoding, engine
 
+from tnreason.encoding import neurons_to_cores as ntc
+
 """
 Differs from old binary_selection_architecture by the true passes u3 and a single land
 """
@@ -18,17 +20,17 @@ def get_leg_neurons(variableColorList, order):
 def create_slice_selecting_tn(variableColorList, sparsityOrder):
     return {**get_leg_neurons(variableColorList, order=sparsityOrder),
         "headAnd": get_and_core(
-            ["posNeur" + str(k) + encoding.suf.neurVariableSuffix for k in range(sparsityOrder)])}
+            ["posNeur" + str(k) + ntc.heaPre + encoding.suf.comVarSuf for k in range(sparsityOrder)])}
 
 
 def get_selection_colors(sparsityOrder):
-    return ["posNeur" + str(k) + encoding.suf.actSelVarSuffix for k in range(sparsityOrder)] + [
-        "posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix for k in
+    return ["posNeur" + str(k) + ntc.funPre for k in range(sparsityOrder)] + [
+        "posNeur" + str(k) + ntc.posPre + "0" + encoding.suf.selVarSuf for k in
         range(sparsityOrder)]
 
 def get_selection_dimDict(sparsityOrder, variableNumber):
-    return {**{"posNeur" + str(k) + encoding.suf.actSelVarSuffix : 3 for k in range(sparsityOrder)},
-            **{"posNeur" + str(k) + encoding.suf.varSelPosPrefix + "0" + encoding.suf.varSelVarSuffix: variableNumber for k in
+    return {**{"posNeur" + str(k) + ntc.funPre : 3 for k in range(sparsityOrder)}, # Missing suf.selVarSuf?
+            **{"posNeur" + str(k) + ntc.posPre + "0" + encoding.suf.selVarSuf: variableNumber for k in
                range(sparsityOrder)}
             }
 

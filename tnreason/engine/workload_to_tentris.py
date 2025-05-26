@@ -22,7 +22,7 @@ class TentrisTripleStoreTermCore:
                 self.interpretationDict[variable] = []
 
         ## Mimicking Properties of TensorCores for iterators
-        self.colors = [variable + suf.termVariableSuffix for variable in self.projectedVariables]
+        self.colors = [variable + suf.terVarSuf for variable in self.projectedVariables]
         self.shape = [len(self.interpretationDict[variable]) for variable in self.projectedVariables]
         self.name = name
 
@@ -43,7 +43,7 @@ class TentrisTripleStoreTermCore:
 
     def __next__(self):
         pos, value = next(self.iterator)
-        return (value, {variable + suf.termVariableSuffix: self.interpretationDict[variable].index(
+        return (value, {variable + suf.terVarSuf: self.interpretationDict[variable].index(
             str(self.tStore.try_get_resource(pos[i])))
             for i, variable in enumerate(self.projectedVariables)})
 
@@ -85,7 +85,7 @@ class TentrisSPARQLEvaluationTermCore:
             else:
                 self.interpretationDict[variable] = []
 
-        self.colors = [variable + suf.termVariableSuffix for variable in variables]
+        self.colors = [variable + suf.terVarSuf for variable in variables]
         self.shape = shape
         self.name = name
 
@@ -96,7 +96,7 @@ class TentrisSPARQLEvaluationTermCore:
     def __next__(self):
         pos, value = next(self.iterator)
         return (value,
-                {variable + suf.termVariableSuffix: self.interpretationDict[variable].index(str(
+                {variable + suf.terVarSuf: self.interpretationDict[variable].index(str(
                     pos[self.projectedVariables[i]])) for i, variable in
                     enumerate(self.variables)})
 

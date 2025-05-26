@@ -16,9 +16,9 @@ def create_categorical_cores(categoricalsDict, coreType=None):
 
 def create_constraintCoresDict(atomColors, catColor, coreType=None):
     return {
-        catColor + "_" + atomName + suf.atomizationCoreSuffix:
+        catColor + "_" + atomName + suf.atoCoreSuf:
             create_single_atomization(catColor, len(atomColors), i, atomName, coreType=coreType)[
-                catColor + "_" + atomName + suf.atomizationCoreSuffix] for i, atomName in enumerate(atomColors)}
+                catColor + "_" + atomName + suf.atoCoreSuf] for i, atomName in enumerate(atomColors)}
 
 
 def create_single_atomization(catColor, catDim, position, atomColor=None, coreType=None):
@@ -30,11 +30,11 @@ def create_single_atomization(catColor, catDim, position, atomColor=None, coreTy
     if atomColor is None:
         atomColor = catColor + "=" + str(position)
     atomizer = lambda catPos: [catPos == position]
-    return {catColor + "_" + atomColor + suf.atomizationCoreSuffix:
+    return {catColor + "_" + atomColor + suf.atoCoreSuf:
                 engine.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catColor],
                                                   outcolors=[atomColor],
                                                   function=atomizer, coreType=coreType,
-                                                  name=catColor + "_" + atomColor + suf.atomizationCoreSuffix
+                                                  name=catColor + "_" + atomColor + suf.atoCoreSuf
                                                   )}
 
 

@@ -3,7 +3,7 @@ from experiments.collapsed_approximation import greedy_thresholding as grt
 
 from tnreason import encoding, engine
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 varNum = 2
 sparsityOrder = 2
 varColList = ["a" + str(k) + aSuf for k in range(varNum)]

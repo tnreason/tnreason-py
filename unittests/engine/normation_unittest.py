@@ -9,14 +9,14 @@ methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
               {"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"}
               ]
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 
 
 class NormationTest(unittest.TestCase):
     def test_hard_head(self):
         for method in methodList:
             cores = encoding.create_formulas_cores({"f1": ["and", "a", "b", 1.23426]}, coreType=method["coreType"])
-            normed = engine.normate(cores, outColors=["(and_a_b)" + encoding.suf.categoricalVariableSuffix],
+            normed = engine.normate(cores, outColors=["(and_a_b)" + encoding.suf.comVarSuf],
                                     inColors=["a" + aSuf, "b" + aSuf], contractionMethod=method["contractionMethod"])
             self.assertEqual(normed[0, 0, 0], 1)
             self.assertEqual(normed[1, 0, 0], 0)

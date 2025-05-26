@@ -6,8 +6,8 @@ from tnreason.encoding import suffixes as suf
 
 def find_selection_variables_neuron(neuronSpecList, neuronName):
     return {
-        neuronName + suf.actSelVarSuffix: neuronSpecList[0],
-        **{neuronName + "_" + suf.varSelPosPrefix + str(i - 1) + suf.varSelVarSuffix: neuronSpecList[i] for i in
+        neuronName + ntc.funPre: neuronSpecList[0],
+        **{neuronName + "_" + ntc.posPre + str(i - 1) + suf.selVarSuf: neuronSpecList[i] for i in
            range(1, len(neuronSpecList))}
     }
 

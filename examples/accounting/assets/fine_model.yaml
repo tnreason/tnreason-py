@@ -22,11 +22,11 @@ facts:
   - imp
   - - and
     - TAX_RATE_19
-    - PRODUCT_CLASS_SEA-CP_01
-  - ACCOUNT_Account_3400
+    - PRODUCT_CLASS_SEA-CP_04
+  - ACCOUNT_Account_3300
 weightedFormulas:
   coarse_1:
   - imp
   - TAX_RATE_19
   - ACCOUNT_Account_3400
-  - 1.3862943611198908
+  - 1.6094379124341007

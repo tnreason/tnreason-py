@@ -3,7 +3,7 @@ from experiments.collapsed_approximation import slice_selection_architecture as 
 from tnreason import engine, encoding
 from tnreason.algorithms import alternating_least_squares as als
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 varNum = 2
 sparsityOrder = 2
 varColList = ["a" + str(k) + aSuf for k in range(varNum)]

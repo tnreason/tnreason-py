@@ -1,37 +1,28 @@
+datPre = "_d" # Data (used for core and color refinement)
+
 """
 Cores
 """
 
-headCoreSuffix = "_hCore"
-evidenceCoreSuffix = "_ev"
-domainCoreSuffix = "_dm"
+comCoreSuf = "_cC" # computation core
+actCoreSuf = "_aC" # activation Core
 
-connectiveCoreSuffix = "_cCore"
+# Computation Core Refiners
+selCorePre = "_s" # Selection Core
 
-selectionCoreSuffix = "_sCore"
-varSelCoreSuffix = "_vsCore"
-actSelCoreSuffix = "_asCore"
+# Activation Core Refiners
+eviCorePre = "_e" # Evidence
+domCorePre = "_d" # Domain
 
-dataCoreSuffix = "_dCore"
-
-atomizationCoreSuffix = "_aCore"
-
-queryCoreSuffix = "_qCore"
+# Sum trick cores
+atoCoreSuf = "_atoC" # for categorical constraint (simplifying contraction of computed core with true activation)
+vselCoreSuf = "_vselC" # for variable selection (simplifying variable selection computation)
 
 """
 Colors
 """
 
-categoricalVariableSuffix = "_cVar"
-atomicVariableSuffix = ""#_aVar"
-
-neurVariableSuffix = "_nVar"
-
-selectionVariableSuffix = "_sVar"
-varSelVarSuffix = "_vsVar"
-varSelPosPrefix = "_p"
-actSelVarSuffix = "_asVar"
-
-termVariableSuffix = "_tVar"
-
-dataVariableSuffix = "_dVar"
+disVarSuf = ""#_dV" # distributed variable X
+comVarSuf = "_cV" # computed variable Y
+selVarSuf = "_sV" # selection variable L
+terVarSuf = "_tV" # term variable O

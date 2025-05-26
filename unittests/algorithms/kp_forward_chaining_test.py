@@ -7,8 +7,8 @@ rules = {
     "f1": ["imp", "a1", "a2"],
 }
 
-aSuf = encoding.suf.atomicVariableSuffix
-domainCoreSuffix = encoding.suf.domainCoreSuffix + encoding.suf.headCoreSuffix
+aSuf = encoding.suf.disVarSuf
+domainCoreSuffix = encoding.suf.domCorePre + encoding.suf.actCoreSuf
 
 class FCTest(unittest.TestCase):
     def test_modus_ponens(self):
@@ -51,7 +51,7 @@ class FCTest(unittest.TestCase):
         activationCone = propagator.find_variable_cone(["a1" + aSuf, "a2" + aSuf])
 
         self.assertTrue(len(activationCone) == 4)
-        self.assertTrue("(imp_a1_a2)" + encoding.suf.connectiveCoreSuffix in activationCone)
+        self.assertTrue("(imp_a1_a2)" + encoding.suf.comCoreSuf in activationCone)
         self.assertTrue("a1" + aSuf + domainCoreSuffix in activationCone)
         self.assertTrue("a2" + aSuf + domainCoreSuffix in activationCone)
 

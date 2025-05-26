@@ -7,7 +7,7 @@ import numpy as np
 
 from tnreason.algorithms import alternating_least_squares as als
 
-aSuf = encoding.suf.atomicVariableSuffix
+aSuf = encoding.suf.disVarSuf
 
 networkCores = {
     **encoding.create_raw_formula_cores(["imp", "a1", "a2"])
@@ -27,7 +27,7 @@ optimizer = als.ALS(
 class AlsKnowledgeTest(unittest.TestCase):
     # def test_operator_check(self):
     #     conOperator = optimizer.compute_conOperator(
-    #         updateColors=["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix])
+    #         updateColors=["(imp_a1_a2)" + encoding.suf.comVarSuf])
     #     self.assertEqual(conOperator.values[1, 1], 3)
     #     self.assertEqual(conOperator.values[1, 0], 0)
     #     self.assertEqual(conOperator.values[0, 1], 0)
@@ -36,16 +36,16 @@ class AlsKnowledgeTest(unittest.TestCase):
     #     operator = engine.contract(coreDict={
     #         **networkCores,
     #         **als.copy_cores(networkCores, "_out",
-    #                          ["a1" + encoding.suf.atomicVariableSuffix, "a2" + encoding.suf.atomicVariableSuffix])},
-    #         openColors=["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix,
-    #                     "(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix + "_out"])
+    #                          ["a1" + encoding.suf.disVarSuf, "a2" + encoding.suf.disVarSuf])},
+    #         openColors=["(imp_a1_a2)" + encoding.suf.comVarSuf,
+    #                     "(imp_a1_a2)" + encoding.suf.comVarSuf + "_out"])
     #
     #     self.assertEqual(operator.values[0, 0], conOperator.values[0, 0])
     #     self.assertEqual(operator.values[0, 1], conOperator.values[0, 1])
 
     def test_world_recovery(self):
         optimizer.random_initialize(["estHead"], {"estHead": 2},
-                                    {"estHead": ["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix]})
+                                    {"estHead": ["(imp_a1_a2)" + encoding.suf.comVarSuf]})
         optimizer.alternating_optimization(["estHead"], computeResiduum=False, sweepNum=1)
 
         self.assertEqual(optimizer.networkCores["estHead"].values[0], 0)
@@ -68,7 +68,7 @@ class AlsKnowledgeTest(unittest.TestCase):
         )
 
         dataOptimizer.random_initialize(["estHead"], {"estHead": 2},
-                                        {"estHead": ["(imp_a1_a2)" + encoding.suf.categoricalVariableSuffix]})
+                                        {"estHead": ["(imp_a1_a2)" + encoding.suf.comVarSuf]})
         dataOptimizer.alternating_optimization(["estHead"], computeResiduum=False, sweepNum=1)
         self.assertEqual(dataOptimizer.networkCores["estHead"].values[0], 0)
         self.assertEqual(dataOptimizer.networkCores["estHead"].values[1], 1)

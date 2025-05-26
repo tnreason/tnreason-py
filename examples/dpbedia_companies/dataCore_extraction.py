@@ -4,7 +4,10 @@ from tnreason.encoding import suffixes as suf
 
 from tnreason import engine
 
-def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j" + suf.dataVariableSuffix,
+queryCoreSuffix = "_qCore"
+dataCoreSuffix = suf.datPre + suf.comCoreSuf
+
+def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor=suf.datPre + suf.selVarSuf,
                   categoricalColors=[], coreType=None,
                   contractionMethod="CorewiseContractor"):
     """
@@ -14,11 +17,11 @@ def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j" +
     :coreType: Type of the resulting data cores
     """
     importanceQueryCore.enumerate_slices(enumerationColor=dataColor)
-    dataCores = {atomKey + suf.dataCoreSuffix: core_to_relational_encoding(
-        core=engine.contract({"imCore" + suf.queryCoreSuffix: importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
+    dataCores = {atomKey + dataCoreSuffix: core_to_relational_encoding(
+        core=engine.contract({"imCore" + queryCoreSuffix: importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
                              openColors=[dataColor], contractionMethod=contractionMethod), headColor=atomKey,
         outCoreType=coreType)[0] for atomKey in atomQueryCoreDict}
     if not len(categoricalColors) == 0:
-        dataCores["_".join([color for color in categoricalColors]) + suf.dataCoreSuffix] = engine.contract(
+        dataCores["_".join([color for color in categoricalColors]) + dataCoreSuffix] = engine.contract(
             {"imCore": importanceQueryCore}, openColors=[dataColor] + categoricalColors, contractionMethod=contractionMethod)
     return dataCores

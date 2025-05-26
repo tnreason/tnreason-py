@@ -179,7 +179,7 @@ class PandasTermCore:
         if adjustInterpretation:
             self.adjust_interpretationsDict()
 
-        self.colors = [var + suf.termVariableSuffix for var in self.termVariables]
+        self.colors = [var + suf.terVarSuf for var in self.termVariables]
         self.shape = [len(self.interpretationDict[var]) for var in self.termVariables]
         self.name = name
 
@@ -208,5 +208,5 @@ class PandasTermCore:
                     self.interpretationDict[variable].append(str(row[variable]))
 
         return (1, {
-            variable + suf.termVariableSuffix: self.interpretationDict[variable].index(str(row[variable]))
+            variable + suf.terVarSuf: self.interpretationDict[variable].index(str(row[variable]))
             for variable in self.termVariables})

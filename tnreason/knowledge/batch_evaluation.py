@@ -15,7 +15,7 @@ class KnowledgePropagator:
 
         self.propagator = algorithms.ConstraintPropagator(binaryCoresDict=self.knowledgeCores)
 
-        self.knownHeads = get_evidence_headKeys(evidenceDict) + [key + encoding.suf.headCoreSuffix for key in knowledgeBase.facts]
+        self.knownHeads = get_evidence_headKeys(evidenceDict) + [key + encoding.suf.actCoreSuf for key in knowledgeBase.facts]
 #            encoding.get_formula_color(knowledgeBase.facts[key]) + encoding.suf.headCoreSuffix for key in
 #            knowledgeBase.facts]
 
@@ -35,5 +35,5 @@ class KnowledgePropagator:
                                                                  variable not in variablesShape}})
 
 def get_evidence_headKeys(evidenceDict):
-    return [encoding.get_formula_color(key) + encoding.suf.evidenceCoreSuffix + encoding.suf.headCoreSuffix for key in
+    return [encoding.get_formula_color(key) + encoding.suf.eviCorePre + encoding.suf.actCoreSuf for key in
             evidenceDict]
