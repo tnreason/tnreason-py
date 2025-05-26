@@ -8,7 +8,7 @@ rules = {
 }
 
 aSuf = encoding.suf.disVarSuf
-domainCoreSuffix = encoding.suf.domCorePre + encoding.suf.actCoreSuf
+domainCoreSuffix = encoding.suf.eviCoreIn + encoding.suf.actCoreSuf
 
 class FCTest(unittest.TestCase):
     def test_modus_ponens(self):

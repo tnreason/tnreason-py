@@ -2,9 +2,9 @@ from tnreason import engine
 
 from tnreason.encoding import suffixes as suf
 
-dataCoreSuffix = suf.datPre + suf.comCoreSuf
+dataCoreSuffix = suf.datIn + suf.comCoreSuf
 
-def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datPre + suf.selVarSuf, interpretation="atomic",
+def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarSuf, interpretation="atomic",
                       dimensionsDict=None,
                       coreType=None, partitionDict=None):
     """
@@ -25,7 +25,7 @@ def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datPre + suf.selVar
         raise ValueError("Interpretation {} not understood!".format(interpretation))
 
 
-def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor= suf.datPre + suf.selVarSuf, dimensionsDict=None,
+def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarSuf, dimensionsDict=None,
                                        coreType=None, partitionDict=None):
     """
     Relational Encoding of samples, which are interpreted as certain states of categorical variables.

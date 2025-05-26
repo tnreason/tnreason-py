@@ -9,8 +9,8 @@ import math
 def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     """
     Creates a tensor network of connective and head cores
-        * expressionsDict: Dictionary of nested listed representing expressions
-        * alreadyCreated: List of keys to connective cores to be omitted
+        * expressionsDict (script language): Dictionary of nested listed representing expressions
+        * alreadyCreated: List of keys to computation cores to be omitted
     """
     knowledgeCores = {}
     for formulaName in expressionsDict.keys():
@@ -104,11 +104,11 @@ def create_evidence_cores(evidenceDict, coreType=None):
     for color in evidenceDict:
         if evidenceDict[color]:
             coreDict.update(create_boolean_head(color, headType="truthEvaluation",
-                                                name=color + suf.eviCorePre + suf.actCoreSuf,
+                                                name=color + suf.eviCoreIn + suf.actCoreSuf,
                                                 coreType=coreType))
         else:
             coreDict.update(create_boolean_head(color, headType="falseEvaluation",
-                                                name=color + suf.eviCorePre + suf.actCoreSuf,
+                                                name=color + suf.eviCoreIn + suf.actCoreSuf,
                                                 coreType=coreType))
     return coreDict
 

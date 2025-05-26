@@ -5,9 +5,9 @@ from tnreason.encoding import formulas_to_cores as enform
 from tnreason.encoding import suffixes as suf
 
 # Core and Color Refiners 
-heaPre = "_h" # head of neuron
-funPre = "_f" # (activation) function selection
-posPre = "_p" # position argument selection
+heaPre = suf.heaIn # head of neuron
+funPre = suf.funIn # (activation) function selection
+posPre = suf.posIn # position argument selection
 
 
 def parse_neuronNameDict_to_neuronColorDict(neuronNameDict):
@@ -59,8 +59,8 @@ def create_neuron(neuronName, connectiveList, candidatesDict={}, coreType=None):
         * candidatesDict: Dictionary of lists of candidates to each argument of the neuron
     """
     neuronCores = {
-        neuronName + funPre + suf.selCorePre + suf.comCoreSuf: create_connective_selectors(neuronName, candidatesDict.keys(),
-                                                                       connectiveList, coreType=coreType)}
+        neuronName + funPre + suf.selCoreIn + suf.comCoreSuf: create_connective_selectors(neuronName, candidatesDict.keys(),
+                                                                                          connectiveList, coreType=coreType)}
     for candidateKey in candidatesDict:
         neuronCores = {**neuronCores, **create_variable_selectors(
             candidateKey, candidatesDict[candidateKey], coreType=coreType)}
@@ -107,14 +107,14 @@ def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreT
                                                  outcolors=[neuronName + heaPre + suf.comVarSuf],
                                                  function=con.get_unary_connective_selector(connectiveList),
                                                  coreType=coreType,
-                                                 name=neuronName + funPre + suf.selCorePre + suf.comCoreSuf)
+                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
     elif len(candidateKeys) == 2:
         return engine.create_relational_encoding(inshape=[len(connectiveList), 2, 2], outshape=[2],
                                                  incolors=[neuronName + funPre + suf.comVarSuf, *candidateKeys],
                                                  outcolors=[neuronName + heaPre + suf.comVarSuf],
                                                  function=con.get_binary_connective_selector(connectiveList),
                                                  coreType=coreType,
-                                                 name=neuronName + funPre + suf.selCorePre + suf.comCoreSuf)
+                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
     else:
         raise ValueError(
             "Number {} of candidates wrong in Neuron {} with connectives {}!".format(len(candidateKeys), neuronName,

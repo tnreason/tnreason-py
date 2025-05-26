@@ -4,7 +4,7 @@ import numpy as np
 
 from queue import Queue
 
-domainCoreSuffix = suf.domCorePre + suf.actCoreSuf
+domainCoreSuffix = suf.eviCoreIn + suf.actCoreSuf
 
 
 class ConstraintPropagator:

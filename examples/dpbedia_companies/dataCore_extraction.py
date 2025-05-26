@@ -5,9 +5,9 @@ from tnreason.encoding import suffixes as suf
 from tnreason import engine
 
 queryCoreSuffix = "_qCore"
-dataCoreSuffix = suf.datPre + suf.comCoreSuf
+dataCoreSuffix = suf.datIn + suf.comCoreSuf
 
-def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor=suf.datPre + suf.selVarSuf,
+def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor=suf.datIn + suf.selVarSuf,
                   categoricalColors=[], coreType=None,
                   contractionMethod="CorewiseContractor"):
     """

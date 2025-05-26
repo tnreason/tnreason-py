@@ -35,5 +35,5 @@ class KnowledgePropagator:
                                                                  variable not in variablesShape}})
 
 def get_evidence_headKeys(evidenceDict):
-    return [encoding.get_formula_color(key) + encoding.suf.eviCorePre + encoding.suf.actCoreSuf for key in
+    return [encoding.get_formula_color(key) + encoding.suf.eviCoreIn + encoding.suf.actCoreSuf for key in
             evidenceDict]
