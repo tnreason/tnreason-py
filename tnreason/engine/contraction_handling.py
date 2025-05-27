@@ -47,7 +47,7 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         contractionMethod = defaultContractionMethod
 
     ## Handling trivial colors (not appearing in coreDict)
-    from tnreason.engine.auxiliary_cores import create_trivial_core
+    from tnreason.representation import create_trivial_core
     appearingColors = list(set().union(*[coreDict[coreKey].colors for coreKey in coreDict]))
     for color in openColors:
         if color not in appearingColors:

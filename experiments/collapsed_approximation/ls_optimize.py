@@ -10,11 +10,11 @@ varColList = ["a" + str(k) + aSuf for k in range(varNum)]
 
 selCores = slsel.create_slice_selecting_tn(variableColorList=varColList, sparsityOrder=2)
 
-parCores = {"actParCore": engine.create_basis_core(name="actParCore",
+parCores = {"actParCore": representation.create_basis_core(name="actParCore",
                                                    shape=[2 for _ in range(sparsityOrder)],
                                                    colors=['posNeur0_p0_vsVar', 'posNeur1_p0_vsVar'],
                                                    numberTuple=(0, 1)),
-            "pCoreVar": engine.create_trivial_core(name="parCoreVar",
+            "pCoreVar": representation.create_trivial_core(name="parCoreVar",
                                                    shape=[3 for _ in range(sparsityOrder)],
                                                    colors=['posNeur0_asVar', 'posNeur1_asVar'])
             }

@@ -10,3 +10,7 @@ from tnreason.representation.storage import save_as_yaml, load_from_yaml
 from tnreason.representation import suffixes as suf
 
 from tnreason.representation.cnf_to_cores import weightedFormulas_to_sparseCore
+
+from tnreason.representation.creation_handling import create_tensor_encoding, \
+     create_relational_encoding, create_partitioned_relational_encoding, \
+    coordinatewise_transform, create_trivial_core, create_basis_core, create_trivial_cores

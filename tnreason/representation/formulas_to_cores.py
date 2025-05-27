@@ -1,5 +1,4 @@
-from tnreason import engine
-
+from tnreason.representation import creation_handling as ch
 from tnreason.representation import connectives as con
 from tnreason.representation import suffixes as suf
 
@@ -61,7 +60,7 @@ def create_connective_core(expression, coreType=None):
     if isinstance(expression, str):
         return {}
     return {get_formula_string(expression) + suf.comCoreSuf:
-                engine.create_relational_encoding(inshape=[2 for _ in range(1, len(expression))], outshape=[2],
+                ch.create_relational_encoding(inshape=[2 for _ in range(1, len(expression))], outshape=[2],
                                                   incolors=[get_formula_color(expression[i]) for i in
                                                             range(1, len(expression))],
                                                   outcolors=[get_formula_color(expression)],
@@ -87,7 +86,7 @@ def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
         raise ValueError("Headtype {} not understood!".format(headType))
     if name is None:
         name = color + suf.actCoreSuf
-    return {name: engine.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
+    return {name: ch.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
                                                 name=name)}
 
 

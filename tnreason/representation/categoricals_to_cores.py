@@ -1,5 +1,4 @@
-from tnreason import engine
-
+from tnreason.representation import creation_handling as ch
 from tnreason.representation import suffixes as suf
 
 
@@ -31,7 +30,7 @@ def create_single_atomization(catColor, catDim, position, atomColor=None, coreTy
         atomColor = catColor + "=" + str(position)
     atomizer = lambda catPos: [catPos == position]
     return {catColor + "_" + atomColor + suf.atoCoreSuf:
-                engine.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catColor],
+                ch.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catColor],
                                                   outcolors=[atomColor],
                                                   function=atomizer, coreType=coreType,
                                                   name=catColor + "_" + atomColor + suf.atoCoreSuf

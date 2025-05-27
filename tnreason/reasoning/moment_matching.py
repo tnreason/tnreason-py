@@ -1,6 +1,6 @@
 import numpy as np
 
-from tnreason import engine
+from tnreason import engine, representation
 
 
 class MomentMatcher(engine.EngineUser):
@@ -50,7 +50,7 @@ class MomentMatcher(engine.EngineUser):
             satVect=satVector,
             empVect=self.targetCores[headCoreKey]
         )
-        self.headCores[headCoreKey] = engine.create_tensor_encoding(
+        self.headCores[headCoreKey] = representation.create_tensor_encoding(
             inshape=[self.dimensionDict[color] for color in tboCore.colors],
             incolors=tboCore.colors,
             function=function, name=headCoreKey, coreType=self.coreType
@@ -60,7 +60,7 @@ class MomentMatcher(engine.EngineUser):
     def matching_step(self, headCoreKey, normation=True):
         tboCore = self.headCores.pop(headCoreKey)
         satVector = self.compute_satVector(tboCore, normation=normation)
-        self.headCores[headCoreKey] = engine.create_tensor_encoding(
+        self.headCores[headCoreKey] = representation.create_tensor_encoding(
             inshape=[self.dimensionDict[color] for color in tboCore.colors],
             incolors=tboCore.colors,
             function=solve_moment_equation(

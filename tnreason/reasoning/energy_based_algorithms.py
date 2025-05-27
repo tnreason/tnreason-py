@@ -1,4 +1,4 @@
-from tnreason import engine
+from tnreason import engine, representation
 
 from tnreason.reasoning import sampling_base as sh
 
@@ -21,7 +21,7 @@ class GenericMeanFieldApproximator(engine.EngineUser):
             self.edgeColorDict = edgeColorDict
 
         self.approxCores = {parKey: (1 / np.prod(
-            [self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) * engine.create_trivial_core(parKey, [
+            [self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) * representation.create_trivial_core(parKey, [
             self.dimensionDict[color] for color in
             self.edgeColorDict[parKey]], self.edgeColorDict[parKey], coreType=self.coreType) for parKey in
                             self.edgeColorDict}
@@ -31,7 +31,7 @@ class GenericMeanFieldApproximator(engine.EngineUser):
         restApproxCores = {key: self.approxCores[key] for key in self.approxCores if key != approxCoreKey}
         contracted = engine.sum_contract(
             weightedCoreDicts=energyDict_to_weightedCoresDicts(self.energyDict) +
-                              [(-1, {key: engine.coordinatewise_transform([self.approxCores[key]], np.log)})
+                              [(-1, {key: representation.coordinatewise_transform([self.approxCores[key]], np.log)})
                                for key in self.approxCores if key != approxCoreKey],
             backCores=restApproxCores, openColors=self.edgeColorDict[approxCoreKey],
             coreType=self.coreType,
@@ -52,7 +52,7 @@ class GenericMeanFieldApproximator(engine.EngineUser):
 
     def get_energyDict(self):
         # In general the energy transform of Markov Networks -> to distributions?
-        return [(1, {coreKey: engine.coordinatewise_transform([self.approxCores[coreKey]], np.log)}) for coreKey in
+        return [(1, {coreKey: representation.coordinatewise_transform([self.approxCores[coreKey]], np.log)}) for coreKey in
                 self.approxCores]
 
 
@@ -71,7 +71,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
 
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
         self.meanCores = {parKey: (1 / np.prod(
-            [self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) * engine.create_trivial_core(
+            [self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) * representation.create_trivial_core(
             parKey, [self.dimensionDict[color] for color in
                      self.partitionColorDict[parKey]],
             self.partitionColorDict[parKey],

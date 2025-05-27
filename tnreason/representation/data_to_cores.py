@@ -1,5 +1,4 @@
-from tnreason import engine
-
+from tnreason.representation import creation_handling as ch
 from tnreason.representation import suffixes as suf
 
 dataCoreSuffix = suf.datIn + suf.comCoreSuf
@@ -34,7 +33,7 @@ def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor=suf.da
         atomKeys = list(sampleDf.columns)
     if dimensionsDict is None:
         dimensionsDict = {atomKey: 2 for atomKey in atomKeys}
-    return engine.create_partitioned_relational_encoding(
+    return ch.create_partitioned_relational_encoding(
         inshape=[sampleDf.values.shape[0]], outshape=[dimensionsDict[atomKey] for atomKey in atomKeys],
         incolors=[dataColor], outcolors=atomKeys,
         function=lambda k: sampleDf[atomKeys].iloc[k].values,
@@ -51,7 +50,7 @@ def atomValues_from_sampleDf(sampleDf, atomKey, dataColor, coreType=None):
     dataNum = sampleDf.values.shape[0]
     dfEntries = sampleDf[atomKey].values
     tensorFunc = lambda j, a: (1 - a) * (1 - dfEntries[int(j)]) + a * dfEntries[int(j)]
-    return engine.create_tensor_encoding(inshape=[dataNum, 2], incolors=[dataColor, add_distVar_suffix(atomKey)], function=tensorFunc,
+    return ch.create_tensor_encoding(inshape=[dataNum, 2], incolors=[dataColor, add_distVar_suffix(atomKey)], function=tensorFunc,
                                          coreType=coreType,
                                          name=atomKey + dataCoreSuffix)
 

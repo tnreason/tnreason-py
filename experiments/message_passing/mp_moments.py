@@ -13,7 +13,7 @@ class MPMomentMatcher:
 
         self.atoms = representation.get_all_atoms(expressionsDict)
         self.messageCores = {
-            atom + messageCoreSuffix: engine.create_trivial_core(atom + messageCoreSuffix, [2], [atom])
+            atom + messageCoreSuffix: representation.create_trivial_core(atom + messageCoreSuffix, [2], [atom])
             for atom in self.atoms}
 
         self.directedCores = dict()

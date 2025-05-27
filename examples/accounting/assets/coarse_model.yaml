@@ -7,14 +7,5 @@ categoricalConstraints:
   - TAX_RATE_19
   - TAX_RATE_7
 evidence: {}
-facts:
-  coarse_0:
-  - imp
-  - TAX_RATE_7
-  - ACCOUNT_Account_3300
-weightedFormulas:
-  coarse_1:
-  - imp
-  - TAX_RATE_19
-  - ACCOUNT_Account_3400
-  - 1.6094379124341007
+facts: {}
+weightedFormulas: {}

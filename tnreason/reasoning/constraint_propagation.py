@@ -1,4 +1,4 @@
-from tnreason import engine
+from tnreason import engine, representation
 from tnreason.representation import suffixes as suf
 import numpy as np
 
@@ -31,7 +31,7 @@ class ConstraintPropagator:
             for i, color in enumerate(self.binaryCoresDict[coreKey].colors):
                 if color + domainCoreSuffix not in self.domainCoresDict:
                     self.domainCoresDict[color + domainCoreSuffix] = \
-                        engine.create_trivial_core(name=color + domainCoreSuffix,
+                        representation.create_trivial_core(name=color + domainCoreSuffix,
                                                    shape=[self.binaryCoresDict[coreKey].values.shape[i]],
                                                    colors=[color])
 
@@ -94,7 +94,7 @@ class ConstraintPropagator:
                            variableShapes={}):  ## Add variables to domainCoreDict when they are not there!
         for variable in variables:
             if variable + domainCoreSuffix not in self.domainCoresDict:
-                self.domainCoresDict[variable + domainCoreSuffix] = engine.create_trivial_core(
+                self.domainCoresDict[variable + domainCoreSuffix] = representation.create_trivial_core(
                     name=variable + domainCoreSuffix,
                     shape=variableShapes[variable],
                     colors=[variable])
