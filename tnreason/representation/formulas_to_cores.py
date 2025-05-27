@@ -2,8 +2,6 @@ from tnreason.representation import creation_handling as ch
 from tnreason.representation import connectives as con
 from tnreason.representation import suffixes as suf
 
-import math
-
 
 def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     """
@@ -15,7 +13,7 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     for formulaName in expressionsDict.keys():
         if isinstance(expressionsDict[formulaName][-1], float) or isinstance(expressionsDict[formulaName][-1], int):
             knowledgeCores = {**knowledgeCores,
-                              **create_boolean_head(get_formula_color(expressionsDict[formulaName][:-1]), "expFactor",
+                              **ch.create_boolean_head(get_formula_color(expressionsDict[formulaName][:-1]), "expFactor",
                                                     weight=
                                                     expressionsDict[formulaName][-1], coreType=coreType,
                                                     name=formulaName + suf.actCoreSuf),
@@ -25,7 +23,7 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
                                                          coreType=coreType)}
         else:
             knowledgeCores = {**knowledgeCores,
-                              **create_boolean_head(get_formula_color(expressionsDict[formulaName]), "truthEvaluation",
+                              **ch.create_boolean_head(get_formula_color(expressionsDict[formulaName]), "truthEvaluation",
                                                     coreType=coreType, name=formulaName + suf.actCoreSuf),
                               **create_raw_formula_cores(expressionsDict[formulaName],
                                                          alreadyCreated=list(knowledgeCores.keys()) + alreadyCreated,
@@ -69,32 +67,11 @@ def create_connective_core(expression, coreType=None):
                                                   name=get_formula_string(expression) + suf.comCoreSuf)}
 
 
-def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
-    """
-    Created the head core to a boolean variable (with dimension 2)
-    CHANGE: Expfactor and uncertainty not boolean!
-    """
-    if headType == "truthEvaluation": # tBasis
-        headFunction = lambda x: x
-    elif headType == "falseEvaluation": # fBasis
-        headFunction = lambda x: 1 - x
-    elif headType == "expFactor":
-        headFunction = lambda x: math.exp(weight * x)
-    elif headType == "uncertaintyAsWeight":
-        headFunction = lambda x: (1 - x) * (1 - weight) + x * weight
-    else:
-        raise ValueError("Headtype {} not understood!".format(headType))
-    if name is None:
-        name = color + suf.actCoreSuf
-    return {name: ch.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
-                                                name=name)}
-
-
 def create_formula_head(expression, headType, weight=None, name=None, coreType=None):
     """
     Created the head core to an expression activating it, which is the boolean head to the formula color
     """
-    return create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, name=name,
+    return ch.create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, name=name,
                                coreType=coreType)
 
 
@@ -102,11 +79,11 @@ def create_evidence_cores(evidenceDict, coreType=None):
     coreDict = dict()
     for color in evidenceDict:
         if evidenceDict[color]:
-            coreDict.update(create_boolean_head(color, headType="truthEvaluation",
+            coreDict.update(ch.create_boolean_head(color, headType="truthEvaluation",
                                                 name=color + suf.eviCoreIn + suf.actCoreSuf,
                                                 coreType=coreType))
         else:
-            coreDict.update(create_boolean_head(color, headType="falseEvaluation",
+            coreDict.update(ch.create_boolean_head(color, headType="falseEvaluation",
                                                 name=color + suf.eviCoreIn + suf.actCoreSuf,
                                                 coreType=coreType))
     return coreDict
@@ -150,25 +127,4 @@ def get_formula_string(expression):
             [get_formula_string(entry) for entry in expression[1:]]) + ")"
 
 
-def get_all_atoms(expressionsDict):
-    """
-    Identifies the leafs of the expressions in the expressionsDict as atoms, 
-        * expressionsDict: In script language
-    Output: Colors of atoms
-    """
-    atoms = set()
-    for key in expressionsDict:
-        atoms = atoms | get_atoms(expressionsDict[key])
-    return list(atoms)
 
-
-def get_atoms(expression):
-    if isinstance(expression, str):  ## Then an atom
-        return {expression + suf.disVarSuf}
-    elif len(expression) == 1:  ## Then an atomic formula
-        return {expression[0] + suf.disVarSuf}
-    else:  ## Then a formula with connective in first position
-        atoms = set()
-        for subExpression in expression[1:]:
-            atoms = atoms | get_atoms(subExpression)
-        return atoms

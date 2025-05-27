@@ -79,7 +79,7 @@ def visualize_subexpressions(expressionsDict={},
     for nodeKey in pos:
         pos[nodeKey][0] = horPositions[nodeKey]
 
-    atoms = representation.get_all_atoms({**{key: expressionsDict[key][:-1] for key in expressionsDict}, **factsDict})
+    atoms = representation.get_all_atom_colors({**{key: expressionsDict[key][:-1] for key in expressionsDict}, **factsDict})
     return graph, pos, atoms
 
 

@@ -115,7 +115,8 @@ class HybridKnowledgeBase(DistributionBase):
         outString = "Hybrid Knowledge Base consistent of"
         if self.weightedFormulas:
             outString = outString + "\n######## probabilistic formulas:\n" + "\n".join(
-                [representation.get_formula_color(expression[:-1]) + " with weight " + str(expression[-1]) for expression in
+                [representation.get_formula_color(expression[:-1]) + " with weight " + str(expression[-1]) for
+                 expression in
                  self.weightedFormulas.values()])
         if self.facts:
             outString = outString + "\n######## logical formulas:\n" + "\n".join(
@@ -133,7 +134,7 @@ class HybridKnowledgeBase(DistributionBase):
         """
         Identifies the atoms of the Knowledge Base
         """
-        self.distributedVariables = representation.get_all_atoms(
+        self.distributedVariables = representation.get_all_atom_colors(
             {**{key: self.weightedFormulas[key][:-1] for key in self.weightedFormulas},
              **self.facts})
         for constraintKey in self.categoricalConstraints:
@@ -159,7 +160,8 @@ class HybridKnowledgeBase(DistributionBase):
 
     def to_yaml(self, savePath):
         representation.storage.save_as_yaml({
-            probFormulasKey: {key : self.weightedFormulas[key][:-1] + [float(self.weightedFormulas[key][-1])] for key in self.weightedFormulas},
+            probFormulasKey: {key: self.weightedFormulas[key][:-1] + [float(self.weightedFormulas[key][-1])] for key in
+                              self.weightedFormulas},
             logFormulasKey: self.facts,
             categoricalsKey: self.categoricalConstraints,
             evidenceKey: self.evidence
@@ -177,9 +179,13 @@ class HybridKnowledgeBase(DistributionBase):
         self.find_atoms()
 
     def create_cores(self):
+        categoricalConstraintColors = {
+            catColor: representation.get_colorList_from_nameList(self.categoricalConstraints[catColor]) for catColor in
+            self.categoricalConstraints} # Only categorical constraints remain interpreted as colors !
+
         return {**representation.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),
                 **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
-                **representation.create_categorical_cores(self.categoricalConstraints, coreType=self.coreType),
+                **representation.create_categorical_cores(categoricalConstraintColors, coreType=self.coreType),
                 **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
                                                           self.dimDict, coreType=self.coreType),
                 **self.backCores}
@@ -225,11 +231,12 @@ class HybridKnowledgeBase(DistributionBase):
                               **representation.create_formula_head(self.weightedFormulas[formulaKey][:-1],
                                                                    headType="truthEvaluation")
                               }) for formulaKey in self.weightedFormulas}
-            factsEnergyDict = {formulaKey: (cutoffWeight, {**representation.create_raw_formula_cores(self.facts[formulaKey]),
-                                                           **representation.create_formula_head(self.facts[formulaKey],
-                                                                                                headType="truthEvaluation")
-                                                           }) for formulaKey in
-                               self.facts}
+            factsEnergyDict = {
+                formulaKey: (cutoffWeight, {**representation.create_raw_formula_cores(self.facts[formulaKey]),
+                                            **representation.create_formula_head(self.facts[formulaKey],
+                                                                                 headType="truthEvaluation")
+                                            }) for formulaKey in
+                self.facts}
             constraintsEnergyDict = {constraintKey: (cutoffWeight,
                                                      representation.create_constraintCoresDict(
                                                          self.categoricalConstraints[constraintKey], constraintKey)) for

@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 aSuf = "_aVar"
 
 def compute_state(queryVariable, successorActivationDict, inferer):
-    return inferer.query(colorList=[queryVariable], evidenceDict=successorActivationDict).draw_sample()
+    return inferer.query(variableList=[queryVariable], evidenceDict=successorActivationDict).draw_sample()
 
 def compute_evolution(startVector, inferer, evolNum=10, neighborInfluence=(2, 2)):
     cellNumber = len(startVector)

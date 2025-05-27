@@ -1,6 +1,5 @@
 from tnreason.representation import creation_handling as ch
 from tnreason.representation import connectives as con
-from tnreason.representation import formulas_to_cores as enform
 from tnreason.representation import suffixes as suf
 
 # Core and Color Refiners 
@@ -45,8 +44,8 @@ def create_architecture(neuronNameDict, headNeuronNames=[], coreType=None):
                              }, coreType=coreType)}
     for headNeuronName in headNeuronNames:
         architectureCores = {**architectureCores,
-                             **enform.create_boolean_head(color=headNeuronName + heaPre + suf.comVarSuf,
-                                                          headType="truthEvaluation", coreType=coreType)}
+                             **ch.create_boolean_head(color=headNeuronName + heaPre + suf.comVarSuf,
+                                                                                             headType="truthEvaluation", coreType=coreType)}
     return architectureCores
 
 
@@ -118,80 +117,6 @@ def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreT
         raise ValueError(
             "Number {} of candidates wrong in Neuron {} with connectives {}!".format(len(candidateKeys), neuronName,
                                                                                      connectiveList))
-
-
-## Functions to identify solution expressions when candidates are selected
-def create_solution_expression(neuronNameDict, selectionDict):
-    """
-    Replaces the candidates of neurons by solutions and returns the identified head neurons as formulas
-        * neuronNameDict: Dictionary specifying the neurons
-        * selectionDict: Dictionary selecting candidates (connective and position) to each selection variables at each neuron
-    """
-    fixedNeurons = fix_neurons(neuronNameDict, selectionDict)
-    headNeurons = get_headKeys(fixedNeurons)
-    if len(headNeurons) != 1:
-        print("WARNING: Headneurons are {}.".format(headNeurons))
-    return {headKey: replace_neuronnames(headKey, fixedNeurons) for headKey in headNeurons}
-
-
-def fix_neurons(neuronDict, selectionDict):
-    """
-    Replaces the neurons with subexpressions refering to each other
-    Works both for neuronNameDict and neuronColorDict, since not checking whether variables are refering to neurons
-    """
-    rawFormulas = {}
-    for neuronName in neuronDict:
-        rawFormulas[neuronName] = [neuronDict[neuronName][0][selectionDict[neuronName + funPre + suf.comVarSuf]]] + [
-            fix_selection(neuronDict[neuronName][i],
-                          selectionDict[neuronName + posPre + str(i - 1) + suf.selVarSuf])
-            for i in range(1, len(neuronDict[neuronName]))]
-    return rawFormulas
-
-
-def fix_selection(choices, position):
-    """
-    Materializes a choice, either from a categorical variable (when choices is str) or from a list of possibilities (when choices is a list of str)
-    """
-    if isinstance(choices, str):  # The case of a categorical variable
-        return choices.split("=")[0] + "=" + str(position)
-    else:  # The case of a list of possibilities
-        return choices[position]
-
-
-def get_headKeys(fixedNeurons):
-    """
-    Identifies the independent neurons as heads,
-    Works both for neuronColorsDicts and neuronNameDicts (split turns colors and names into names)
-    """
-    headKeys = set(fixedNeurons.keys())
-    for formulaKey in fixedNeurons:
-        for inNeuron in fixedNeurons[formulaKey][1:]:
-            if len(heaPre + suf.comVarSuf) > 0:  # checks, whether a neuron suffix is given
-                if inNeuron.split(heaPre + suf.comVarSuf)[0] in headKeys:
-                    headKeys.remove(inNeuron.split(heaPre + suf.comVarSuf)[0])
-            else:
-                if inNeuron in headKeys:
-                    headKeys.remove(inNeuron)
-    return headKeys
-
-
-def replace_neuronnames(currentNeuronName, fixedNeuronDict):
-    """
-    Replaces the current neuron with the respective expression, after iterative replacement of depending fixed neurons
-    Works both for neuronColorDicts and neuronNameDicts (split turns colors and names into names)
-    """
-    if len(heaPre + suf.comVarSuf) > 0:  # Then need to strip the neural variable suffix of to compare with the keys
-        if currentNeuronName.split(heaPre + suf.comVarSuf)[0] not in fixedNeuronDict:
-            return currentNeuronName  ## Then an atom
-        currentNeuron = fixedNeuronDict[currentNeuronName.split(heaPre + suf.comVarSuf)[0]].copy()
-    else:
-        if currentNeuronName not in fixedNeuronDict:
-            return currentNeuronName  ## Then an atom
-        currentNeuron = fixedNeuronDict[currentNeuronName].copy()
-
-    currentNeuron = [currentNeuron[0]] + [replace_neuronnames(currentNeuron[i], fixedNeuronDict) for i in
-                                          range(1, len(currentNeuron))]
-    return currentNeuron
 
 
 ## Auxiliary functions for application identifying the atoms and the dimension of selection variables

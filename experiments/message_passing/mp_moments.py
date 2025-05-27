@@ -11,7 +11,7 @@ class MPMomentMatcher:
         self.expressionsDict = expressionsDict
         self.empiricalMeanDict = empiricalMeanDict
 
-        self.atoms = representation.get_all_atoms(expressionsDict)
+        self.atoms = representation.get_all_atom_colors(expressionsDict)
         self.messageCores = {
             atom + messageCoreSuffix: representation.create_trivial_core(atom + messageCoreSuffix, [2], [atom])
             for atom in self.atoms}

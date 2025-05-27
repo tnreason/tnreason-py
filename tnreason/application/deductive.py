@@ -40,13 +40,13 @@ class InferenceProvider(engine.EngineUser):
             contractionMethod=self.contractionMethod, openColors=[queryColor])
         return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])
 
-    def query(self, colorList, evidenceDict={}):
+    def query(self, variableList, evidenceDict={}):
         """
         While colorList is a list of colors, evidenceDict entries will get atom suffix!
         """
         return engine.normate(coreDict={**self.distribution.create_cores(),
                                         **representation.create_atom_evidence_cores(evidenceDict)},
-                              inColors=[], outColors=colorList,
+                              inColors=[], outColors=representation.get_colorList_from_nameList(variableList),
                               contractionMethod=self.contractionMethod
                               )
 
@@ -56,7 +56,7 @@ class InferenceProvider(engine.EngineUser):
             * PolynomialCore, uses gurobi optimizer on integer linear program
             * NumpyCore uses the argmax method of numpy
         """
-        return self.query(variableList, evidenceDict).get_argmax()
+        return representation.drop_variable_suffices(self.query(variableList, evidenceDict).get_argmax())
 
     def search_mode(self, variableList=None, optimizationMethod="numpyArgmax", **specDict):
         """
@@ -79,22 +79,24 @@ class InferenceProvider(engine.EngineUser):
                                                    optimizationMethod=optimizationMethod,
                                                    **specDict)
 
-    def draw_samples(self, sampleNum, colors=None, method="forwardSampling", dfOutput=False):
+    def draw_samples(self, sampleNum, nameList=None, method="forwardSampling", dfOutput=False):
         """
         Initializes a Sampler being an iteratable core
         """
-        if colors is None:
-            colors = self.distribution.distributedVariables
+        if nameList is None:
+            colorList = self.distribution.distributedVariables
+        else:
+            colorList = representation.get_colorList_from_nameList(nameList)
         if method in reasoning.energySamplingMethods:
             sampler = reasoning.get_energy_based_sampler(self.distribution.get_energy_dict(), samplingMethod=method,
                                                          sampleNum=sampleNum,
-                                                         colors=colors,
+                                                         colors=colorList,
                                                          contractionMethod=self.contractionMethod,
                                                          coreType=self.coreType)
         elif method in reasoning.coreSamplingMethods:
             sampler = reasoning.get_core_based_sampler(self.distribution.create_cores(), samplingMethod=method,
                                                        sampleNum=sampleNum,
-                                                       colors=colors,
+                                                       colors=colorList,
                                                        contractionMethod=self.contractionMethod,
                                                        coreType=self.coreType)
         else:
@@ -102,9 +104,10 @@ class InferenceProvider(engine.EngineUser):
         if dfOutput:
             return engine.convert(sampler, "PandasCore").values.astype("int64")
         else:
+            # Samples still in colors! In draw_sample reduced to names
             return sampler
 
-    def draw_sample(self, colors=None, method="forwardSampling"):
-        sampler = self.draw_samples(sampleNum=1, colors=colors, method=method, dfOutput=False)
+    def draw_sample(self, names=None, method="forwardSampling"):
+        sampler = self.draw_samples(sampleNum=1, nameList=names, method=method, dfOutput=False)
         iter(sampler)
-        return next(sampler)[1]
+        return representation.drop_variable_suffices(next(sampler)[1])

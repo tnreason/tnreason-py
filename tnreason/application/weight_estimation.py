@@ -1,3 +1,4 @@
+import tnreason.representation.creation_handling
 from tnreason import representation
 from tnreason import reasoning
 
@@ -46,7 +47,7 @@ class WeightEstimator:
             headCores[key + momentCoreSuffix] = kbCores.pop(key + momentCoreSuffix)
 
         calibrator = reasoning.MomentMatcher(structureCores=kbCores,
-                                             targetCores={key + momentCoreSuffix: representation.create_boolean_head(
+                                             targetCores={key + momentCoreSuffix: tnreason.representation.create_boolean_head(
                                                   color=representation.get_formula_color(
                                                       self.hybridKB.weightedFormulas[key][:-1]),
                                                   headType="uncertaintyAsWeight",

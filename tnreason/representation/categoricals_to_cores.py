@@ -5,7 +5,7 @@ from tnreason.representation import suffixes as suf
 def create_categorical_cores(categoricalsDict, coreType=None):
     """
     Creates a tensor network representing the constraints of
-        * categoricalsDict: Dictionary of atom lists to each categorical variable
+        * categoricalsDict (in colors): Dictionary of atom color lists to each categorical variable color
     """
     catCores = {}
     for catName in categoricalsDict.keys():
@@ -15,9 +15,9 @@ def create_categorical_cores(categoricalsDict, coreType=None):
 
 def create_constraintCoresDict(atomColors, catColor, coreType=None):
     return {
-        catColor + "_" + atomName + suf.atoCoreSuf:
-            create_single_atomization(catColor, len(atomColors), i, atomName, coreType=coreType)[
-                catColor + "_" + atomName + suf.atoCoreSuf] for i, atomName in enumerate(atomColors)}
+        catColor + "_" + atomColor + suf.atoCoreSuf:
+            create_single_atomization(catColor, len(atomColors), i, atomColor, coreType=coreType)[
+                catColor + "_" + atomColor + suf.atoCoreSuf] for i, atomColor in enumerate(atomColors)}
 
 
 def create_single_atomization(catColor, catDim, position, atomColor=None, coreType=None):
