@@ -1,14 +1,14 @@
 import unittest
 
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 
 rules = {
     "f1": ["imp", "a1", "a2"],
 }
 
-aSuf = encoding.suf.disVarSuf
-domainCoreSuffix = encoding.suf.eviCoreIn + encoding.suf.actCoreSuf
+aSuf = representation.suf.disVarSuf
+domainCoreSuffix = representation.suf.eviCoreIn + representation.suf.actCoreSuf
 
 class FCTest(unittest.TestCase):
     def test_modus_ponens(self):
@@ -16,9 +16,9 @@ class FCTest(unittest.TestCase):
             "a1": 1
         }
 
-        propagator = algorithms.ConstraintPropagator(
-            {**encoding.create_formulas_cores(rules),
-             **encoding.create_atom_evidence_cores(preEvidence)},
+        propagator = reasoning.ConstraintPropagator(
+            {**representation.create_formulas_cores(rules),
+             **representation.create_atom_evidence_cores(preEvidence)},
             verbose=False
         )
         propagator.propagate_cores()
@@ -31,9 +31,9 @@ class FCTest(unittest.TestCase):
             "a2": 0
         }
 
-        propagator = algorithms.ConstraintPropagator(
-            {**encoding.create_formulas_cores(rules),
-             **encoding.create_atom_evidence_cores(preEvidence)},
+        propagator = reasoning.ConstraintPropagator(
+            {**representation.create_formulas_cores(rules),
+             **representation.create_atom_evidence_cores(preEvidence)},
             verbose=False
         )
         propagator.propagate_cores()
@@ -46,18 +46,18 @@ class FCTest(unittest.TestCase):
         self.assertTrue(len(activationCone) == 1)
 
     def test_activationCone_pureImp(self):
-        propagator = algorithms.ConstraintPropagator(encoding.create_formulas_cores(rules), verbose=False)
+        propagator = reasoning.ConstraintPropagator(representation.create_formulas_cores(rules), verbose=False)
         propagator.propagate_cores()
         activationCone = propagator.find_variable_cone(["a1" + aSuf, "a2" + aSuf])
 
         self.assertTrue(len(activationCone) == 4)
-        self.assertTrue("(imp_a1_a2)" + encoding.suf.comCoreSuf in activationCone)
+        self.assertTrue("(imp_a1_a2)" + representation.suf.comCoreSuf in activationCone)
         self.assertTrue("a1" + aSuf + domainCoreSuffix in activationCone)
         self.assertTrue("a2" + aSuf + domainCoreSuffix in activationCone)
 
     def test_activationCone_andFact(self):
-        propagator = algorithms.ConstraintPropagator(encoding.create_formulas_cores({"r1": ["and", "a1", "a2"]}),
-                                                     verbose=False)
+        propagator = reasoning.ConstraintPropagator(representation.create_formulas_cores({"r1": ["and", "a1", "a2"]}),
+                                                    verbose=False)
         propagator.propagate_cores()
         activationCone = propagator.find_variable_cone(["a1" + aSuf, "a2" + aSuf])
 

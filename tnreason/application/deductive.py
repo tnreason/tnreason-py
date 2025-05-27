@@ -1,6 +1,6 @@
 from tnreason import engine
-from tnreason import encoding
-from tnreason import algorithms
+from tnreason import representation
+from tnreason import reasoning
 
 entailedString = "entailed"
 contradictingString = "contradicting"
@@ -29,13 +29,13 @@ class InferenceProvider(engine.EngineUser):
             return contingentString
 
     def ask(self, queryFormula, evidenceDict={}):
-        queryColor = encoding.get_formula_color(queryFormula)
+        queryColor = representation.get_formula_color(queryFormula)
 
         contracted = engine.contract(
             coreDict={
                 **self.distribution.create_cores(),
-                **encoding.create_atom_evidence_cores(evidenceDict),
-                **encoding.create_raw_formula_cores(queryFormula)
+                **representation.create_atom_evidence_cores(evidenceDict),
+                **representation.create_raw_formula_cores(queryFormula)
             },
             contractionMethod=self.contractionMethod, openColors=[queryColor])
         return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])
@@ -45,7 +45,7 @@ class InferenceProvider(engine.EngineUser):
         While colorList is a list of colors, evidenceDict entries will get atom suffix!
         """
         return engine.normate(coreDict={**self.distribution.create_cores(),
-                                        **encoding.create_atom_evidence_cores(evidenceDict)},
+                                        **representation.create_atom_evidence_cores(evidenceDict)},
                               inColors=[], outColors=colorList,
                               contractionMethod=self.contractionMethod
                               )
@@ -68,16 +68,16 @@ class InferenceProvider(engine.EngineUser):
             specDict["contraction"] = self.contractionMethod
 
         variableList = variableList or self.distribution.distributedVariables
-        if optimizationMethod in algorithms.coreOptimizationMethods:
-            return algorithms.core_based_optimize(self.distribution.create_cores(),
-                                                  variableList=variableList,
-                                                  optimizationMethod=optimizationMethod,
-                                                  **specDict)
-        elif optimizationMethod in algorithms.energyOptimizationMethods:
-            return algorithms.energy_based_optimize(energyDict=self.distribution.get_energy_dict(),
-                                                    variableList=variableList,
-                                                    optimizationMethod=optimizationMethod,
-                                                    **specDict)
+        if optimizationMethod in reasoning.coreOptimizationMethods:
+            return reasoning.core_based_optimize(self.distribution.create_cores(),
+                                                 variableList=variableList,
+                                                 optimizationMethod=optimizationMethod,
+                                                 **specDict)
+        elif optimizationMethod in reasoning.energyOptimizationMethods:
+            return reasoning.energy_based_optimize(energyDict=self.distribution.get_energy_dict(),
+                                                   variableList=variableList,
+                                                   optimizationMethod=optimizationMethod,
+                                                   **specDict)
 
     def draw_samples(self, sampleNum, colors=None, method="forwardSampling", dfOutput=False):
         """
@@ -85,18 +85,18 @@ class InferenceProvider(engine.EngineUser):
         """
         if colors is None:
             colors = self.distribution.distributedVariables
-        if method in algorithms.energySamplingMethods:
-            sampler = algorithms.get_energy_based_sampler(self.distribution.get_energy_dict(), samplingMethod=method,
-                                                          sampleNum=sampleNum,
-                                                          colors=colors,
-                                                          contractionMethod=self.contractionMethod,
-                                                          coreType=self.coreType)
-        elif method in algorithms.coreSamplingMethods:
-            sampler = algorithms.get_core_based_sampler(self.distribution.create_cores(), samplingMethod=method,
-                                                        sampleNum=sampleNum,
-                                                        colors=colors,
-                                                        contractionMethod=self.contractionMethod,
-                                                        coreType=self.coreType)
+        if method in reasoning.energySamplingMethods:
+            sampler = reasoning.get_energy_based_sampler(self.distribution.get_energy_dict(), samplingMethod=method,
+                                                         sampleNum=sampleNum,
+                                                         colors=colors,
+                                                         contractionMethod=self.contractionMethod,
+                                                         coreType=self.coreType)
+        elif method in reasoning.coreSamplingMethods:
+            sampler = reasoning.get_core_based_sampler(self.distribution.create_cores(), samplingMethod=method,
+                                                       sampleNum=sampleNum,
+                                                       colors=colors,
+                                                       contractionMethod=self.contractionMethod,
+                                                       coreType=self.coreType)
         else:
             raise ValueError("Sampling Method {} not implemented.".format(method))
         if dfOutput:

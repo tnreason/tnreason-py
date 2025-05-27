@@ -17,7 +17,7 @@ vselCoreSuf = "_vselC" # for variable selection (simplifying variable selection 
 Color suffixes
 """
 
-disVarSuf = ""#_dV" # distributed variable X
+disVarSuf = "_dV" # distributed variable X
 comVarSuf = "_cV" # computed variable Y
 selVarSuf = "_sV" # selection variable L
 terVarSuf = "_tV" # term variable O

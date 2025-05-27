@@ -1,11 +1,11 @@
 import unittest
 
-from tnreason import encoding
-from tnreason import knowledge
+from tnreason import representation
+from tnreason import application
 
 import numpy as np
 
-generatingKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(weightedFormulas=
+generatingKB = application.InferenceProvider(application.HybridKnowledgeBase(weightedFormulas=
 {
     "f1": ["imp", "a", "b", 2.567],
     "f2": ["imp", "a", "c", 2.222],
@@ -15,25 +15,25 @@ generatingKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(weighte
 sampleNum = 200
 sampleDf = generatingKB.draw_samples(sampleNum, dfOutput=True)
 
-hSuf = encoding.suf.actCoreSuf
+hSuf = representation.suf.actCoreSuf
 
 
 class WeightEstimationTest(unittest.TestCase):
     def test_convergence(self):
         expressionsDict = {"f1": ["imp", "a", "b"], "f2": ["imp", "a", "c"], "f3": ["a"]}
-        hybridKB = knowledge.HybridKnowledgeBase(
+        hybridKB = application.HybridKnowledgeBase(
             weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict})
-        calibrator = knowledge.WeightEstimator(hybridKB)
-        calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
+        calibrator = application.WeightEstimator(hybridKB)
+        calibrator.get_satisfaction_dict(application.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
         weights = calibrator.calibrate_weights(sweepNum=10)
         for key in weights:
             self.assertGreaterEqual(0.1, abs(weights[key][-1] - weights[key][-2]))
 
-        # inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
+        # inferer = application.InferenceProvider(application.get_empirical_distribution(sampleDf))
         # satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
         #
-        # entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict, backCores={})
+        # entropyMaximizer = application.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict, backCores={})
         # weights, facts = entropyMaximizer.alternating_optimization(sweepNum=10)
         # for key in weights:
         #     self.assertGreaterEqual(0.1, abs(weights[key][-1] - weights[key][-2]))
@@ -41,24 +41,24 @@ class WeightEstimationTest(unittest.TestCase):
     def test_infinity_handling(self):
         expressionsDict = {"f1": ["imp", "a", "b"], "f2": ["imp", "a", "c"], "f3": ["a"]}
 
-        hybridKB = knowledge.HybridKnowledgeBase(
+        hybridKB = application.HybridKnowledgeBase(
             weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict},
             facts={"fact1": ["imp", "a", "b"]})
-        calibrator = knowledge.WeightEstimator(hybridKB)
-        calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
+        calibrator = application.WeightEstimator(hybridKB)
+        calibrator.get_satisfaction_dict(application.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
         weights = calibrator.calibrate_weights(sweepNum=10)
 
         self.assertEqual(0, weights["f1" + hSuf][0])
         self.assertEqual(0, weights["f1" + hSuf][1])
 
-        # inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
+        # inferer = application.InferenceProvider(application.get_empirical_distribution(sampleDf))
         # satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
         #
-        # preBackCores = encoding.create_formulas_cores({"fact1": ["imp", "a", "b"]})
+        # preBackCores = representation.create_formulas_cores({"fact1": ["imp", "a", "b"]})
         # backCores = {key + "_back": preBackCores[key] for key in preBackCores}
         #
-        # entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict,
+        # entropyMaximizer = application.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict,
         #                                               backCores=backCores)
         # weights, facts = entropyMaximizer.alternating_optimization(sweepNum=2)
         #
@@ -69,14 +69,14 @@ class WeightEstimationTest(unittest.TestCase):
         expressionsDict = {"f_a": ["a"],
                            "f_b": ["b"],
                            "f_c": ["c"]}
-        hybridKB = knowledge.HybridKnowledgeBase(
+        hybridKB = application.HybridKnowledgeBase(
             weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict})
-        calibrator = knowledge.WeightEstimator(hybridKB)
-        calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
+        calibrator = application.WeightEstimator(hybridKB)
+        calibrator.get_satisfaction_dict(application.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
         weights = calibrator.calibrate_weights(sweepNum=2)
 
-        inferer = knowledge.InferenceProvider(knowledge.get_empirical_distribution(sampleDf))
+        inferer = application.InferenceProvider(application.get_empirical_distribution(sampleDf))
         satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
 
         self.assertAlmostEquals(satisfactionDict["f_a"],
@@ -89,7 +89,7 @@ class WeightEstimationTest(unittest.TestCase):
                                 np.exp(weights["f_c" + hSuf][1]) / (1 + np.exp(weights["f_c" + hSuf][1])),
                                 delta=0.01)
 
-        # entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict)
+        # entropyMaximizer = application.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict)
         # weights, facts = entropyMaximizer.alternating_optimization(sweepNum=2)
         #
         #
@@ -105,11 +105,11 @@ class WeightEstimationTest(unittest.TestCase):
                            "f_b": ["b"],
                            "f_c": ["c"]}
 
-        hybridKB = knowledge.HybridKnowledgeBase(
+        hybridKB = application.HybridKnowledgeBase(
             weightedFormulas={key: expressionsDict[key] + [0] for key in expressionsDict},
-            backCores=knowledge.get_empirical_distribution(sampleDf).create_cores())
-        calibrator = knowledge.WeightEstimator(hybridKB)
-        calibrator.get_satisfaction_dict(knowledge.get_empirical_distribution(sampleDf))
+            backCores=application.get_empirical_distribution(sampleDf).create_cores())
+        calibrator = application.WeightEstimator(hybridKB)
+        calibrator.get_satisfaction_dict(application.get_empirical_distribution(sampleDf))
         calibrator.fact_check()
         weights = calibrator.calibrate_weights(sweepNum=2)
 
@@ -126,12 +126,12 @@ class WeightEstimationTest(unittest.TestCase):
         else:
             self.assertTrue("f_c" in calibrator.hybridKB.facts)
 
-        # hybridKB = knowledge.HybridKnowledgeBase(backCores=knowledge.get_empirical_distribution(sampleDf).create_cores())
+        # hybridKB = application.HybridKnowledgeBase(backCores=application.get_empirical_distribution(sampleDf).create_cores())
         #
-        # inferer = knowledge.InferenceProvider(hybridKB)
+        # inferer = application.InferenceProvider(hybridKB)
         # satisfactionDict = {key: inferer.ask(expressionsDict[key]) for key in expressionsDict}
         #
-        # entropyMaximizer = knowledge.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict,
+        # entropyMaximizer = application.EntropyMaximizer(expressionsDict, satisfactionDict=satisfactionDict,
         #                                               backCores=hybridKB.create_hard_cores())
         # weights, facts = entropyMaximizer.alternating_optimization(sweepNum=2)
         #

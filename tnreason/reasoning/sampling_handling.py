@@ -1,5 +1,5 @@
-from tnreason.algorithms import energy_based_algorithms as eba
-from tnreason.algorithms import forward_sampling as fs
+from tnreason.reasoning import energy_based_algorithms as eba
+from tnreason.reasoning import forward_sampling as fs
 
 gibbsMethodString = "gibbsSample"
 energySamplingMethods = [gibbsMethodString]

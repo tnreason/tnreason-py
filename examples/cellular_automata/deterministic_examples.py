@@ -1,6 +1,6 @@
 from examples.cellular_automata import structure as st
 
-from tnreason import knowledge
+from tnreason import application
 
 """
 Provides templates for hard-logic deterministic cellular automata
@@ -12,8 +12,8 @@ def get_ternary_inferer(ruleNumber):
 
 
 def get_equivalence_inferer(formula):
-    return knowledge.InferenceProvider(
-        knowledge.HybridKnowledgeBase(
+    return application.InferenceProvider(
+        application.HybridKnowledgeBase(
             facts={"f1": ["eq", "n", formula]}
         )
     )

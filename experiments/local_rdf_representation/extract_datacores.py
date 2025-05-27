@@ -46,12 +46,12 @@ if __name__ == "__main__":
         }
     """
 
-    from tnreason import encoding
+    from tnreason import representation
 
     result = g.query(queryString)
     importancePositionList, interpretationDict = rr.rdflib_sparql_evaluation_to_entryPositionList(result)
 
-    termVariableColors = [x + encoding.suf.terVarSuf for x in ["x", "z", "y"]]
+    termVariableColors = [x + representation.suf.terVarSuf for x in ["x", "z", "y"]]
     importanceCore = positionList_to_polynomialCore(importancePositionList, variables=termVariableColors,
                                                     shape=[10, 10, 10])
 

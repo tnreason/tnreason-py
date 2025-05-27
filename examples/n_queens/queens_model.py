@@ -1,5 +1,5 @@
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 from tnreason import engine
 
 import numpy as np
@@ -13,12 +13,12 @@ def get_queens_constraints(n=3):
         **{"col_"+str(j): ["q_"+str(i)+"_"+str(j) for i in range(n)] for j in range(n)}}
 
 def get_queens_propagator(n=3):
-    return algorithms.ConstraintPropagator(encoding.create_categorical_cores(get_queens_constraints(n=n)))
+    return reasoning.ConstraintPropagator(representation.create_categorical_cores(get_queens_constraints(n=n)))
 
 def to_random_basis(binaryCore):
     ones = np.where(binaryCore.values==1)[0]
     assert len(ones)>0, ValueError("No possibilities detected.")
-    return encoding.create_basis_core(binaryCore.name, binaryCore.values.shape, binaryCore.colors, (np.random.choice(ones)))
+    return representation.create_basis_core(binaryCore.name, binaryCore.values.shape, binaryCore.colors, (np.random.choice(ones)))
 
 
 def get_random_assignment(n=3):
@@ -55,8 +55,8 @@ def draw_positions(queensPositions):
 
 
 def calculate_possibilities(n):
-    return engine.contract(coreDict=encoding.create_categorical_cores(get_queens_constraints(n=n)),
-                    openColors=[]).values
+    return engine.contract(coreDict=representation.create_categorical_cores(get_queens_constraints(n=n)),
+                           openColors=[]).values
 
 
 if __name__ == "__main__":

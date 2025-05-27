@@ -1,4 +1,4 @@
-from tnreason import knowledge, encoding, engine
+from tnreason import application, representation, engine
 import pandas as pd
 
 def get_true_from_dict(dictionary):
@@ -16,7 +16,7 @@ def get_true_from_dict(dictionary):
 
 
 if __name__ == '__main__':
-    Model = knowledge.load_kb_from_yaml("assets/fine_model.yaml")
+    Model = application.load_kb_from_yaml("assets/fine_model.yaml")
 
     y_true = ['Account_3400',
               'Account_3400',
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     result_dict_list = []
     for x in x_dict_list:
-         result_dict_list.append(knowledge.InferenceProvider(Model).exact_map_query(account_list, evidenceDict=x))
+         result_dict_list.append(application.InferenceProvider(Model).exact_map_query(account_list, evidenceDict=x))
 
     print(result_dict_list)
 

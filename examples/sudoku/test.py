@@ -3,11 +3,11 @@ from examples.sudoku import visualization as vis
 
 import numpy as np
 
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 
 num = 2
-structureCores = encoding.create_categorical_cores(rep.get_sudoku_constraints(num=num))
+structureCores = representation.create_categorical_cores(rep.get_sudoku_constraints(num=num))
 # preEvidence = {
 #             "a_0_1_0_0_1": 1,
 #             "a_0_0_0_1_0": 1,
@@ -26,9 +26,9 @@ sudoku_array = np.array([
 catEvidence = rep.array_to_catEvidence(sudoku_array, num = 2)
 preEvidence = rep.catEvidence_to_atomEvidence(catEvidence)
 
-propagator = algorithms.ConstraintPropagator(
+propagator = reasoning.ConstraintPropagator(
             {**structureCores,
-             **encoding.create_atom_evidence_cores(preEvidence)},
+             **representation.create_atom_evidence_cores(preEvidence)},
             verbose=False
         )
 propagator.propagate_cores()

@@ -15,7 +15,7 @@ def encode_nary_connective(lamFunc, order=2):
     return int("".join([str(lamFunc(*args)[0]) for args in get_binary_inputs(order)]), 2)
 
 if __name__ == "__main__":
-    from tnreason.encoding import connectives as con
+    from tnreason.representation import connectives as con
 
     assert encode_nary_connective(con.get_connectives("and"), 2) == 8
     assert encode_nary_connective(con.get_connectives("eq"), 2) == 9

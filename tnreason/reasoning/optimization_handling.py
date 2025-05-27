@@ -1,5 +1,5 @@
 from tnreason import engine
-from tnreason.algorithms import energy_based_algorithms as eba
+from tnreason.reasoning import energy_based_algorithms as eba
 
 import numpy as np
 

@@ -1,20 +1,20 @@
 import unittest
 
-from tnreason import encoding
+from tnreason import representation
 from tnreason import engine
 
 import numpy as np
 
-from tnreason.algorithms import alternating_least_squares as als
+from tnreason.reasoning import alternating_least_squares as als
 
-aSuf = encoding.suf.disVarSuf
+aSuf = representation.suf.disVarSuf
 
 networkCores = {
-    **encoding.create_raw_formula_cores(["imp", "a1", "a2"])
+    **representation.create_raw_formula_cores(["imp", "a1", "a2"])
 }
 
 targetCores = {
-    **als.copy_cores(encoding.create_formulas_cores({"f1": ["imp", "a1", "a2"]}), "_tar", ["a1" + aSuf, "a2" + aSuf]),
+    **als.copy_cores(representation.create_formulas_cores({"f1": ["imp", "a1", "a2"]}), "_tar", ["a1" + aSuf, "a2" + aSuf]),
 }
 
 optimizer = als.ALS(
@@ -27,7 +27,7 @@ optimizer = als.ALS(
 class AlsKnowledgeTest(unittest.TestCase):
     # def test_operator_check(self):
     #     conOperator = optimizer.compute_conOperator(
-    #         updateColors=["(imp_a1_a2)" + encoding.suf.comVarSuf])
+    #         updateColors=["(imp_a1_a2)" + representation.suf.comVarSuf])
     #     self.assertEqual(conOperator.values[1, 1], 3)
     #     self.assertEqual(conOperator.values[1, 0], 0)
     #     self.assertEqual(conOperator.values[0, 1], 0)
@@ -36,16 +36,16 @@ class AlsKnowledgeTest(unittest.TestCase):
     #     operator = engine.contract(coreDict={
     #         **networkCores,
     #         **als.copy_cores(networkCores, "_out",
-    #                          ["a1" + encoding.suf.disVarSuf, "a2" + encoding.suf.disVarSuf])},
-    #         openColors=["(imp_a1_a2)" + encoding.suf.comVarSuf,
-    #                     "(imp_a1_a2)" + encoding.suf.comVarSuf + "_out"])
+    #                          ["a1" + representation.suf.disVarSuf, "a2" + representation.suf.disVarSuf])},
+    #         openColors=["(imp_a1_a2)" + representation.suf.comVarSuf,
+    #                     "(imp_a1_a2)" + representation.suf.comVarSuf + "_out"])
     #
     #     self.assertEqual(operator.values[0, 0], conOperator.values[0, 0])
     #     self.assertEqual(operator.values[0, 1], conOperator.values[0, 1])
 
     def test_world_recovery(self):
         optimizer.random_initialize(["estHead"], {"estHead": 2},
-                                    {"estHead": ["(imp_a1_a2)" + encoding.suf.comVarSuf]})
+                                    {"estHead": ["(imp_a1_a2)" + representation.suf.comVarSuf]})
         optimizer.alternating_optimization(["estHead"], computeResiduum=False, sweepNum=1)
 
         self.assertEqual(optimizer.networkCores["estHead"].values[0], 0)
@@ -60,7 +60,7 @@ class AlsKnowledgeTest(unittest.TestCase):
         data[1, 1, 3] = 1
 
         dataOptimizer = als.ALS(
-            networkCores=encoding.create_raw_formula_cores(["imp", "a1", "a2"]),
+            networkCores=representation.create_raw_formula_cores(["imp", "a1", "a2"]),
             targetCores={"tarCore": engine.get_core()(values=np.ones(dataNum), colors=["dat"])},
             importanceList=[
                 (1, {"dataTensor": engine.get_core()(values=data, colors=["a1" + aSuf, "a2" + aSuf, "dat"])})],
@@ -68,7 +68,7 @@ class AlsKnowledgeTest(unittest.TestCase):
         )
 
         dataOptimizer.random_initialize(["estHead"], {"estHead": 2},
-                                        {"estHead": ["(imp_a1_a2)" + encoding.suf.comVarSuf]})
+                                        {"estHead": ["(imp_a1_a2)" + representation.suf.comVarSuf]})
         dataOptimizer.alternating_optimization(["estHead"], computeResiduum=False, sweepNum=1)
         self.assertEqual(dataOptimizer.networkCores["estHead"].values[0], 0)
         self.assertEqual(dataOptimizer.networkCores["estHead"].values[1], 1)

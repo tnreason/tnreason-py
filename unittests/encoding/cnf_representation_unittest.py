@@ -1,6 +1,6 @@
 import unittest
 
-from tnreason.encoding import cnf_to_cores as ctc
+from tnreason.representation import cnf_to_cores as ctc
 
 
 class CNFTest(unittest.TestCase):

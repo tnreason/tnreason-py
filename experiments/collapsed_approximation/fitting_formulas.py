@@ -1,9 +1,9 @@
 from experiments.collapsed_approximation import slice_selection_architecture as slsel
 from experiments.collapsed_approximation import greedy_thresholding as grt
 
-from tnreason import encoding, engine
+from tnreason import representation, engine
 
-aSuf = encoding.suf.disVarSuf
+aSuf = representation.suf.disVarSuf
 varNum = 2
 sparsityOrder = 2
 varColList = ["a" + str(k) + aSuf for k in range(varNum)]
@@ -12,7 +12,7 @@ selColors = slsel.get_selection_colors(sparsityOrder)
 selShape = [value for _, value in slsel.get_selection_dimDict(sparsityOrder, varNum).items()]
 
 # Energy is a slice
-energyDict = [(1, encoding.create_formulas_cores(expressionsDict={"w1": ["eq", "a0", "a1"]}))]
+energyDict = [(1, representation.create_formulas_cores(expressionsDict={"w1": ["eq", "a0", "a1"]}))]
 currentParameters = engine.get_core("NumpyCore")(
     colors=slsel.get_selection_colors(sparsityOrder),
     shape=selShape)  # empty initialization

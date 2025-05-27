@@ -1,4 +1,4 @@
-from tnreason import encoding
+from tnreason import representation
 
 def visualize(hybridKB, title="Visualization of the Knowledge Base",
               savePath=None):
@@ -27,7 +27,7 @@ def visualize_with_differing_evidence(expressionsDict={},
 
 
 def get_edges_and_positions(expression):
-    expressionString = encoding.get_formula_color(expression)
+    expressionString = representation.get_formula_color(expression)
 
     if isinstance(expression, str):
         return [], {expressionString: 0}, [expressionString]
@@ -40,10 +40,10 @@ def get_edges_and_positions(expression):
                 positions = {**positions, **subPositions}
                 subExpressions = subExpressions + subSubExpressions
 
-                edges.append([encoding.get_formula_color(expression), encoding.get_formula_color(subExpression)])
+                edges.append([representation.get_formula_color(expression), representation.get_formula_color(subExpression)])
 
-        positions[encoding.get_formula_color(expression)] = 1 + max(
-            [positions[encoding.get_formula_color(subExpression)] for subExpression in expression if
+        positions[representation.get_formula_color(expression)] = 1 + max(
+            [positions[representation.get_formula_color(subExpression)] for subExpression in expression if
              is_subexpression(subExpression)])
 
         return edges, positions, subExpressions
@@ -79,7 +79,7 @@ def visualize_subexpressions(expressionsDict={},
     for nodeKey in pos:
         pos[nodeKey][0] = horPositions[nodeKey]
 
-    atoms = encoding.get_all_atoms({**{key: expressionsDict[key][:-1] for key in expressionsDict}, **factsDict})
+    atoms = representation.get_all_atoms({**{key: expressionsDict[key][:-1] for key in expressionsDict}, **factsDict})
     return graph, pos, atoms
 
 

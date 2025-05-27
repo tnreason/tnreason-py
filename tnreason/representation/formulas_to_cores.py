@@ -1,7 +1,7 @@
 from tnreason import engine
 
-from tnreason.encoding import connectives as con
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import connectives as con
+from tnreason.representation import suffixes as suf
 
 import math
 
@@ -75,9 +75,9 @@ def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
     Created the head core to a boolean variable (with dimension 2)
     CHANGE: Expfactor and uncertainty not boolean!
     """
-    if headType == "truthEvaluation":
+    if headType == "truthEvaluation": # tBasis
         headFunction = lambda x: x
-    elif headType == "falseEvaluation":
+    elif headType == "falseEvaluation": # fBasis
         headFunction = lambda x: 1 - x
     elif headType == "expFactor":
         headFunction = lambda x: math.exp(weight * x)

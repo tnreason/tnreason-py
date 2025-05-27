@@ -33,12 +33,12 @@ def get_categorical_selection_architecture(variableList, variableDims):
     return {**positionNeurons, **conjunctionNeurons}
 
 if __name__ == "__main__":
-    from tnreason import encoding, engine
+    from tnreason import representation, engine
 
     colorNum = 10
     selNum = 3
     binSelArchitecture = get_binary_selection_architecture(selNum, ["a" + str(i) for i in range(colorNum)])
-    engine.draw_factor_graph(encoding.create_architecture(binSelArchitecture, ["conNeur" + str(selNum - 2)]))
+    engine.draw_factor_graph(representation.create_architecture(binSelArchitecture, ["conNeur" + str(selNum - 2)]))
 
     catSelArchitecture = get_categorical_selection_architecture(["c","a","b"],[10, 20, 30])
-    engine.draw_factor_graph(encoding.create_architecture(catSelArchitecture, ["conNeur1"]))
+    engine.draw_factor_graph(representation.create_architecture(catSelArchitecture, ["conNeur1"]))

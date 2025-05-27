@@ -1,4 +1,4 @@
-from tnreason import encoding
+from tnreason import representation
 from tnreason import engine
 
 import numpy as np
@@ -26,9 +26,9 @@ class MPGibbs:
     def ones_initialization(self):
         self.messageCores = {}
         for color in self.colorDimDict:
-            self.messageCores[color + messageCoreSuffix] = encoding.create_trivial_core(color + messageCoreSuffix,
-                                                                                        self.colorDimDict[color],
-                                                                                        [color])
+            self.messageCores[color + messageCoreSuffix] = representation.create_trivial_core(color + messageCoreSuffix,
+                                                                                              self.colorDimDict[color],
+                                                                                              [color])
 
     def alternating_sampling(self, basisColors, sweepNum=10, sampleColors=None):
         if sampleColors is None:
@@ -64,7 +64,7 @@ class MPGibbs:
             else:
                 normedDistribution = distribution.values / np.sum(distribution.values)
             randomAssignment = np.where(np.random.multinomial(1, normedDistribution) == 1)[0][0]
-            self.messageCores[updateColor + messageCoreSuffix] = encoding.create_basis_core(
+            self.messageCores[updateColor + messageCoreSuffix] = representation.create_basis_core(
                 updateColor + messageCoreSuffix,
                 self.colorDimDict[updateColor],
                 [updateColor], randomAssignment)
@@ -108,9 +108,9 @@ if __name__ == "__main__":
     gibbser = MPGibbs({"c1": core1, "c2": core2})
     print(gibbser.alternating_sampling(["a", "b", "c"]))
 
-    from tnreason import knowledge
+    from tnreason import application
 
-    hybridKB = knowledge.HybridKnowledgeBase(
+    hybridKB = application.HybridKnowledgeBase(
         facts={"f1": ["imp", "p", "q"],
                "f2": ["not", "q"]}
     )

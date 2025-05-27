@@ -1,9 +1,9 @@
 from experiments.collapsed_approximation import slice_selection_architecture as slsel
 
-from tnreason import engine, encoding
-from tnreason.algorithms import alternating_least_squares as als
+from tnreason import engine, representation
+from tnreason.reasoning import alternating_least_squares as als
 
-aSuf = encoding.suf.disVarSuf
+aSuf = representation.suf.disVarSuf
 varNum = 2
 sparsityOrder = 2
 varColList = ["a" + str(k) + aSuf for k in range(varNum)]
@@ -19,7 +19,7 @@ parCores = {"actParCore": engine.create_basis_core(name="actParCore",
                                                    colors=['posNeur0_asVar', 'posNeur1_asVar'])
             }
 
-tarCores = encoding.create_formulas_cores({"w1": ["imp", "a0", "a1"]})
+tarCores = representation.create_formulas_cores({"w1": ["imp", "a0", "a1"]})
 
 optimizer = als.ALS(networkCores={**selCores,
                                   **parCores},

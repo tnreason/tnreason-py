@@ -1,15 +1,15 @@
 import unittest
 
-from tnreason import knowledge, encoding
+from tnreason import application, representation
 
 sampleRepetition = 10
 
-aSuf = encoding.suf.disVarSuf
+aSuf = representation.suf.disVarSuf
 
 
 class HybridKBTest(unittest.TestCase):
     def test_is_satisfiable(self):
-        kb = knowledge.HybridKnowledgeBase(
+        kb = application.HybridKnowledgeBase(
             weightedFormulas={"e": ["a1", 2]},
             facts={"c1": ["a1"],
                    "c2": ["imp", "a1", "a2"]})
@@ -19,51 +19,51 @@ class HybridKBTest(unittest.TestCase):
     # def test_satisfiability2(self):
     #
     #     with self.assertRaises(ValueError, msg="The initialized Knowledge Base is inconsistent!"):
-    #         knowledge.InferenceProvider(facts={"c1": ["a1"], "c2": ["not", "a1"]})
+    #         application.InferenceProvider(facts={"c1": ["a1"], "c2": ["not", "a1"]})
 
     def test_ask_constraint_entailed(self):
-        kb = knowledge.HybridKnowledgeBase(weightedFormulas={"e": ["a1", 2]},
-                                           facts={"c1": ["a1"]})
+        kb = application.HybridKnowledgeBase(weightedFormulas={"e": ["a1", 2]},
+                                             facts={"c1": ["a1"]})
         self.assertEqual("entailed",
-                         knowledge.InferenceProvider(kb).ask_constraint("a1")
+                         application.InferenceProvider(kb).ask_constraint("a1")
                          )
 
     def test_ask_constraint_contradicted(self):
-        kb = knowledge.HybridKnowledgeBase(
+        kb = application.HybridKnowledgeBase(
             weightedFormulas={"e": ["imp", ["eq", "a1", "a2"], ["xor", "a3", "a1"], 2]},
             facts={"c1": ["and", "a1", "a2"]})
         self.assertEqual("contradicting",
-                         knowledge.InferenceProvider(kb).ask_constraint(
+                         application.InferenceProvider(kb).ask_constraint(
                              ["not", "a1"])
                          )
 
     def test_map_query(self):
-        kb = knowledge.HybridKnowledgeBase(
+        kb = application.HybridKnowledgeBase(
             weightedFormulas={"e": ["imp", ["eq", "a1", "a2"], ["xor", "a3", "a1"], 2]},
             facts={"c1": "a1",
                    "c2": ["not", "a2"]})
         self.assertEqual({"a1" + aSuf: 1, "a2" + aSuf: 0},
-                         knowledge.InferenceProvider(kb).exact_map_query(["a1" + aSuf, "a2" + aSuf],
-                                                                         evidenceDict={"a3": 1})
+                         application.InferenceProvider(kb).exact_map_query(["a1" + aSuf, "a2" + aSuf],
+                                                                           evidenceDict={"a3": 1})
                          )
 
     def test_empty_dicts(self):
-        kb = knowledge.HybridKnowledgeBase(
+        kb = application.HybridKnowledgeBase(
             weightedFormulas={}, facts={})
         self.assertEqual(1,
-                         knowledge.InferenceProvider(kb).query(["a1" + aSuf], evidenceDict={"a1": 1}).values[1])
+                         application.InferenceProvider(kb).query(["a1" + aSuf], evidenceDict={"a1": 1}).values[1])
         self.assertEqual(0.5,
-                         knowledge.InferenceProvider(knowledge.HybridKnowledgeBase()).query(["a1" + aSuf],
-                                                                                            evidenceDict={}).values[1])
+                         application.InferenceProvider(application.HybridKnowledgeBase()).query(["a1" + aSuf],
+                                                                                                evidenceDict={}).values[1])
         self.assertEqual(0.125,
-                         knowledge.InferenceProvider(knowledge.HybridKnowledgeBase()).query(
+                         application.InferenceProvider(application.HybridKnowledgeBase()).query(
                              ["a1" + aSuf, "a3" + aSuf, "a2" + aSuf],
                              evidenceDict={}).values[
                              1, 0, 1])
 
     ## Sampling on facts tests
     def test_not(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={},
             facts={"constraint1": ["not", "a1"]})
         )
@@ -79,7 +79,7 @@ class HybridKBTest(unittest.TestCase):
             self.assertEqual(0, sample["a1" + aSuf])
 
     def test_and(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={"f1": ["a1", 1]},
             facts={"constraint1": ["and", "a1", "a2"]})
         )
@@ -95,7 +95,7 @@ class HybridKBTest(unittest.TestCase):
             self.assertTrue((int(sample["a1" + aSuf]) + int(sample["a2" + aSuf])) == 2)
 
     def test_or(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={},
             facts={"constraint1": ["or", "a1", "a2"]}
         ))
@@ -111,7 +111,7 @@ class HybridKBTest(unittest.TestCase):
             self.assertTrue((int(sample["a1" + aSuf]) + int(sample["a2" + aSuf])) >= 1)
 
     def test_xor(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={},
             facts={"constraint1": ["xor", "a1", "a2"]}
         ))
@@ -127,7 +127,7 @@ class HybridKBTest(unittest.TestCase):
             self.assertEqual(1 - sample["a1" + aSuf], sample["a2" + aSuf])
 
     def test_eq(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={},
             facts={"constraint1": ["eq", "a1", "a2"]}
         ))
@@ -143,7 +143,7 @@ class HybridKBTest(unittest.TestCase):
             self.assertEqual(sample["a1" + aSuf], sample["a2" + aSuf])
 
     def test_imp(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={},
             facts={"constraint1": ["imp", "a1", "a2"]}
         ))
@@ -160,7 +160,7 @@ class HybridKBTest(unittest.TestCase):
 
     ##
     def test_unseen_atoms(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={"f1": ["a1", 2]},
             facts={"constraint1": ["imp", "a1", "a2"]}
         ))
@@ -168,17 +168,17 @@ class HybridKBTest(unittest.TestCase):
         self.assertEqual(3, len(hybridKB.draw_sample(["fun1", "fun4", "fun5"])))
 
     def test_evidence_evaluation(self):
-        hybridKB = knowledge.HybridKnowledgeBase(
+        hybridKB = application.HybridKnowledgeBase(
             weightedFormulas={"f1": ["a1", 2]},
             facts={"constraint1": ["imp", "a1", "a2"]}
         )
-        entailedDict = knowledge.KnowledgePropagator(hybridKB, evidenceDict={"a1": 0, "a2": 1}).evaluate()
+        entailedDict = application.KnowledgePropagator(hybridKB, evidenceDict={"a1": 0, "a2": 1}).evaluate()
         self.assertTrue(entailedDict["a1" + aSuf] == 0)
         self.assertTrue(entailedDict["a2" + aSuf] == 1)
-        self.assertTrue(entailedDict["(imp_a1_a2)" + encoding.suf.comVarSuf] == 1)
+        self.assertTrue(entailedDict["(imp_a1_a2)" + representation.suf.comVarSuf] == 1)
 
     def test_categorical_constraint(self):
-        hybridKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(
+        hybridKB = application.InferenceProvider(application.HybridKnowledgeBase(
             weightedFormulas={"f1": ["imp", "a1", "a2", 10]},
             facts={"f2": "a4"},
             categoricalConstraints={"c1": ["a1" + aSuf, "a2" + aSuf, "a3" + aSuf]}

@@ -1,13 +1,13 @@
-from tnreason import encoding
+from tnreason import representation
 
-coreDict = encoding.create_formulas_cores(
+coreDict = representation.create_formulas_cores(
     {"test": ["u3", "a", 2]}
 )
 
 assert coreDict["(u3_a)_cCore"].values[1, 1] == 1
 assert coreDict["(u3_a)_cCore"].values[0, 1] == 1
 
-coreDict = encoding.create_formulas_cores(
+coreDict = representation.create_formulas_cores(
     {"test": ["b3", "a", "b", 2]} # 0101
 )
 

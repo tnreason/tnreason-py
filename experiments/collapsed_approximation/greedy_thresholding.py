@@ -1,6 +1,6 @@
 from experiments.collapsed_approximation import slice_selection_architecture as slsel
 
-from tnreason import engine, algorithms
+from tnreason import engine, reasoning
 
 import numpy as np
 
@@ -69,7 +69,7 @@ def greedy_gradient_step(energyDicts, currentParameters, varColList, sparsityOrd
         backCores=slsel.create_slice_selecting_tn(variableColorList=varColList,
                                                   sparsityOrder=sparsityOrder),
         openColors=slsel.get_selection_colors(sparsityOrder))
-    return gradient, algorithms.core_based_optimize(gradient, optimizationMethod=optimizationMethod)
+    return gradient, reasoning.core_based_optimize(gradient, optimizationMethod=optimizationMethod)
 
 
 def update_parameters(energyDicts, currentParameters, varColList, sparsityOrder, selPosList, sweepNum):

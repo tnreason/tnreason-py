@@ -1,4 +1,4 @@
-from tnreason import encoding, engine
+from tnreason import representation, engine
 
 """
 Provides a selection architecture to parametrize clauses
@@ -41,5 +41,5 @@ if __name__ == "__main__":
 
 
     engine.draw_factor_graph(
-        {**encoding.create_architecture(get_cnf_architecture(maxSize=2, atomList=atomList)),
+        {**representation.create_architecture(get_cnf_architecture(maxSize=2, atomList=atomList)),
         **relCores})

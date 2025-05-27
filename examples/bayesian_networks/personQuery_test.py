@@ -1,4 +1,4 @@
-from tnreason.encoding import workload_to_sparqlwrapper as wts
+from tnreason.representation import workload_to_sparqlwrapper as wts
 from tnreason import engine
 
 from examples.bayesian_networks import parameter_estimation as pe

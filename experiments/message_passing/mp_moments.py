@@ -1,4 +1,4 @@
-from tnreason import encoding
+from tnreason import representation
 from tnreason import engine
 
 import numpy as np
@@ -11,18 +11,18 @@ class MPMomentMatcher:
         self.expressionsDict = expressionsDict
         self.empiricalMeanDict = empiricalMeanDict
 
-        self.atoms = encoding.get_all_atoms(expressionsDict)
+        self.atoms = representation.get_all_atoms(expressionsDict)
         self.messageCores = {
             atom + messageCoreSuffix: engine.create_trivial_core(atom + messageCoreSuffix, [2], [atom])
             for atom in self.atoms}
 
         self.directedCores = dict()
         for key in expressionsDict:
-            self.directedCores.update(encoding.create_raw_formula_cores(expressionsDict[key]))
+            self.directedCores.update(representation.create_raw_formula_cores(expressionsDict[key]))
 
         self.headCores = dict()
         for key in expressionsDict:
-            self.headCores.update(encoding.create_formula_head(expressionsDict[key], "expFactor", 0))
+            self.headCores.update(representation.create_formula_head(expressionsDict[key], "expFactor", 0))
 
         # To controll convergence
         self.weightsDict = {key: [] for key in expressionsDict}
@@ -62,20 +62,20 @@ class MPMomentMatcher:
 
     def adjust_headCores(self):
         for key in self.expressionsDict:
-            headColor = encoding.get_formula_color(self.expressionsDict[key])
+            headColor = representation.get_formula_color(self.expressionsDict[key])
             negValue, posValue = self.messageCores[headColor + messageCoreSuffix].values
             if negValue == 0 or self.empiricalMeanDict[key] == 0:
                 self.weightsDict[key].append(float("-inf"))
-                self.headCores.update(encoding.create_formula_head(self.expressionsDict[key], "falseEvaluation"))
+                self.headCores.update(representation.create_formula_head(self.expressionsDict[key], "falseEvaluation"))
             elif posValue == 0 or self.empiricalMeanDict[key] == 1:
                 self.weightsDict[key].append(float("inf"))
-                self.headCores.update(encoding.create_formula_head(self.expressionsDict[key], "truthEvaluation"))
+                self.headCores.update(representation.create_formula_head(self.expressionsDict[key], "truthEvaluation"))
             else:
                 ## Need Cases: negValue / posValue 0 / 1
                 weight = np.log(
                     (negValue / posValue) * (self.empiricalMeanDict[key] / (1 - self.empiricalMeanDict[key])))
                 self.weightsDict[key].append(weight)
-                self.headCores.update(encoding.create_formula_head(self.expressionsDict[key], "expFactor", weight))
+                self.headCores.update(representation.create_formula_head(self.expressionsDict[key], "expFactor", weight))
 
             self.messageCores[headColor+messageCoreSuffix] = self.headCores[headColor+headCoreSuffix]
 

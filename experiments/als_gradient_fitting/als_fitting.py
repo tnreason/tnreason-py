@@ -1,8 +1,8 @@
-from tnreason import knowledge, encoding
+from tnreason import application, representation
 import numpy as np
 
 from tnreason import engine
-from tnreason.algorithms import alternating_least_squares as als
+from tnreason.reasoning import alternating_least_squares as als
 
 #### ! MISSING PARTITION FUNCTIONS ! ####
 
@@ -12,32 +12,32 @@ architecture = {
             ["a","b"]]
 }
 
-currentModel = knowledge.HybridKnowledgeBase(weightedFormulas={
+currentModel = application.HybridKnowledgeBase(weightedFormulas={
     "w1" : ["or","a","b", 0.2]
 })
 
-generatingModel = knowledge.HybridKnowledgeBase(weightedFormulas={
+generatingModel = application.HybridKnowledgeBase(weightedFormulas={
     "w1" : ["or","a","b", 0.2],
     "w2" : ["imp","a","b", 2],
     "w3" : ["c", 0.3]
 })
-samples = knowledge.InferenceProvider(generatingModel).draw_samples(10, dfOutput=True)
+samples = application.InferenceProvider(generatingModel).draw_samples(10, dfOutput=True)
 
-negativeCores = {**encoding.create_formulas_cores(currentModel.weightedFormulas),
-                 **encoding.create_architecture(architecture)}
+negativeCores = {**representation.create_formulas_cores(currentModel.weightedFormulas),
+                 **representation.create_architecture(architecture)}
 
-positiveCores = {**encoding.create_data_cores(samples, ["a","b","c"]),
-                 **encoding.create_architecture(architecture)}
+positiveCores = {**representation.create_data_cores(samples, ["a", "b", "c"]),
+                 **representation.create_architecture(architecture)}
 
-#arDict = encoding.create_architecture(architecture)
+#arDict = representation.create_architecture(architecture)
 #print([(arDict[name].colors, arDict[name].values.shape) for name in arDict])
 
 
 networkCores = {
-    "n_a": encoding.create_random_core("n_a", [2, 2], ['n1_actVar_tbo', 'n1_p0_selVar_tbo']),
-    "n_b": encoding.create_random_core("n_b", [2, 2], ['n1_p0_selVar_tbo', 'n1_p1_selVar_tbo']),
-    "n_c":  encoding.create_random_core("n_c", [2, 2, 2], ['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo']),
-    "triv" : encoding.create_trivial_core("triv", shape=[2,2,2,2,2,2], colors=['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo', 'n1_actVar', 'n1_p0_selVar', 'n1_p1_selVar'])
+    "n_a": representation.create_random_core("n_a", [2, 2], ['n1_actVar_tbo', 'n1_p0_selVar_tbo']),
+    "n_b": representation.create_random_core("n_b", [2, 2], ['n1_p0_selVar_tbo', 'n1_p1_selVar_tbo']),
+    "n_c":  representation.create_random_core("n_c", [2, 2, 2], ['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo']),
+    "triv" : representation.create_trivial_core("triv", shape=[2, 2, 2, 2, 2, 2], colors=['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo', 'n1_actVar', 'n1_p0_selVar', 'n1_p1_selVar'])
 }
 fitter = als.ALS(networkCores=networkCores, importanceColors=['n1_actVar', 'n1_p0_selVar', 'n1_p1_selVar'],
         targetList=[(positiveCores,1),(negativeCores,-1)])

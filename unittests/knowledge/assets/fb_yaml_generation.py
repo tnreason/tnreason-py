@@ -1,4 +1,4 @@
-from tnreason import encoding
+from tnreason import representation
 
 expressionsDict = {
     "e0": ["imp", "a1", "a2", 2.123],
@@ -16,7 +16,7 @@ catConDict = {
     "c1": ["a1", "a3"]
 }
 
-encoding.save_as_yaml(modelSpec={
+representation.save_as_yaml(modelSpec={
     "weightedFormulas": expressionsDict,
     "facts": factsDict,
     "categoricalConstraints": catConDict
@@ -32,14 +32,14 @@ architecture = {
               ],
 }
 
-encoding.save_as_yaml(modelSpec=architecture, savePath="./fb_architecture.yaml")
+representation.save_as_yaml(modelSpec=architecture, savePath="./fb_architecture.yaml")
 
 boostSpecDict = {
     "method": "als",
     "sweeps": 5
 }
 
-encoding.save_as_yaml(modelSpec=boostSpecDict, savePath="./fb_energyMax_boostSpec.yaml")
+representation.save_as_yaml(modelSpec=boostSpecDict, savePath="./fb_energyMax_boostSpec.yaml")
 
 boostSpecDict = {
     "method": "gibbs",
@@ -50,4 +50,4 @@ boostSpecDict = {
     "sweeps": 20
 }
 
-encoding.save_as_yaml(modelSpec=boostSpecDict, savePath="./fb_gibbs_boostSpec.yaml")
+representation.save_as_yaml(modelSpec=boostSpecDict, savePath="./fb_gibbs_boostSpec.yaml")

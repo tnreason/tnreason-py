@@ -2,7 +2,7 @@ from tentris import tentris, Hypertrie
 
 from tnreason.engine import subscript_creation as subc
 
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 
 import numpy as np
 

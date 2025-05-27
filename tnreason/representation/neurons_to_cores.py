@@ -1,8 +1,8 @@
 from tnreason import engine
 
-from tnreason.encoding import connectives as con
-from tnreason.encoding import formulas_to_cores as enform
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import connectives as con
+from tnreason.representation import formulas_to_cores as enform
+from tnreason.representation import suffixes as suf
 
 # Core and Color Refiners 
 heaPre = suf.heaIn # head of neuron
@@ -195,7 +195,7 @@ def replace_neuronnames(currentNeuronName, fixedNeuronDict):
     return currentNeuron
 
 
-## Auxiliary functions for knowledge identifying the atoms and the dimension of selection variables
+## Auxiliary functions for application identifying the atoms and the dimension of selection variables
 def find_atom_colors(specDict):
     atoms = set()
     for neuronName in specDict.keys():

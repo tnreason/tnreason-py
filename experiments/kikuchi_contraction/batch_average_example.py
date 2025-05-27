@@ -1,15 +1,15 @@
 import kickuchi_contractor as kic
 
-from tnreason import knowledge, encoding
+from tnreason import application, representation
 
-samples = knowledge.InferenceProvider(
-    knowledge.HybridKnowledgeBase(
+samples = application.InferenceProvider(
+    application.HybridKnowledgeBase(
         weightedFormulas={"w": ["imp", "a", "b", 1]}
     )
 ).draw_samples(10, dfOutput=True)
 
 print(samples)
-dataCores = encoding.create_data_cores(samples, ["a", "b"])
+dataCores = representation.create_data_cores(samples, ["a", "b"])
 print(dataCores)
 
 kiki = kic.KikuchiContractor(
@@ -18,7 +18,7 @@ kiki = kic.KikuchiContractor(
                "f": ["j", "a", "b", "(imp_a_b)"],
                "formula": ["(imp_a_b)"]},
     coreDict={"data": {"da" : dataCores["a_dataCore"]}, "datb" : {"db": dataCores["b_dataCore"]},
-              "f" : {**encoding.create_formulas_cores({"w": ["imp","a","b"]}), **encoding.create_formula_head(["imp", "a", "b"], headType="truthEvaluation")},
+              "f" : {**representation.create_formulas_cores({"w": ["imp", "a", "b"]}), **representation.create_formula_head(["imp", "a", "b"], headType="truthEvaluation")},
               "formula": {}}
 )
 

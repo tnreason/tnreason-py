@@ -1,6 +1,6 @@
 from examples.cellular_automata import structure as st
 
-from tnreason import knowledge
+from tnreason import application
 
 """
 Provides templates for soft-logic cellular automata
@@ -8,16 +8,16 @@ Provides templates for soft-logic cellular automata
 
 
 def get_random_inferer(blackweight=0):
-    return knowledge.InferenceProvider(
-        knowledge.HybridKnowledgeBase(
+    return application.InferenceProvider(
+        application.HybridKnowledgeBase(
             weightedFormulas={"new": ["n", blackweight]},
         )
     )
 
 
 def get_precessor_influenced_random_inferer(directWeight=0.1, neighborWeight=0.1):
-    return knowledge.InferenceProvider(
-        knowledge.HybridKnowledgeBase(
+    return application.InferenceProvider(
+        application.HybridKnowledgeBase(
             weightedFormulas={"before": ["eq", "b", "n", directWeight],
                               "minus1": ["eq", "m1", "n", neighborWeight],
                               "plus1": ["eq", "p1", "n", neighborWeight]},

@@ -1,14 +1,14 @@
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 from tnreason import engine
 
-from tnreason.knowledge import distributions as dist
-from tnreason.knowledge import deductive as ded
+from tnreason.application import distributions as dist
+from tnreason.application import deductive as ded
 
 headNeuronString = "headNeurons"
 architectureString = "architecture"
 acceptanceCriterionString = "acceptanceCriterion"
-methodSelectionString = "method"  # Entry in specDict, either one of algorithms.energyOptimizationMethods or klMaximumMethodString
+methodSelectionString = "method"  # Entry in specDict, either one of reasoning.energyOptimizationMethods or klMaximumMethodString
 annealingArgumentString = "annealingPattern"  # used in meanField and gibbs
 
 ## KLDivergence-based
@@ -29,6 +29,8 @@ class Grafter:
     Searches for best formula by the grafting heuristic: Formulation by an energy optimization problem
     Exceptional handling of KL Divergence: Distinguish between positive and negative phase
     when calculating coordinatewise KL divergence
+
+    specDict: architecture string in script language!
     """
 
     def __init__(self, knowledgeBase, specDict):
@@ -42,16 +44,15 @@ class Grafter:
         self.proposalDistribution = dist.ProposalDistribution(
             positivePhase=empiricalDistribution,
             negativePhase=self.knowledgeBase,
-            statisticCores=encoding.create_architecture(
-                encoding.parse_neuronNameDict_to_neuronColorDict(self.specDict[architectureString]),
-                self.specDict[headNeuronString])
+            statisticCores=representation.create_architecture(self.specDict[architectureString],
+                                                              self.specDict[headNeuronString])
         )
         solutionDict = ded.InferenceProvider(self.proposalDistribution).search_mode(
-            variableList=encoding.find_selection_colors(self.specDict[architectureString]),
+            variableList=representation.find_selection_colors(self.specDict[architectureString]),
             optimizationMethod=self.specDict.get("method", "numpyArgMax")
         )
 
-        self.candidates = encoding.create_solution_expression(self.specDict[architectureString], solutionDict)
+        self.candidates = representation.create_solution_expression(self.specDict[architectureString], solutionDict)
 
     def test_candidates(self):
         """

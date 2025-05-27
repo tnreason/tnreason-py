@@ -1,4 +1,4 @@
-from tnreason import engine, encoding
+from tnreason import engine, representation
 import numpy as np
 
 class MaxCalibrator:
@@ -33,7 +33,7 @@ class MaxCalibrator:
             rawCore = engine.contract({**self.clusters[clusterKey],
                                        **{key: self.messages[key] for key in self.messages if key.split("_")[
                                            1] == clusterKey},
-                                       **{color + "_knownMax": encoding.create_basis_core(
+                                       **{color + "_knownMax": representation.create_basis_core(
                                            color + "_knownMax", shape=[colorDimDict[color]], colors=[color],
                                            numberTuple=(self.max_assignment[color]))
                                            for color in clusterColors if color in self.max_assignment}},
@@ -57,13 +57,13 @@ def get_all_colors(network):
 if __name__ == "__main__":
     import numpy as np
 
-    from tnreason import encoding
+    from tnreason import representation
 
-    cluster0 = {"fun": encoding.create_random_core(name="fun", shape=(2, 10, 2), colors=["a", "b", "c"]),
-                "fun2": encoding.create_random_core(name="fun2", shape=(2), colors=["a"])}
+    cluster0 = {"fun": representation.create_random_core(name="fun", shape=(2, 10, 2), colors=["a", "b", "c"]),
+                "fun2": representation.create_random_core(name="fun2", shape=(2), colors=["a"])}
 
-    cluster1 = {"fun": encoding.create_random_core(name="fun", shape=(2, 10, 2), colors=["d", "b", "e"]),
-                "fun2": encoding.create_random_core(name="fun2", shape=(10), colors=["b"])}
+    cluster1 = {"fun": representation.create_random_core(name="fun", shape=(2, 10, 2), colors=["d", "b", "e"]),
+                "fun2": representation.create_random_core(name="fun2", shape=(10), colors=["b"])}
 
     maksik = MaxCalibrator(clusters={"c0": cluster0, "c1": cluster1})
     maksik.compute_max_message("c0", ["b"])

@@ -1,10 +1,10 @@
-from tnreason.knowledge import weight_estimation as wees
-from tnreason.knowledge import grafting as gf
-from tnreason.knowledge import distributions as dist
-from tnreason.knowledge import deductive as ded
+from tnreason.application import weight_estimation as wees
+from tnreason.application import grafting as gf
+from tnreason.application import distributions as dist
+from tnreason.application import deductive as ded
 
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 
 headNeuronString = "headNeurons"
 architectureString = "architecture"
@@ -14,13 +14,13 @@ class HybridLearner:
     """
     Intended to use for extending a Knowledge Base based on data.
     Iterating between:
-        - structure learning: Using the FormulaBooster to learn new formulas
+        - structure learning: Inference on proposal distribution to learn new formulas
         - weight estimation: Using the EntropyMaximizer to adjust the weights to the formulas
     """
 
     def __init__(self, startKB, engineSpec={"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"}):
         """
-        startKB a knowledge.HybridKnowledgeBase instance representing the current knowledge to be extended.
+        startKB a application.HybridKnowledgeBase instance representing the current application to be extended.
         """
         self.knowledgeBase = startKB
         # self.coreType = coreType
@@ -35,20 +35,20 @@ class HybridLearner:
         Empirical Distribution: Positive Phase of Learning
         AlternationMethod: When empirical distribution a dataset, can
         """
-        if alternationMethod in algorithms.energySamplingMethods:
-            sampler = algorithms.get_energy_based_sampler(self.knowledgeBase.get_energy_dict(),
-                                                          samplingMethod=alternationMethod,
-                                                          startSlices=empiricalDistribution.as_core(),
-                                                          colors=empiricalDistribution.distributedVariables,
-                                                          **self.engineSpec
-                                                          )
-        elif alternationMethod in algorithms.coreSamplingMethods:
-            sampler = algorithms.get_core_based_sampler(self.knowledgeBase.create_cores(),
-                                                        samplingMethod=alternationMethod,
-                                                        startSlices=empiricalDistribution.as_core(),
-                                                        colors=empiricalDistribution.distributedVariables,
-                                                        **self.engineSpec
-                                                        )
+        if alternationMethod in reasoning.energySamplingMethods:
+            sampler = reasoning.get_energy_based_sampler(self.knowledgeBase.get_energy_dict(),
+                                                         samplingMethod=alternationMethod,
+                                                         startSlices=empiricalDistribution.as_core(),
+                                                         colors=empiricalDistribution.distributedVariables,
+                                                         **self.engineSpec
+                                                         )
+        elif alternationMethod in reasoning.coreSamplingMethods:
+            sampler = reasoning.get_core_based_sampler(self.knowledgeBase.create_cores(),
+                                                       samplingMethod=alternationMethod,
+                                                       startSlices=empiricalDistribution.as_core(),
+                                                       colors=empiricalDistribution.distributedVariables,
+                                                       **self.engineSpec
+                                                       )
         elif alternationMethod is None:
             sampler = None
         else:
@@ -63,9 +63,8 @@ class HybridLearner:
         self.proposalDistribution = dist.ProposalDistribution(
             positivePhase=empiricalDistribution,
             negativePhase=negativePhase,
-            statisticCores=encoding.create_architecture(
-                encoding.parse_neuronNameDict_to_neuronColorDict(architecture),
-                [headNeuron], coreType=self.engineSpec["coreType"]),
+            statisticCores=representation.create_architecture(architecture,
+                                                              [headNeuron], coreType=self.engineSpec["coreType"]),
             **self.engineSpec
         )
 
@@ -74,13 +73,13 @@ class HybridLearner:
         Can only use energy-based methods, since proposal distribution has no core instantiation
         """
         solutionDict = ded.InferenceProvider(self.proposalDistribution).search_mode(
-            variableList=encoding.find_selection_colors(architecture),
+            variableList=representation.find_selection_colors(architecture),
             **specDict,
             **self.engineSpec
         )
-        return encoding.create_solution_expression(architecture, solutionDict)
+        return representation.create_solution_expression(architecture, solutionDict)
 
-    ## OLD -> Should be dropped along knowledge.Grafter!
+    ## OLD -> Should be dropped along application.Grafter! -> Now proposal distribution inference is directly available
     def graft_formula(self, specDict, empDistribution, stepName="_grafted"):
         """
         Grafting with
@@ -96,7 +95,6 @@ class HybridLearner:
         """
         booster = gf.Grafter(self.knowledgeBase, specDict)
         booster.find_candidate(empDistribution)
-        print(booster.candidates)
         print("Learned formulas: {}".format(booster.candidates))
         if booster.test_candidates():
             print("Accepted formulas.")

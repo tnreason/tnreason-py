@@ -1,7 +1,7 @@
 import unittest
 
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 
 import numpy as np
 
@@ -93,7 +93,7 @@ def evidence_to_array(evidenceDict, num, verbose=False):
 class SudokuTest(unittest.TestCase):
     def test_num2(self):
         num = 2
-        structureCores = encoding.create_categorical_cores(get_sudoku_constraints(num=num))
+        structureCores = representation.create_categorical_cores(get_sudoku_constraints(num=num))
         preEvidence = {
             "a_0_1_0_0_1": 1,
             "a_0_0_0_1_0": 1,
@@ -101,9 +101,9 @@ class SudokuTest(unittest.TestCase):
             "a_1_0_0_0_2": 1,
             "a_0_0_1_0_2": 1
         }
-        propagator = algorithms.ConstraintPropagator(
+        propagator = reasoning.ConstraintPropagator(
             {**structureCores,
-             **encoding.create_evidence_cores(preEvidence)},
+             **representation.create_evidence_cores(preEvidence)},
             verbose=False
         )
         propagator.propagate_cores()
@@ -114,7 +114,7 @@ class SudokuTest(unittest.TestCase):
 
     def test_num3(self):
         num = 3
-        structureCores = encoding.create_categorical_cores(get_sudoku_constraints(num=num))
+        structureCores = representation.create_categorical_cores(get_sudoku_constraints(num=num))
         preEvidence = {
             "a_0_1_0_0_1": 1,
             "a_0_0_0_1_0": 1,
@@ -122,9 +122,9 @@ class SudokuTest(unittest.TestCase):
             "a_1_0_0_0_2": 1,
             "a_0_0_1_0_2": 1
         }
-        propagator = algorithms.ConstraintPropagator(
+        propagator = reasoning.ConstraintPropagator(
             {**structureCores,
-             **encoding.create_evidence_cores(preEvidence)},
+             **representation.create_evidence_cores(preEvidence)},
             verbose=False
         )
         propagator.propagate_cores()

@@ -1,6 +1,6 @@
 from tnreason.engine.creation_handling import core_to_relational_encoding
 
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 
 from tnreason import engine
 

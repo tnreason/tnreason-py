@@ -1,7 +1,7 @@
 from examples.dpbedia_companies import query_strings as qs
-from tnreason.encoding import workload_to_sparqlwrapper as wts
+from tnreason.representation import workload_to_sparqlwrapper as wts
 
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 from tnreason import engine
 
 dbpediaEndpointString = "https://dbpedia.org/sparql"

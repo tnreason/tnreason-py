@@ -1,4 +1,4 @@
-from tnreason import encoding, engine
+from tnreason import representation, engine
 import numpy as np
 
 """
@@ -14,13 +14,13 @@ def get_boltzmann_neuronNameDict(atomList, neurKey):
 
 
 def get_boltzmann_selectionNetwork(atomList, neurKey="boltzmannNeur", coreType="NumpyCore"):
-    return encoding.create_architecture(get_boltzmann_neuronNameDict(atomList, neurKey), headNeuronNames=[neurKey],
-                                        coreType=coreType)
+    return representation.create_architecture(get_boltzmann_neuronNameDict(atomList, neurKey), headNeuronNames=[neurKey],
+                                              coreType=coreType)
 
 
 def get_boltzmann_parameterCore(weightMatrix, biasVector, neurKey="boltzmannNeur", coreType="NumpyCore"):
     """
-    Provides a parameter tensor encoding an instance of a boltzmann machine with a weightMatrix and a potent
+    Provides a parameter tensor representation an instance of a boltzmann machine with a weightMatrix and a potent
     """
     weightIterator = [(weightMatrix[i, j], {neurKey + "_asVar": 0, neurKey + "_p0_vsVar": i, neurKey + "_p1_vsVar": j})
                       for i, j in np.ndindex(weightMatrix.shape)]

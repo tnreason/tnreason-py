@@ -1,6 +1,6 @@
 import unittest
 
-from tnreason.encoding import workload_to_sparqlwrapper as wts
+from tnreason.representation import workload_to_sparqlwrapper as wts
 
 
 class DBpediaTest(unittest.TestCase):

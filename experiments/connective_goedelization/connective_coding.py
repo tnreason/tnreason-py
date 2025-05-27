@@ -1,5 +1,5 @@
 """
-To be incorporated into encoding/connectives
+To be incorporated into representation/connectives
 Coding scheme: binDigits encode the coordinates, listed starting from the largest towards the smallest
 Oriented on Wolfram number of cellular automata
 """

@@ -1,6 +1,6 @@
 from tnreason import engine
 
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 
 
 def create_categorical_cores(categoricalsDict, coreType=None):
@@ -23,7 +23,7 @@ def create_constraintCoresDict(atomColors, catColor, coreType=None):
 
 def create_single_atomization(catColor, catDim, position, atomColor=None, coreType=None):
     """
-    Creates the relation encoding of the categorical X with its atomization to the position (int).
+    Creates the relation representation of the categorical X with its atomization to the position (int).
     If the resulting atom is not named otherwise, we call it X=position.
     """
     assert position < catDim, "Position out of range of the variable {}!".format(catColor)

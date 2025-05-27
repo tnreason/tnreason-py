@@ -47,7 +47,7 @@ def create_random_core(name, shape, colors,
 def create_relational_encoding(inshape, outshape, incolors, outcolors, function, coreType=None,
                                name="Encoding"):
     """
-    Creates relational encoding of a function as a single core.
+    Creates relational representation of a function as a single core.
     The function has to be a map from the indices in inshape to the indices in outshape.
     """
     if coreType is None:
@@ -99,7 +99,7 @@ def reduce_function(function, coordinates):
 def create_partitioned_relational_encoding(inshape, outshape, incolors, outcolors, function, coreType=defaultCoreType,
                                            partitionDict=None, nameSuffix="_encodingCore"):
     """
-    Creates relational encoding of a function as a tensor network, where the output axis are splitted according to the partionDict.
+    Creates relational representation of a function as a tensor network, where the output axis are splitted according to the partionDict.
     """
     if partitionDict is None:
         partitionDict = {color: [color] for color in outcolors}

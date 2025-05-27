@@ -1,16 +1,16 @@
 import unittest
 
-from tnreason import knowledge
-from tnreason import encoding
+from tnreason import application
+from tnreason import representation
 
 import pandas as pd
 
 assetsBasePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/unittests/knowledge/assets/"
 
-backKb = knowledge.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml")
-architecture = encoding.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
+backKb = application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml")
+architecture = representation.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
 
-genKB = knowledge.HybridKnowledgeBase(
+genKB = application.HybridKnowledgeBase(
     facts={"f1": ["a1"]},
     weightedFormulas={
         "wf1": ["imp", "a1", "a2", 1.1424],
@@ -18,25 +18,25 @@ genKB = knowledge.HybridKnowledgeBase(
         "wf2": ["not", "a3", 5.2]
     }
 )
-sampleDf = knowledge.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
+sampleDf = application.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
 
 
 class FormulaBoostingTest(unittest.TestCase):
     def test_yaml_als(self):
-        booster = knowledge.Grafter(knowledgeBase=backKb,
-                                    specDict={**encoding.load_from_yaml(assetsBasePath + "fb_energyMax_boostSpec.yaml"),
+        booster = application.Grafter(knowledgeBase=backKb,
+                                      specDict={**representation.load_from_yaml(assetsBasePath + "fb_energyMax_boostSpec.yaml"),
                                               "headNeurons": ["neur1"], "architecture": architecture})
-        booster.find_candidate(knowledge.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
+        booster.find_candidate(application.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
 
     def test_yaml_gibbs(self):
-        booster = knowledge.Grafter(knowledgeBase=knowledge.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
-                                    specDict={**encoding.load_from_yaml(assetsBasePath + "fb_gibbs_boostSpec.yaml"),
+        booster = application.Grafter(knowledgeBase=application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
+                                      specDict={**representation.load_from_yaml(assetsBasePath + "fb_gibbs_boostSpec.yaml"),
                                               "headNeurons": ["neur1"], "architecture": architecture})
-        booster.find_candidate(knowledge.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
+        booster.find_candidate(application.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
 
     def test_exact_implication_finding(self):
-        booster = knowledge.Grafter(knowledgeBase=knowledge.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
-                                    specDict={
+        booster = application.Grafter(knowledgeBase=application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
+                                      specDict={
                                         "method": "exactEnergyMax",
                                         "sweeps": 10,
                                         "headNeurons": ["neur1"],
@@ -48,12 +48,12 @@ class FormulaBoostingTest(unittest.TestCase):
                                         "acceptanceCriterion": "always",
                                         "calibrationSweeps": 2
                                     })
-        booster.find_candidate(knowledge.get_empirical_distribution(sampleDf))
+        booster.find_candidate(application.get_empirical_distribution(sampleDf))
         self.assertEquals(booster.candidates["neur1"][-1], "a2")
 
     def test_gibbs_implication_finding(self):
-        booster = knowledge.Grafter(
-            knowledgeBase=knowledge.HybridKnowledgeBase(partitionFunction=2 ** len(backKb.distributedVariables)),
+        booster = application.Grafter(
+            knowledgeBase=application.HybridKnowledgeBase(partitionFunction=2 ** len(backKb.distributedVariables)),
             specDict={
                 "method": "gibbsSample",
                 "sweeps": 10,
@@ -66,5 +66,6 @@ class FormulaBoostingTest(unittest.TestCase):
                 "acceptanceCriterion": "always",
                 "calibrationSweeps": 2
             })
-        booster.find_candidate(knowledge.get_empirical_distribution(sampleDf))
+        booster.find_candidate(application.get_empirical_distribution(sampleDf))
+        print(booster.candidates)
         self.assertEquals(booster.candidates["neur1"][-1], "a2")

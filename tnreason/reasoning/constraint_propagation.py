@@ -1,5 +1,5 @@
 from tnreason import engine
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 import numpy as np
 
 from queue import Queue

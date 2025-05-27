@@ -1,8 +1,8 @@
 import unittest
 
-from tnreason import engine, knowledge
+from tnreason import engine, application
 
-from tnreason.knowledge import distributions as dist
+from tnreason.application import distributions as dist
 
 methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
               {"coreType": "PolynomialCore", "contractionMethod": "CorewiseContractor"},
@@ -33,7 +33,7 @@ class MNTest(unittest.TestCase):
                       #{"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"} #Takes too long!
                       ]
         for method in methodList:
-            generatingKB = knowledge.InferenceProvider(knowledge.HybridKnowledgeBase(weightedFormulas=
+            generatingKB = application.InferenceProvider(application.HybridKnowledgeBase(weightedFormulas=
             {
                 "f1": ["imp", "a", "b", 2.567],
                 "f2": ["imp", "a", "c", 2.222],
@@ -45,7 +45,7 @@ class MNTest(unittest.TestCase):
             sampleNum = 10
             sampleDf = generatingKB.draw_samples(sampleNum, dfOutput=True)
 
-            knowledge.get_empirical_distribution(sampleDf)
+            application.get_empirical_distribution(sampleDf)
 
 
 if __name__ == "__main__":

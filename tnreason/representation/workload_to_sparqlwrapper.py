@@ -1,6 +1,6 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 
 from tnreason import engine
 

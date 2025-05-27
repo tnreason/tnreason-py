@@ -2,21 +2,21 @@ import unittest
 
 from tnreason import engine
 
-from tnreason import encoding
+from tnreason import representation
 
 methodList = [{"coreType": "NumpyCore", "contractionMethod": "NumpyEinsum"},
               {"coreType": "PolynomialCore", "contractionMethod": "CorewiseContractor"},
               {"coreType": "PandasCore", "contractionMethod": "CorewiseContractor"}
               ]
 
-aSuf = encoding.suf.disVarSuf
+aSuf = representation.suf.disVarSuf
 
 
 class TensorLogicTest(unittest.TestCase):
     def test_and(self):
 
         for method in methodList:
-            cores = encoding.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
+            cores = representation.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
                                                 contractionMethod=method["contractionMethod"])
 
@@ -26,8 +26,8 @@ class TensorLogicTest(unittest.TestCase):
     def test_and_not(self):
 
         for method in methodList:
-            cores = encoding.create_formulas_cores({"f1": ["and", ["not", "a"], ["or", "b", "c"]]},
-                                                   coreType=method["coreType"])
+            cores = representation.create_formulas_cores({"f1": ["and", ["not", "a"], ["or", "b", "c"]]},
+                                                         coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
                                                 contractionMethod=method["contractionMethod"])
 
@@ -37,7 +37,7 @@ class TensorLogicTest(unittest.TestCase):
     def test_imp(self):
 
         for method in methodList:
-            cores = encoding.create_formulas_cores({"a": ["imp", "a", "b"]}, coreType=method["coreType"])
+            cores = representation.create_formulas_cores({"a": ["imp", "a", "b"]}, coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
                                                 contractionMethod=method["contractionMethod"])
@@ -51,8 +51,8 @@ class TensorLogicTest(unittest.TestCase):
     def test_eq(self):
 
         for method in methodList:
-            cores = encoding.create_formulas_cores({"a": ["and", ["eq", "a", "b"], ["not", "c"]]},
-                                                   coreType=method["coreType"])
+            cores = representation.create_formulas_cores({"a": ["and", ["eq", "a", "b"], ["not", "c"]]},
+                                                         coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
                                                 contractionMethod=method["contractionMethod"])
@@ -67,8 +67,8 @@ class TensorLogicTest(unittest.TestCase):
     def test_xor(self):
 
         for method in methodList:
-            cores = encoding.create_formulas_cores({"xor": ["and", "c1", ["xor", "a", "b"]]},
-                                                   coreType=method["coreType"])
+            cores = representation.create_formulas_cores({"xor": ["and", "c1", ["xor", "a", "b"]]},
+                                                         coreType=method["coreType"])
             contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf,
                                                                             "b" + aSuf],
                                                 contractionMethod=method["contractionMethod"])
@@ -83,8 +83,8 @@ class TensorLogicTest(unittest.TestCase):
     def test_disconnected_and(self):
 
         for method in methodList:
-            cores0 = encoding.create_formulas_cores({"xor": ["and", "a", "b"]}, coreType=method["coreType"])
-            cores1 = encoding.create_formulas_cores({"f1": ["and", "a", ["not", "c_2"]],
+            cores0 = representation.create_formulas_cores({"xor": ["and", "a", "b"]}, coreType=method["coreType"])
+            cores1 = representation.create_formulas_cores({"f1": ["and", "a", ["not", "c_2"]],
                                                      "f2": "b"}, coreType=method["coreType"])
             result0 = engine.contract(coreDict=cores0, openColors=["a" + aSuf,
                                                                    "b" + aSuf],

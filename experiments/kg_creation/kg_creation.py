@@ -82,17 +82,17 @@ def sampleDf_to_factoredKG(sampleDf, domain,
 
 
 if __name__ == "__main__":
-    from tnreason import knowledge
-    dist = knowledge.HybridKnowledgeBase(weightedFormulas={
+    from tnreason import application
+    dist = application.HybridKnowledgeBase(weightedFormulas={
         "f1" : ["or","alpha","beta", 0.4],
         "f2" : ["gamma",0.3]
     })
 
-    sampleDf_to_naiveKG(knowledge.InferenceProvider(dist).draw_samples(10, dfOutput=True), "http://fun.org").serialize(
+    sampleDf_to_naiveKG(application.InferenceProvider(dist).draw_samples(10, dfOutput=True), "http://fun.org").serialize(
         destination="./generated/naiveKG.ttl",format="turtle")
 
-    factoredKG = sampleDf_to_factoredKG(knowledge.InferenceProvider(dist).draw_samples(10, dfOutput=True), "http://fun.org",
-                                        projectionVariables=["v1","v2","v3"], # v1 -> Beleg, v2 -> Buchung
+    factoredKG = sampleDf_to_factoredKG(application.InferenceProvider(dist).draw_samples(10, dfOutput=True), "http://fun.org",
+                                        projectionVariables=["v1","v2","v3"],  # v1 -> Beleg, v2 -> Buchung
                                         importanceQuery={
                                             "con1" : ["v1", "extractionRelation", "v2"],
                                             "con2" : ["v1", "secExtractionRelation", "v3"]

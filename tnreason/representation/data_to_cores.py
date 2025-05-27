@@ -1,6 +1,6 @@
 from tnreason import engine
 
-from tnreason.encoding import suffixes as suf
+from tnreason.representation import suffixes as suf
 
 dataCoreSuffix = suf.datIn + suf.comCoreSuf
 
@@ -9,7 +9,7 @@ def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarS
                       coreType=None, partitionDict=None):
     """
     Creates a tensor network of data cores, each storing the by atomKey selected column of sampleDf as a core of
-    the CP Decomposition of the one-hot encoding (empirical distribution)
+    the CP Decomposition of the one-hot representation (empirical distribution)
     """
     if atomKeys is None:
         atomKeys = list(sampleDf.columns)
@@ -51,6 +51,12 @@ def atomValues_from_sampleDf(sampleDf, atomKey, dataColor, coreType=None):
     dataNum = sampleDf.values.shape[0]
     dfEntries = sampleDf[atomKey].values
     tensorFunc = lambda j, a: (1 - a) * (1 - dfEntries[int(j)]) + a * dfEntries[int(j)]
-    return engine.create_tensor_encoding(inshape=[dataNum, 2], incolors=[dataColor, atomKey], function=tensorFunc,
+    return engine.create_tensor_encoding(inshape=[dataNum, 2], incolors=[dataColor, add_distVar_suffix(atomKey)], function=tensorFunc,
                                          coreType=coreType,
                                          name=atomKey + dataCoreSuffix)
+
+def add_distVar_suffix(atomKey):
+    if atomKey.endswith(suf.disVarSuf):
+        return atomKey
+    else:
+        return atomKey + suf.disVarSuf

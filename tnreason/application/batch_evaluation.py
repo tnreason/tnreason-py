@@ -1,5 +1,5 @@
-from tnreason import encoding
-from tnreason import algorithms
+from tnreason import representation
+from tnreason import reasoning
 
 
 class KnowledgePropagator:
@@ -11,12 +11,12 @@ class KnowledgePropagator:
         self.atoms = knowledgeBase.distributedVariables
         self.knowledgeCores = {
             **knowledgeBase.create_cores(),
-            **encoding.create_atom_evidence_cores(evidenceDict)}
+            **representation.create_atom_evidence_cores(evidenceDict)}
 
-        self.propagator = algorithms.ConstraintPropagator(binaryCoresDict=self.knowledgeCores)
+        self.propagator = reasoning.ConstraintPropagator(binaryCoresDict=self.knowledgeCores)
 
-        self.knownHeads = get_evidence_headKeys(evidenceDict) + [key + encoding.suf.actCoreSuf for key in knowledgeBase.facts]
-#            encoding.get_formula_color(knowledgeBase.facts[key]) + encoding.suf.headCoreSuffix for key in
+        self.knownHeads = get_evidence_headKeys(evidenceDict) + [key + representation.suf.actCoreSuf for key in knowledgeBase.facts]
+#            representation.get_formula_color(knowledgeBase.facts[key]) + representation.suf.headCoreSuffix for key in
 #            knowledgeBase.facts]
 
     def evaluate(self, variables=None):
@@ -35,5 +35,5 @@ class KnowledgePropagator:
                                                                  variable not in variablesShape}})
 
 def get_evidence_headKeys(evidenceDict):
-    return [encoding.get_formula_color(key) + encoding.suf.eviCoreIn + encoding.suf.actCoreSuf for key in
+    return [representation.get_formula_color(key) + representation.suf.eviCoreIn + representation.suf.actCoreSuf for key in
             evidenceDict]

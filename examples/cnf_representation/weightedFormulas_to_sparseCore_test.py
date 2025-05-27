@@ -1,4 +1,4 @@
-from tnreason.encoding import cnf_to_cores as ctc
+from tnreason.representation import cnf_to_cores as ctc
 
 if __name__ == "__main__":
 

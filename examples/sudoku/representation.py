@@ -1,5 +1,5 @@
-from tnreason import algorithms
-from tnreason import encoding
+from tnreason import reasoning
+from tnreason import representation
 
 import numpy as np
 

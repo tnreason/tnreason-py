@@ -1,6 +1,6 @@
 from examples.dpbedia_companies import query_strings as qs
-from tnreason.encoding import workload_to_sparqlwrapper as wts
-from tnreason import engine, encoding
+from tnreason.representation import workload_to_sparqlwrapper as wts
+from tnreason import engine, representation
 
 dbpediaEndpointString = "https://dbpedia.org/sparql"
 
@@ -15,15 +15,15 @@ convertedQueryCoresDict = {
 colorArchitecture = {
     "head": [["imp"], "location_tVar=[3]", "branch_tVar=[3]"]
 }
-selectionCoresDict = encoding.create_architecture(colorArchitecture, headNeuronNames=["head"])
+selectionCoresDict = representation.create_architecture(colorArchitecture, headNeuronNames=["head"])
 
 smallContracted = engine.contract({**selectionCoresDict, **convertedQueryCoresDict},
                                   openColors=["head_p0_vsVar",
-                                              "head_p1_vsVar"])  # encoding.find_selection_colors(colorArchitecture))
+                                              "head_p1_vsVar"])  # representation.find_selection_colors(colorArchitecture))
 bestSelection = smallContracted.get_argmax()
 print(smallContracted.values)
 print(smallContracted.get_argmax())
 
 fullContracted = engine.contract({**selectionCoresDict, **convertedQueryCoresDict},
-                                 openColors=encoding.find_selection_colors(colorArchitecture)).get_argmax()
-print(encoding.create_solution_expression(colorArchitecture, fullContracted))
+                                 openColors=representation.find_selection_colors(colorArchitecture)).get_argmax()
+print(representation.create_solution_expression(colorArchitecture, fullContracted))

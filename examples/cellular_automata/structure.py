@@ -1,4 +1,4 @@
-from tnreason import knowledge
+from tnreason import application
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -32,8 +32,8 @@ def visualize_evolution(evolStates, storePath=None):
         plt.show()
 
 if __name__ == "__main__":
-    inferer = knowledge.InferenceProvider(
-        knowledge.HybridKnowledgeBase(
+    inferer = application.InferenceProvider(
+        application.HybridKnowledgeBase(
             facts={"f1": ["eq", "m1", "n"]}
         )
     )

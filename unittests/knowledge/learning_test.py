@@ -1,8 +1,8 @@
 import unittest
 
-from tnreason import knowledge
+from tnreason import application
 
-genKB = knowledge.HybridKnowledgeBase(
+genKB = application.HybridKnowledgeBase(
     facts={"f1": ["a1"]},
     weightedFormulas={
         "wf1": ["imp", "a1", "a2", 1.1424],
@@ -10,12 +10,11 @@ genKB = knowledge.HybridKnowledgeBase(
         "wf2": ["not", "a3", 50.2]
     }
 )
-sampleDf = knowledge.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
-
+sampleDf = application.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
 
 class HybridLearnerTest(unittest.TestCase):
     def test_boosting_kl_max(self):
-        learner = knowledge.HybridLearner(knowledge.HybridKnowledgeBase(
+        learner = application.HybridLearner(application.HybridKnowledgeBase(
             weightedFormulas={"w1": ["not", "a3", 2],
                               "w2": ["a2", -1]}
         ))
@@ -30,7 +29,7 @@ class HybridLearnerTest(unittest.TestCase):
                  },
             "acceptanceCriterion": "always",
             "calibrationSweeps": 2
-        }, knowledge.get_empirical_distribution(sampleDf), stepName="_funBoost")
+        }, application.get_empirical_distribution(sampleDf), stepName="_funBoost")
         hybridKB = learner.get_knowledge_base()
 
         self.assertEqual(hybridKB.facts["neur1_funBoost"],
@@ -38,7 +37,7 @@ class HybridLearnerTest(unittest.TestCase):
         self.assertEqual(hybridKB.facts["w1"], ["not", "a3"])
 
     def test_boosting_energy_max(self):
-        learner = knowledge.HybridLearner(knowledge.HybridKnowledgeBase(
+        learner = application.HybridLearner(application.HybridKnowledgeBase(
             weightedFormulas={"w1": ["not", "a3", 2],
                               "w2": ["a2", -1]}
         ))
@@ -53,8 +52,8 @@ class HybridLearnerTest(unittest.TestCase):
                  },
             "acceptanceCriterion": "always",
             "calibrationSweeps": 2
-        }, knowledge.get_empirical_distribution(sampleDf), stepName="_funBoost")
+        }, application.get_empirical_distribution(sampleDf), stepName="_funBoost")
         hybridKB = learner.get_knowledge_base()
-
+        print(hybridKB.weightedFormulas)
         self.assertEqual(hybridKB.weightedFormulas["neur1_funBoost"][:-1], ["imp", "a1", "a2"])
         self.assertEqual(hybridKB.facts["w1"], ["not", "a3"])

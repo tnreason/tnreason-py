@@ -88,10 +88,10 @@ def find_all_color_shapes(subNetworks):
 
 
 if __name__ == "__main__":
-    from tnreason import encoding
+    from tnreason import representation
 
-    subNetworks = {"net1": encoding.create_formulas_cores({"f1": ["imp", "a", "b"]}),
-                   "net2": encoding.create_formulas_cores({"f2": ["a"],
+    subNetworks = {"net1": representation.create_formulas_cores({"f1": ["imp", "a", "b"]}),
+                   "net2": representation.create_formulas_cores({"f2": ["a"],
                                                            "f3": ["imp", "a", "c"]})}
 
     lCon = BinaryContractionPropagator(subNetworks, queryVariables={"q1": ["a"],

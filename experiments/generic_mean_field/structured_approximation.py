@@ -1,7 +1,7 @@
-from tnreason import knowledge
-from tnreason.algorithms import energy_based_algorithms as eba
+from tnreason import application
+from tnreason.reasoning import energy_based_algorithms as eba
 
-energyDict = knowledge.HybridKnowledgeBase(
+energyDict = application.HybridKnowledgeBase(
     weightedFormulas={"w1": ["imp", "a", "b", 5.678],
                       # "w2": ["a", 1]
                       }

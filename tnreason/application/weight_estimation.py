@@ -1,11 +1,11 @@
-from tnreason import encoding
-from tnreason import algorithms
+from tnreason import representation
+from tnreason import reasoning
 
-from tnreason.knowledge import deductive as ded
+from tnreason.application import deductive as ded
 
 class WeightEstimator:
     """
-    Uses algorithms.MomentMatcher to estimate weights
+    Uses reasoning.MomentMatcher to estimate weights
     """
     def __init__(self, hybridKB, satisfactionDict=None):
         self.hybridKB = hybridKB
@@ -38,23 +38,23 @@ class WeightEstimator:
         """
         Optimizes the weights of the remaining formulas
         """
-        momentCoreSuffix = encoding.suf.actCoreSuf
+        momentCoreSuffix = representation.suf.actCoreSuf
         kbCores = self.hybridKB.create_cores()
 
         headCores = {}
         for key in self.satisfactionDict:
             headCores[key + momentCoreSuffix] = kbCores.pop(key + momentCoreSuffix)
 
-        calibrator = algorithms.MomentMatcher(structureCores=kbCores,
-                                              targetCores={key + momentCoreSuffix: encoding.create_boolean_head(
-                                                  color=encoding.get_formula_color(
+        calibrator = reasoning.MomentMatcher(structureCores=kbCores,
+                                             targetCores={key + momentCoreSuffix: representation.create_boolean_head(
+                                                  color=representation.get_formula_color(
                                                       self.hybridKB.weightedFormulas[key][:-1]),
                                                   headType="uncertaintyAsWeight",
                                                   weight=self.satisfactionDict[key],
                                                   name=key + momentCoreSuffix)[key+momentCoreSuffix] for key in self.satisfactionDict},
-                                              headCores=headCores,
-                                              binaryMoments=True,
-                                              **engineSpec)
+                                             headCores=headCores,
+                                             binaryMoments=True,
+                                             **engineSpec)
         calibrator.alternating_matching(sweepNum=sweepNum)
         for key in self.satisfactionDict:
             self.hybridKB.weightedFormulas[key][-1] = calibrator.weightDict[key + momentCoreSuffix][-1]
