@@ -1,7 +1,10 @@
-from tnreason.representation.formulas_to_cores import create_formulas_cores, create_raw_formula_cores, get_formula_color, \
+from tnreason.representation.formulas_to_cores import create_formulas_cores, create_raw_formula_cores, \
+    get_formula_color, \
     create_formula_head, create_evidence_cores, create_atom_evidence_cores
-from tnreason.representation.categoricals_to_cores import create_categorical_cores, create_atomization_cores, create_constraintCoresDict
-from tnreason.representation.neurons_to_cores import create_neuron, create_architecture, find_atom_colors, find_selection_dimDict, \
+from tnreason.representation.categoricals_to_cores import create_categorical_cores, create_atomization_cores, \
+    create_constraintCoresDict
+from tnreason.representation.neurons_to_cores import create_neuron, create_architecture, find_atom_colors, \
+    find_selection_dimDict, \
     find_selection_colors
 from tnreason.representation.data_to_cores import create_data_cores
 
@@ -13,6 +16,8 @@ from tnreason.representation.cnf_to_cores import weightedFormulas_to_sparseCore
 
 from tnreason.representation.creation_handling import create_tensor_encoding, \
     create_relational_encoding, create_partitioned_relational_encoding, \
-    coordinatewise_transform, create_trivial_core, create_basis_core, create_trivial_cores, create_boolean_head
+    coordinatewise_transform, create_trivial_core, create_basis_core, create_trivial_cores, create_boolean_head, \
+    create_activation_vector, create_interpretation_vector, create_partition_activation_vector
 
-from tnreason.representation.script_transform import  get_all_atom_colors, get_atom_colors, drop_variable_suffices, create_solution_expression, get_colorList_from_nameList
+from tnreason.representation.script_transform import get_all_atom_colors, get_atom_colors, \
+    drop_color_suffixes_from_assignment, create_solution_expression, add_color_suffixes

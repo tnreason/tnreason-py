@@ -11,9 +11,10 @@ Handles script language inputs
 
 ## Handling expressions
 
-def drop_variable_suffices(colorAssignments, includeComputed=True):
+def drop_color_suffixes_from_assignment(colorAssignments, includeComputed=True):
     """
     For distributed and computed variables: drops the suffixes from the colors to retrieve the names
+        * colorAssignments: Dictionary of colors as keys and assignments as variables
     """
     nameAssignments = dict()
     for color in colorAssignments:
@@ -23,6 +24,14 @@ def drop_variable_suffices(colorAssignments, includeComputed=True):
             if color.endswith(suf.comVarSuf):
                 nameAssignments[color[:-len(suf.comVarSuf)]] = colorAssignments[color]
     return nameAssignments
+
+def add_color_suffixes(nameList):
+    """
+    Converts a list of names into colors by adding the suffixes
+        * nameList: List of names
+    """
+    return [name + suf.disVarSuf for name in nameList]
+
 
 def get_all_atom_colors(expressionsDict):
     """
@@ -47,15 +56,8 @@ def get_atom_colors(expression):
             atoms = atoms | get_atom_colors(subExpression)
         return atoms
 
-def get_colorList_from_nameList(nameList):
-    """
-    Converts a list of names into colors by adding the suffixes
-        * nameList: List of names
-    """
-    return [name + suf.disVarSuf for name in nameList]
 
 ## Functions to identify solution expressions from architecture names when candidates are selected
-
 def create_solution_expression(neuronNameDict, selectionDict):
     """
     Replaces the candidates of neurons by solutions and returns the identified head neurons as formulas

@@ -87,7 +87,7 @@ def coordinatewise_transform(coreList, rDrFunction, outCoreType=None, outName="T
     * rDrFunction: Function from \mathbb{R}^d to \mathbb{R}, computing the coordinate of the output core
     """
     newCore = engine.get_core(coreType=outCoreType)(shape=coreList[0].shape, colors=coreList[0].colors, name=outName)
-    for index in np.ndindex(coreList[0].shape):
+    for index in np.ndindex(*coreList[0].shape):
         newCore[{color: index[k] for k, color in enumerate(coreList[0].colors)}] = rDrFunction(
             *[core[index] for core in coreList])
     return newCore
@@ -103,6 +103,37 @@ def create_trivial_cores(rawKeys, shapeDict=None, suffix="", coreType=None):
     return {key + suffix: create_trivial_core(key + suffix, shapeDict[key], [key], coreType=coreType) for key in
             rawKeys}
 
+## To do: integrate
+def create_activation_vector(color, canParam=0, supportConstraint=[0,1], coreType=None, name=None, interImage=[0,1]):
+    """
+    Creates a generic activation core to a feature of an exponential statistic
+        * support: Support of the activation vector
+        * canParam: Canonical parameter of the feature to the activation core
+        * interImage: Image of the interpretation function to the computed variable, which enumerates with [len]. By default: boolean [0,1].
+    """
+    if name is None:
+        name = color + suf.actCoreSuf
+    interFunction = lambda x: math.exp(canParam * x) * int(x not in supportConstraint)
+    return engine.create_from_slice_iterator(shape=[len(interImage)], colors=[color],
+                                      sliceIterator=[
+                                          (interFunction(entry), {color: i}) for i, entry in enumerate(interImage)],
+                                      coreType=coreType, name=name)
+def create_interpretation_vector(color, coreType=None, name=None, interImage=[0,1]):
+    """
+    Creates the vector interpretation of a term variable color, where interImage specifies the interpretation
+    """
+    return engine.create_from_slice_iterator(
+        shape=[len(interImage)], colors=[color],
+        sliceIterator=[(interImage[i], {color: i}) for i in range(len(interImage))],
+        coreType=coreType, name=name
+    )
+
+def create_partition_activation_vector(color, canParamCore, coreType=None, name=None):
+    if name is None:
+        name = color + suf.actCoreSuf
+    return coordinatewise_transform([canParamCore], rDrFunction= math.exp, outCoreType=coreType, outName=name)
+
+## Special cases
 
 def create_trivial_core(name, shape, colors, coreType=None):
     return create_tensor_encoding(inshape=shape, incolors=colors, function=lambda *args: 1, coreType=coreType,
