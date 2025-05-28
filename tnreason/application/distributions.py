@@ -32,6 +32,9 @@ class DistributionBase(engine.EngineUser):
         return engine.contract(self.create_cores(), openColors=self.distributedVariables,
                                contractionMethod=self.contractionMethod)
 
+# To be implemented:
+#class HybridExpDist(DistributionBase):
+
 
 class ProposalDistribution(DistributionBase):
 
@@ -180,7 +183,7 @@ class HybridKnowledgeBase(DistributionBase):
 
     def create_cores(self):
         categoricalConstraintColors = {
-            catColor: representation.get_colorList_from_nameList(self.categoricalConstraints[catColor]) for catColor in
+            catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
             self.categoricalConstraints} # Only categorical constraints remain interpreted as colors !
 
         return {**representation.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),

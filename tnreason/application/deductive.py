@@ -46,7 +46,7 @@ class InferenceProvider(engine.EngineUser):
         """
         return engine.normate(coreDict={**self.distribution.create_cores(),
                                         **representation.create_atom_evidence_cores(evidenceDict)},
-                              inColors=[], outColors=representation.get_colorList_from_nameList(variableList),
+                              inColors=[], outColors=representation.add_color_suffixes(variableList),
                               contractionMethod=self.contractionMethod
                               )
 
@@ -56,7 +56,7 @@ class InferenceProvider(engine.EngineUser):
             * PolynomialCore, uses gurobi optimizer on integer linear program
             * NumpyCore uses the argmax method of numpy
         """
-        return representation.drop_variable_suffices(self.query(variableList, evidenceDict).get_argmax())
+        return representation.drop_color_suffixes_from_assignment(self.query(variableList, evidenceDict).get_argmax())
 
     def search_mode(self, variableList=None, optimizationMethod="numpyArgmax", **specDict):
         """
@@ -86,7 +86,7 @@ class InferenceProvider(engine.EngineUser):
         if nameList is None:
             colorList = self.distribution.distributedVariables
         else:
-            colorList = representation.get_colorList_from_nameList(nameList)
+            colorList = representation.add_color_suffixes(nameList)
         if method in reasoning.energySamplingMethods:
             sampler = reasoning.get_energy_based_sampler(self.distribution.get_energy_dict(), samplingMethod=method,
                                                          sampleNum=sampleNum,
@@ -110,4 +110,4 @@ class InferenceProvider(engine.EngineUser):
     def draw_sample(self, names=None, method="forwardSampling"):
         sampler = self.draw_samples(sampleNum=1, nameList=names, method=method, dfOutput=False)
         iter(sampler)
-        return representation.drop_variable_suffices(next(sampler)[1])
+        return representation.drop_color_suffixes_from_assignment(next(sampler)[1])
