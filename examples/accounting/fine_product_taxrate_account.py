@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from tnreason import application, representation, engine
 
@@ -36,17 +37,27 @@ negative_contracted = 1 / fineModel.get_partition_function() * engine.contract(
 
 likelihood_gradient = positive_contracted + -1 * negative_contracted
 
-correctionFormula = representation.create_solution_expression(fine_architecture, likelihood_gradient.get_argmax())["neur1"]
 
-## Include the correction formula into the model (as a candidate for a weighted formula, the weight estimator then identifies it as a fact)
-fineModel.include(application.HybridKnowledgeBase(weightedFormulas={"fineCorrection": correctionFormula + [0]}))
+## Extract formulas in gradient by threshold criterion
+learnedFormulas = dict()
+threshold = 0.08
+i = 0
+while np.max(likelihood_gradient.values) > threshold:
+    selMax = likelihood_gradient.get_argmax()
+    learnedFormulas["fine_"+str(i)] = representation.create_solution_expression(fine_architecture, selMax)["neur1"]
+    i+=1
+    likelihood_gradient[selMax] = -1*likelihood_gradient[selMax]
+
+fineModel.include(application.HybridKnowledgeBase(weightedFormulas={
+    **{key: learnedFormulas[key]+[0] for key in learnedFormulas}
+}))
 
 weightEstimator = application.WeightEstimator(fineModel)
 weightEstimator.get_satisfaction_dict(empDist)
 weightEstimator.fact_check()
 weightEstimator.calibrate_weights(10)
 
+
 fineModel.to_yaml("assets/fine_model.yaml")
 print(fineModel)
-
 

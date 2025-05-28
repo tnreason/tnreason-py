@@ -18,15 +18,27 @@ facts:
   - imp
   - TAX_RATE_7
   - ACCOUNT_Account_3300
-  fineCorrection:
+  fine_0:
   - imp
   - - and
     - TAX_RATE_19
     - PRODUCT_CLASS_SEA-CP_04
   - ACCOUNT_Account_3300
+  fine_1:
+  - imp
+  - - and
+    - TAX_RATE_19
+    - PRODUCT_CLASS_SEA-CP_04
+  - ACCOUNT_Account_4605
+  fine_2:
+  - imp
+  - - and
+    - TAX_RATE_19
+    - PRODUCT_CLASS_SEA-CP_05
+  - ACCOUNT_Account_4605
 weightedFormulas:
   coarse_1:
   - imp
   - TAX_RATE_19
   - ACCOUNT_Account_3400
-  - 1.6094379124341007
+  - 1.4759065198095782
