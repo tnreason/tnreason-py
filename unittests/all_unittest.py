@@ -19,4 +19,6 @@ from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_test import HybridLearnerTest
 from knowledge.distribution_unittest import MNTest
 
+from reasoning.basic_forward_backward_test import ForwardBackwardTest
+
 unittest.main()
