@@ -54,6 +54,6 @@ class HybridLearnerTest(unittest.TestCase):
             "calibrationSweeps": 2
         }, application.get_empirical_distribution(sampleDf), stepName="_funBoost")
         hybridKB = learner.get_knowledge_base()
-        print(hybridKB.weightedFormulas)
+        #print(hybridKB.weightedFormulas)
         self.assertEqual(hybridKB.weightedFormulas["neur1_funBoost"][:-1], ["imp", "a1", "a2"])
         self.assertEqual(hybridKB.facts["w1"], ["not", "a3"])

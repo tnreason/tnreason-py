@@ -47,7 +47,7 @@ class InferenceBase(engine.EngineUser):
         if featureColors is None:
             featureColors = list(self.singleFeatureDict.keys()) + list(self.partitionFeatureDict.keys())
         return {**{featureColor + representation.suf.actCoreSuf: representation.create_activation_vector(
-            featureColor, canParam=self.canParamDict[featureColor], supportConstraint=[], coreType=self.coreType,
+            featureColor, canParam=self.canParamDict[featureColor], coreType=self.coreType,
             interImage=self.interpretationDict[featureColor], name=featureColor + representation.suf.actCoreSuf
         )
             for featureColor in featureColors if featureColor in self.singleFeatureDict
@@ -87,7 +87,7 @@ class ForwardContractor(InferenceBase):
                                                                                         interImage=
                                                                                         self.interpretationDict[
                                                                                             featureColor])},
-            openColors=[]
+            openColors=[], dimensionDict=self.dimensionDict
         )[:]
 
     def calculate_indicator_mean(self, featureColor):
@@ -98,7 +98,7 @@ class ForwardContractor(InferenceBase):
         return engine.contract(
             coreDict={**self.computationCores,
                       **self.create_activation_cores()},
-            openColors=[featureColor]
+            openColors=[featureColor], dimensionDict=self.dimensionDict
         )
 
 
@@ -146,7 +146,7 @@ class BackwardAlternator(InferenceBase):
 
         self.forwardInferer.canParamDict[featureColor] = 0
         indicatorMean = self.forwardInferer.calculate_indicator_mean(featureColor)
-        canParamSolution = calculate_optimal_canonical(
+        canParamSolution = calculate_single_canonical(
             indicatorMeanVector=indicatorMean,
             meanParameter=self.meanParamDict[featureColor],
             imageInterpretation=self.interpretationDict[featureColor]
@@ -166,8 +166,10 @@ class BackwardAlternator(InferenceBase):
                     self.update_single_feature(featureColor)
 
 
-def calculate_optimal_canonical(indicatorMeanVector, meanParameter, imageInterpretation=[0, 1]):
-    if imageInterpretation == [0, 1]:
+def calculate_single_canonical(indicatorMeanVector, meanParameter, imageInterpretation=[0, 1]):
+    if len(imageInterpretation) == 1:
+        return 0
+    elif imageInterpretation == [0, 1]:
         if meanParameter in [0, 1]:
             raise ValueError("Mean parameter {} needs to be a constraint.".format(meanParameter))
         if indicatorMeanVector[0] == 0:
@@ -176,4 +178,51 @@ def calculate_optimal_canonical(indicatorMeanVector, meanParameter, imageInterpr
             raise ValueError("Indicator mean vector needs to be treated a constraint.")
         return np.log(meanParameter / (1 - meanParameter) * (indicatorMeanVector[0] / indicatorMeanVector[1]))
     else:
-        ValueError("Image interpretation {} not supported.".format(imageInterpretation))
+        return newton_canonical_optimization(indicatorMeanVector, meanParameter,
+                                             imageInterpretation=imageInterpretation)
+
+
+def newton_canonical_optimization(indicatorMeanVector, meanParam, imageInterpretation=[0, 1], startCanParam=0,
+                                  maxIter=100, precision=1e-4, dumpFactor=0.8, verbose=True):
+    currentCanParam = startCanParam
+
+    stopOptimization = False
+    i = 0
+    while not stopOptimization:
+        i += 1
+        if i > maxIter:
+            stopOptimization = True
+        newCanParam = newton_step_single(indicatorMeanVector, meanParam, currentCanParam,
+                                         imageInterpretation=imageInterpretation)
+        if abs(currentCanParam - newCanParam) < precision:
+            stopOptimization = True
+        currentCanParam = (1-dumpFactor) * currentCanParam + dumpFactor * newCanParam
+
+        if verbose:
+            print("Newton Iteration {} updated parameter to {}.".format(i,currentCanParam))
+    return currentCanParam
+
+
+def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, imageInterpretation=[0, 1]):
+    color = indicatorMeanVector.colors[0]
+    funvalue = engine.contract({"indicatorMean": indicatorMeanVector,
+                                "currentCanCore": representation.create_activation_vector(
+                                    color=color, canParam=currCanParameter, interImage=imageInterpretation),
+                                "funTransform": representation.coordinatewise_transform(
+                                    [representation.create_interpretation_vector(color=indicatorMeanVector.colors[0],
+                                                                                 interImage=imageInterpretation)],
+                                    rDrFunction=lambda x: (x - meanParameter)
+                                )
+                                }, openColors=[]
+                               )[:]
+    derValue = engine.contract({"indicatorMean": indicatorMeanVector,
+                                "currentCanCore": representation.create_activation_vector(
+                                    color=color, canParam=currCanParameter, interImage=imageInterpretation),
+                                "funTransform": representation.coordinatewise_transform(
+                                    [representation.create_interpretation_vector(color=indicatorMeanVector.colors[0],
+                                                                                 interImage=imageInterpretation)],
+                                    rDrFunction=lambda x: x * (x - meanParameter)
+                                )
+                                }, openColors=[]
+                               )[:]
+    return currCanParameter - funvalue / derValue if derValue != 0 else currCanParameter

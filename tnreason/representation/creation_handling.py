@@ -104,16 +104,19 @@ def create_trivial_cores(rawKeys, shapeDict=None, suffix="", coreType=None):
             rawKeys}
 
 ## To do: integrate
-def create_activation_vector(color, canParam=0, supportConstraint=[0,1], coreType=None, name=None, interImage=[0,1]):
+def create_activation_vector(color, canParam=0, supportConstraint=None, coreType=None, name=None, interImage=[0,1]):
     """
     Creates a generic activation core to a feature of an exponential statistic
-        * support: Support of the activation vector
+        * supportConstraint: Support of the activation vector
         * canParam: Canonical parameter of the feature to the activation core
         * interImage: Image of the interpretation function to the computed variable, which enumerates with [len]. By default: boolean [0,1].
     """
     if name is None:
         name = color + suf.actCoreSuf
-    interFunction = lambda x: math.exp(canParam * x) * int(x not in supportConstraint)
+    if supportConstraint is None:
+        interFunction = lambda x: math.exp(canParam * x)
+    else:
+        interFunction = lambda x: math.exp(canParam * x) * int(x in supportConstraint)
     return engine.create_from_slice_iterator(shape=[len(interImage)], colors=[color],
                                       sliceIterator=[
                                           (interFunction(entry), {color: i}) for i, entry in enumerate(interImage)],
