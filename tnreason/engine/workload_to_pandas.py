@@ -9,7 +9,7 @@ defaultNanValue = -1
 
 
 class PandasCore:
-
+    coreType="PandasCore"
     def __init__(self, values=None, colors=None, name="NoName", shape=None, valueColumn=defaultValueColumnString,
                  nanValue=defaultNanValue):
         self.colors = colors

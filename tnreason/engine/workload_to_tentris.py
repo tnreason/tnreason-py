@@ -102,6 +102,7 @@ class TentrisSPARQLEvaluationTermCore:
 
 
 class HypertrieCore:
+    coreType="HypertrieCore"
     def __init__(self, values=None, colors=None, name=None, shape=None, dtype=float):
         self.colors = colors
         self.name = name

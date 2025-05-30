@@ -5,6 +5,7 @@ from tnreason.engine import subscript_creation as subc
 
 
 class TorchCore:
+    coreType = "TorchCore"
     def __init__(self, values, colors, name=None, inType="NumpyCore"):
         if inType == "NumpyCore":
             self.values = tor.from_numpy(values)

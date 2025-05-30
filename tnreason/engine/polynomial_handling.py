@@ -10,7 +10,7 @@ class PolynomialCore:
             - its value k specifies the variable to X==k
     Each monomial seen as a tensor is specified by a weighted trivial slice.
     """
-
+    coreType= "PolynomialCore"
     def __init__(self, values=None, colors=None, name="NoName", shape=None):
 
         if values is None:  # Empty intialization

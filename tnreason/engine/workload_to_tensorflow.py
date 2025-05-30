@@ -5,6 +5,7 @@ from tnreason.engine import subscript_creation as subc
 
 
 class TensorFlowCore:
+    coreType = "TensorFlowCore"
     def __init__(self, values, colors, name=None):
         self.values = tf.convert_to_tensor(values)
         self.colors = colors
