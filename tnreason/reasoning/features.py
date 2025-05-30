@@ -10,7 +10,7 @@ canCorePre = "_can"
 
 
 class ComputedFeature:
-    def __init__(self, featureColors, affectedComputationCores, interpretationDict=dict(), name=None):
+    def __init__(self, featureColors, affectedComputationCores=[], interpretationDict=dict(), name=None):
         self.featureColors = featureColors
         self.affectedComputationCores = affectedComputationCores
 
@@ -23,8 +23,8 @@ class ComputedFeature:
 
 
 class SingleFeature(ComputedFeature):
-    def __init__(self, featureColor, affectedComputationCores, interpretationDict=dict(), name=None):
-        super().__init__([featureColor], affectedComputationCores, interpretationDict, name)
+    def __init__(self, featureColor, **featSpec):
+        super().__init__(featureColors=[featureColor], **featSpec)
 
     def create_trivial_canParam(self, coreType=None):
         return 0
@@ -68,10 +68,11 @@ class SoftPartitionFeature(ComputedFeature):
     Feature Colors are head colors of computation cores and the indices are indicating subsets of a partition.
     canParams and meanParams are tensors with the feature colors
     """
+
     def create_trivial_canParam(self, coreType=None):
         return 0 * representation.create_trivial_core(
-                 name=canCorePre, shape=[len(self.interpretationDict[featureColor]) for featureColor in self.featureColors],
-                 colors=self.featureColors, coreType=coreType)
+            name=canCorePre, shape=[len(self.interpretationDict[featureColor]) for featureColor in self.featureColors],
+            colors=self.featureColors, coreType=coreType)
 
     def create_activation_core(self, canParam, coreType=None):
         return representation.coordinatewise_transform(
@@ -96,29 +97,47 @@ class SoftPartitionFeature(ComputedFeature):
         )
 
 
-
 class HardPartitionFeature(ComputedFeature):
     """
-    Activation cores are boolean tensors -> Interpretation as boolean base measure of the family
+    Activation cores are boolean tensors -> Interpretation as boolean base measure of the family<
     ! canParam interpreted as activation vector
     """
 
     def create_trivial_canParam(self, coreType=None):
         return representation.create_trivial_core(
-                 name=canCorePre, shape=[len(self.interpretationDict[featureColor]) for featureColor in self.featureColors],
-                 colors=self.featureColors, coreType=coreType)
+            name=canCorePre, shape=[len(self.interpretationDict[featureColor]) for featureColor in self.featureColors],
+            colors=self.featureColors, coreType=coreType)
 
     def create_activation_core(self, canParam, coreType=None):
         return canParam
 
-    def local_adjustment(self, environmentMean, meanParam, oldCanParam=None):
+    def local_adjustment(self, environmentMean=None, meanParam=None, oldCanParam=None, coreType=None):
         """
-        By support of the enviornment mean?
+        Return subset encoding of the support intersection within the interpretation image
         """
-        pass
+        newCanparam = representation.create_vanishing_core(
+            colors=self.featureColors,
+            shape=[len(self.interpretationDict[featureColor]) for featureColor in self.featureColors],
+            coreType=coreType)
+        for posTuple in np.ndindex(*newCanparam.shape):
+            posDict = {color: posTuple[i] for i, color in enumerate(newCanparam.colors)}
+            keep = True
+            if environmentMean is not None:
+                if environmentMean[posDict] == 0:
+                    keep = False
+            if meanParam is not None:
+                if meanParam[posDict] == 0:
+                    keep = False
+            if oldCanParam is not None:
+                if oldCanParam[posDict] == 0:
+                    keep = False
+            if keep:
+                newCanparam[posDict] = 1
+        return newCanparam
+
 
 class ComputationActivationNetwork(engine.EngineUser):
-    def __init__(self, featureDict, computationCoreDict, canParamDict=dict(), #meanParamDict=dict(),
+    def __init__(self, featureDict, computationCoreDict, canParamDict=dict(),  # meanParamDict=dict(),
                  **engineSpec):
         """
         * featureSpecDict: {featureKey : ExpDistFeature for all features}
@@ -142,7 +161,7 @@ class ComputationActivationNetwork(engine.EngineUser):
         return {featureKey + representation.suf.actCoreSuf: self.featureDict[featureKey].create_activation_core(
             canParam=self.canParamDict[featureKey],
             coreType=self.coreType) for
-                featureKey in featureKeys}
+            featureKey in featureKeys}
 
     def create_cores(self):
         return {**self.computationCoreDict, **self.create_activation_cores()}
@@ -164,8 +183,12 @@ def calculate_single_canonical(indicatorMeanVector, meanParameter, imageInterpre
                                              imageInterpretation=imageInterpretation)
 
 
-def newton_canonical_optimization(indicatorMeanVector, meanParam, imageInterpretation=[0, 1], startCanParam=0,
+def newton_canonical_optimization(indicatorMeanVector, meanParam, imageInterpretation, startCanParam=0,
                                   maxIter=100, precision=1e-4, dumpFactor=0.8, verbose=True):
+    """
+    For single feature optimization, in case of imageInterpretation different from [0,1]
+    """
+
     currentCanParam = startCanParam
 
     stopOptimization = False
@@ -185,7 +208,7 @@ def newton_canonical_optimization(indicatorMeanVector, meanParam, imageInterpret
     return currentCanParam
 
 
-def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, imageInterpretation=[0,1]):
+def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, imageInterpretation):
     color = indicatorMeanVector.colors[0]
     funvalue = engine.contract({"indicatorMean": indicatorMeanVector,
                                 "currentCanCore": representation.create_activation_vector(

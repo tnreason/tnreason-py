@@ -131,16 +131,15 @@ def create_interpretation_vector(color, coreType=None, name=None, interImage=[0,
         coreType=coreType, name=name
     )
 
-def create_partition_activation_vector(color, canParamCore, coreType=None, name=None):
-    if name is None:
-        name = color + suf.actCoreSuf
-    return coordinatewise_transform([canParamCore], rDrFunction= math.exp, outCoreType=coreType, outName=name)
-
 ## Special cases
 
 def create_trivial_core(name, shape, colors, coreType=None):
     return create_tensor_encoding(inshape=shape, incolors=colors, function=lambda *args: 1, coreType=coreType,
                                          name=name)
+
+def create_vanishing_core(colors, shape, coreType=None, name=None):
+    return engine.create_from_slice_iterator(shape=shape, colors=colors, sliceIterator=[], coreType=coreType, name=name)
+
 
 def create_basis_core(name, shape, colors, numberTuple, coreType=None):
     if isinstance(numberTuple, tuple) or isinstance(numberTuple, list):

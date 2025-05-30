@@ -46,6 +46,7 @@ class WeightEstimator:
         for key in self.satisfactionDict:
             headCores[key + momentCoreSuffix] = kbCores.pop(key + momentCoreSuffix)
 
+        # To instance of backward contractor
         calibrator = reasoning.MomentMatcher(structureCores=kbCores,
                                              targetCores={key + momentCoreSuffix: tnreason.representation.create_boolean_head(
                                                   color=representation.get_formula_color(
