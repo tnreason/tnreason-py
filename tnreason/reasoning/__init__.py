@@ -12,3 +12,16 @@ from tnreason.reasoning.optimization_handling import core_based_optimize, energy
 
 from tnreason.reasoning.sampling_handling import get_core_based_sampler, get_energy_based_sampler, coreSamplingMethods, \
     energySamplingMethods
+
+from tnreason.reasoning.features import SingleFeature, SoftPartitionFeature, HardPartitionFeature, \
+    ComputationActivationNetwork
+
+from tnreason.reasoning.inference import ForwardContractor, BackwardAlternator
+
+def get_inferer(inferenceMethod):
+    if inferenceMethod is None or inferenceMethod == "ForwardContractor":
+        return ForwardContractor
+    elif inferenceMethod == "BackAlternator":
+        return BackwardAlternator
+    else:
+        raise ValueError("Inference Method {} not implemented!".format(inferenceMethod))

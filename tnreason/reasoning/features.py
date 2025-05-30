@@ -137,7 +137,7 @@ class HardPartitionFeature(ComputedFeature):
 
 
 class ComputationActivationNetwork(engine.EngineUser):
-    def __init__(self, featureDict, computationCoreDict, canParamDict=dict(),  # meanParamDict=dict(),
+    def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),  # meanParamDict=dict(),
                  **engineSpec):
         """
         * featureSpecDict: {featureKey : ExpDistFeature for all features}
@@ -148,6 +148,7 @@ class ComputationActivationNetwork(engine.EngineUser):
 
         self.featureDict = featureDict
         self.computationCoreDict = computationCoreDict
+        self.baseMeasureCoreDict = baseMeasureCoreDict
 
         self.canParamDict = canParamDict
 
@@ -164,8 +165,16 @@ class ComputationActivationNetwork(engine.EngineUser):
             featureKey in featureKeys}
 
     def create_cores(self):
-        return {**self.computationCoreDict, **self.create_activation_cores()}
+        return {**self.computationCoreDict,
+                **self.create_activation_cores(),
+                **self.baseMeasureCoreDict}
 
+    def include_features(self, featureDict, canParamDict=dict(), computationCores=dict()):
+        self.featureDict.update(featureDict)
+        self.canParamDict.update(canParamDict)
+        self.canParamDict.update({featureKey : self.featureDict[featureKey].create_trivial_canParam()
+                                  for featureKey in featureDict if featureKey not in self.canParamDict})
+        self.computationCoreDict.update(computationCores)
 
 def calculate_single_canonical(indicatorMeanVector, meanParameter, imageInterpretation=[0, 1]):
     if len(imageInterpretation) == 1:

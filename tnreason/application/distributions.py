@@ -1,5 +1,7 @@
 from tnreason import representation
 from tnreason import engine
+from tnreason import reasoning
+
 import math
 
 probFormulasKey = "weightedFormulas"
@@ -7,6 +9,8 @@ logFormulasKey = "facts"
 categoricalsKey = "categoricalConstraints"
 evidenceKey = "evidence"
 
+mnSoftFeatureSuffix = "_mSoft"
+mnHardFeatureSuffix = "_mHard"
 
 class DistributionBase(engine.EngineUser):
     """
@@ -32,8 +36,9 @@ class DistributionBase(engine.EngineUser):
         return engine.contract(self.create_cores(), openColors=self.distributedVariables,
                                contractionMethod=self.contractionMethod)
 
+
 # To be implemented:
-#class HybridExpDist(DistributionBase):
+# class HybridExpDist(DistributionBase):
 
 
 class ProposalDistribution(DistributionBase):
@@ -68,6 +73,33 @@ class MarkovNetwork(DistributionBase):
 
     def create_cores(self):
         return self.coreDict
+
+    def to_caNetwork(self):
+        """
+        Converts the Markov Network to a Computation Activation Network
+        """
+        featureDict=dict()
+        canParamDict=dict()
+
+        # Decide Hard Features
+        for coreKey in self.coreDict:
+            supportCore, needed = create_factor_hardCore(self.coreDict[coreKey])
+            if needed:
+                featureDict[coreKey+mnHardFeatureSuffix] = reasoning.HardPartitionFeature(
+                    featureColors=supportCore.colors,
+                    affectedComputationCores=[coreKey],
+                )
+                canParamDict[coreKey + mnHardFeatureSuffix] = supportCore
+            canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType)
+            if needed:
+                featureDict[coreKey+mnSoftFeatureSuffix] = reasoning.SingleFeature(
+                    featureColor=coreKey,
+                    affectedComputationCores=[coreKey],
+                )
+                canParamDict[coreKey+mnSoftFeatureSuffix] = canParamCore
+        return reasoning.ComputationActivationNetwork(featureDict=featureDict,
+                                                      canParamDict=canParamDict,
+                                                      )
 
 
 def get_empirical_distribution(sampleDf, atomColors=None, interpretation="atomic", dimensionsDict=None):
@@ -184,7 +216,7 @@ class HybridKnowledgeBase(DistributionBase):
     def create_cores(self):
         categoricalConstraintColors = {
             catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
-            self.categoricalConstraints} # Only categorical constraints remain interpreted as colors !
+            self.categoricalConstraints}  # Only categorical constraints remain interpreted as colors !
 
         return {**representation.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),
                 **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
@@ -246,3 +278,63 @@ class HybridKnowledgeBase(DistributionBase):
                                      constraintKey in self.categoricalConstraints}
 
             return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}
+
+    def to_caNetwork(self):
+        featureDict = {
+            **{formulaKey: reasoning.SingleFeature(
+                featureColor=representation.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
+                affectedComputationCores=list(
+                    representation.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
+            ) for formulaKey in self.weightedFormulas},
+            **{formulaKey: reasoning.HardPartitionFeature(
+                featureColors=[representation.get_formula_color(self.facts[formulaKey])],
+                affectedComputationCores=list(representation.create_raw_formula_cores(self.facts[formulaKey]).keys()),
+            ) for formulaKey in self.facts},
+        }
+
+        computationCoreDict = {
+            **representation.create_formulas_cores({**self.weightedFormulas, **self.facts})
+        }
+
+        baseMeasureCoreDict = {
+            **representation.create_atom_evidence_cores(self.evidence),
+            **representation.create_categorical_cores(self.categoricalConstraints),
+            **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
+                                                      self.dimDict),
+            **self.backCores
+        }
+
+        canParamDict = {
+            **{formulaKey: self.weightedFormulas[formulaKey][-1] for formulaKey in self.weightedFormulas},
+            **{formulaKey: representation.create_basis_core(name=formulaKey, shape=[2], colors=[
+                representation.get_formula_color(self.facts[formulaKey])], numberTuple=(1)
+                                                            ) for formulaKey in self.facts}
+        }
+
+        return reasoning.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,
+                                                      computationCoreDict=computationCoreDict,
+                                                      baseMeasureCoreDict=baseMeasureCoreDict)
+
+import numpy as np
+
+def create_factor_hardCore(core, outCoreType=None, outName="SupportCore"):
+    needed=False
+    newCore = engine.get_core(coreType=outCoreType)(colors=core.colors, shape=core.shape, name=outName)
+    for posTuple in np.ndindex(*core.shape):
+        posDict = {color : posTuple[i] for i, color in enumerate(core.colors)}
+        if core[posDict] == 0:
+            needed=True
+        else:
+            newCore[posDict] = 1
+    return newCore, needed
+
+def create_factor_softCore(core, outCoreType=None, outName="SupportCore"):
+    needed=False
+    newCore = engine.get_core(coreType=outCoreType)(colors=core.colors, shape=core.shape, name=outName)
+    for posTuple in np.ndindex(*core.shape):
+        posDict = {color : posTuple[i] for i, color in enumerate(core.colors)}
+        coreValue =core[posDict]
+        if coreValue not in [0,1]: # Those are handled by hard core
+            needed=True
+            newCore[posDict] = math.log(coreValue)
+    return newCore, needed

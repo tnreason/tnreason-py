@@ -10,6 +10,29 @@ headNeuronString = "headNeurons"
 architectureString = "architecture"
 
 
+def calculate_satisfactionDict(empDistribution, expressionDict, inferenceMethod=None):
+    empCaNet = empDistribution.to_caNetwork()
+
+    expressionComputationCores = dict()
+    for expressionKey in expressionDict:
+        expressionComputationCores.update(representation.create_raw_formula_cores(expressionDict[expressionKey]))
+
+    empCaNet.include_features(
+        featureDict={expressionKey: reasoning.SoftPartitionFeature(
+            featureColors=[representation.get_formula_color(expressionDict[expressionKey])],
+            affectedComputationCores=representation.create_raw_formula_cores(expressionDict[expressionKey]).keys())
+            for expressionKey in expressionDict},
+        computationCores=expressionComputationCores
+    )
+
+    fInferer = reasoning.get_inferer(inferenceMethod)(caNetwork=empCaNet)
+    fInferer.infer_meanParams(featureKeys=expressionDict.keys())
+
+    return {expressionKey: fInferer.meanParamDict[expressionKey][1] / (
+            fInferer.meanParamDict[expressionKey][0] + fInferer.meanParamDict[expressionKey][1]) for expressionKey
+            in expressionDict}
+
+
 class HybridLearner:
     """
     Intended to use for extending a Knowledge Base based on data.
@@ -106,6 +129,42 @@ class HybridLearner:
                 specDict["calibrationSweeps"] = 10
             self.calibrate_weights_on_data(specDict, empDistribution)
 
+    # New based on inference
+    def infer_weights_on_data(self, empDistribution, satInferenceMethod="ForwardContractor",
+                              calForwardInferenceMethod="ForwardContractor",
+                              calInferenceMethod="BackAlternator"):
+        satisfactionDict = calculate_satisfactionDict(empDistribution,
+                                                      {expressionKey: self.knowledgeBase.weightedFormulas[
+                                                                          expressionKey][:-1] for expressionKey in
+                                                       self.knowledgeBase.weightedFormulas},
+                                                      inferenceMethod=satInferenceMethod)
+
+        ## Filter facts
+        for featureKey in satisfactionDict:
+            if satisfactionDict[featureKey] == 0:
+                self.knowledgeBase.facts[featureKey] = ["not", self.knowledgeBase.weightedFormulas[featureKey][:-1]]
+                self.knowledgeBase.weightedFormulas.pop(featureKey)
+            elif satisfactionDict[featureKey] == 1:
+                self.knowledgeBase.facts[featureKey] = self.knowledgeBase.weightedFormulas[featureKey][:-1]
+                self.knowledgeBase.weightedFormulas.pop(featureKey)
+            else:
+                print("Feature {} to be calibrated to match {}.".format(featureKey, satisfactionDict[featureKey]))
+
+        ## Update canonical parameters
+        bInferer = reasoning.get_inferer(calInferenceMethod)(caNetwork=self.knowledgeBase.to_caNetwork(),
+                                                             forwardInferer = reasoning.get_inferer(satInferenceMethod)(
+                                                                 self.knowledgeBase.to_caNetwork()
+                                                             ),
+                                                             meanParamDict={featureKey: satisfactionDict[featureKey] for
+                                                                            featureKey in
+                                                                            self.knowledgeBase.weightedFormulas})
+
+        bInferer.alternating_updates(featureKeys=list(self.knowledgeBase.weightedFormulas.keys()))
+
+        for expressionKey in self.knowledgeBase.weightedFormulas:
+            self.knowledgeBase.weightedFormulas[expressionKey][-1] = bInferer.caNetwork.canParamDict[expressionKey]
+
+    ## Old using customized inference
     def calibrate_weights_on_data(self, specDict, empDistribution, engineSpec=dict()):
         calibrator = wees.WeightEstimator(self.knowledgeBase)
         calibrator.get_satisfaction_dict(empDistribution)

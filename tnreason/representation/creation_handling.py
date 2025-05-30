@@ -92,6 +92,7 @@ def coordinatewise_transform(coreList, rDrFunction, outCoreType=None, outName="T
             *[core[index] for core in coreList])
     return newCore
 
+
 def create_trivial_cores(rawKeys, shapeDict=None, suffix="", coreType=None):
     """
     Creates dictionary of trivial cores with coordinate 1, which act as neutral placeholders in contractions.

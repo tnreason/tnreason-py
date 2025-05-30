@@ -9,12 +9,12 @@ class InferenceBase(engine.EngineUser):
     """
 
     def __init__(self, caNetwork=None,
-                 meanparamDict=dict(),
+                 meanParamDict=dict(),
                  **engineSpec):
         super().__init__(**engineSpec)
 
         self.caNetwork = caNetwork  # Instance of tnreason.reasoning.features.ComputationActivationNetwork
-        self.meanParamDict = meanparamDict
+        self.meanParamDict = meanParamDict
 
 
 class ForwardContractor(InferenceBase):
