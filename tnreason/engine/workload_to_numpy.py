@@ -13,6 +13,7 @@ def np_random_core(shape, colors, randomEngine, name):
 
 
 class NumpyCore:
+    coreType = "NumpyCore"
     def __init__(self, values=None, colors=None, name="NoName", shape=None):
 
         if values is None:  # Empty initialization based on shape

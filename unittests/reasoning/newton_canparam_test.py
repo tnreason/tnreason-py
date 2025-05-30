@@ -4,6 +4,7 @@ from tnreason import representation
 from tnreason.reasoning import inference as ib
 
 import math
+from tnreason.reasoning import features as ed
 
 f1 = ["and", "a1", "a2"]
 f2 = ["not", "a3"]
@@ -12,11 +13,23 @@ longfeatureLength = 10
 
 computationCores = {
     **representation.create_raw_formula_cores(f1),
-    **representation.create_raw_formula_cores(f2),
-    # "tCore" : representation.create_trivial_core("longFeature" + representation.suf.actCoreSuf, [longfeatureLength], ["longFeature"])
+    **representation.create_raw_formula_cores(f2)
 }
 
-# engine.draw_factor_graph(computationCores)
+featureDict = {
+    "(and_a1_a2)_cV": ed.SingleFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
+                                       name="f1"),
+    "(not_a3)_cV": ed.SingleFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
+                                    name="f2"),
+    "longFeature": ed.SingleFeature(featureColor="longFeature", affectedComputationCores=[],
+                                           name="f3",
+                                           interpretationDict={"longFeature": [i for i in range(longfeatureLength)]}),
+    "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
+}
+
+dimensionDict = {
+    "(and_a1_a2)_cV": 2, "a3_dV": 2, "longFeature": longfeatureLength
+}
 
 singleFeatureDict = {"(and_a1_a2)_cV": ["(and_a1_a2)_cC"],
                      "(not_a3)_cV": ["(not_a3)_cC"],
@@ -30,60 +43,54 @@ interpretationDict = {
     "(and_a1_a2)_cV": [0, 1],
 }
 
-fContractor = ib.ForwardContractor(computationCores=computationCores,
-                                   singleFeatureDict=singleFeatureDict,
-                                   partitionFeatureDict=partitionFeatureDict,
-                                   interpretationDict=interpretationDict,
-                                   dimensionDict={"(and_a1_a2)_cV": 2, "a3_dV": 2, "longFeature": longfeatureLength})
+tbMatched = 0 * representation.create_trivial_core("a3_dV" + representation.suf.actCoreSuf, [2], ["a3_dV"])
+tbMatched[{"a3_dV": 0}] = 0.1231
+tbMatched[{"a3_dV": 1}] = 1 - tbMatched[{"a3_dV": 0}]
+
+meanParamDict = {"(and_a1_a2)_cV": 0.91234,
+                 "(not_a3)_cV": tbMatched[{"a3_dV": 0}],
+                 "a3_dV": tbMatched,
+                 "longFeature": None}
+
+distribution = ed.ComputationActivationNetwork(
+    featureDict=featureDict,
+    computationCoreDict=computationCores
+)
 
 ## Not in all_unittests, auxiliary test
 class NewtonTest(unittest.TestCase):
-    def test_uncomputed_longerfeature(self):
-        tbMatched = 0 * representation.create_trivial_core("a3_dV" + representation.suf.actCoreSuf, [2], ["a3_dV"])
-        tbMatched[{"a3_dV": 0}] = 0.1231
-        tbMatched[{"a3_dV": 1}] = 1 - tbMatched[{"a3_dV": 0}]
+    def test_neutral_longerfeature(self):
+        meanParamDict["longFeature"] = 4.5
 
-        longMean = 4.5
-        meanParamDict = {"(and_a1_a2)_cV": 0.91234,
-                         "(not_a3)_cV": tbMatched[{"a3_dV": 0}],
-                         "a3_dV": tbMatched,
-                         "longFeature": longMean}
+        distribution.canParamDict["longFeature"] = 0
 
-        bContractor = ib.BackwardAlternator(computationCores=computationCores, singleFeatureDict=singleFeatureDict,
-                                            partitionFeatureDict=partitionFeatureDict,
-                                            interpretationDict=interpretationDict,
-                                            forwardInferer=fContractor, canparamDict=None, meanparamDict=meanParamDict,
-                                            dimensionDict={"(and_a1_a2)_cV": 2, "a3_dV": 2,
-                                                           "longFeature": longfeatureLength})
-        bContractor.update_single_feature("longFeature")
-        self.assertTrue(bContractor.canParamDict["longFeature"] == 0)
+        bContractor = ib.BackwardAlternator(
+            caNetwork=distribution,
+            forwardInferer=ib.ForwardContractor(caNetwork=distribution, dimensionDict=dimensionDict),
+            meanparamDict=meanParamDict,dimensionDict=dimensionDict)
 
-        longMean = 5.75 # Stability problems for larger realizable means, tune the dumpFactor?
-        meanParamDict = {"(and_a1_a2)_cV": 0.91234,
-                         "(not_a3)_cV": tbMatched[{"a3_dV": 0}],
-                         "a3_dV": tbMatched,
-                         "longFeature": longMean}
+        bContractor.update_canParam("longFeature")
+        self.assertTrue(abs(bContractor.caNetwork.canParamDict["longFeature"]) < 1e-5)
 
-        bContractor = ib.BackwardAlternator(computationCores=computationCores, singleFeatureDict=singleFeatureDict,
-                                            partitionFeatureDict=partitionFeatureDict,
-                                            interpretationDict=interpretationDict,
-                                            forwardInferer=fContractor, canparamDict=None, meanparamDict=meanParamDict,
-                                            dimensionDict={"(and_a1_a2)_cV": 2, "a3_dV": 2,
-                                                           "longFeature": longfeatureLength})
-        bContractor.update_single_feature("longFeature")
-        self.assertTrue(bContractor.canParamDict["longFeature"] > 0)
+    def test_larger_longerfeature(self):
+        meanParamDict["longFeature"] = 5.75
 
-        longMean = 2.15
-        meanParamDict = {"(and_a1_a2)_cV": 0.91234,
-                         "(not_a3)_cV": tbMatched[{"a3_dV": 0}],
-                         "a3_dV": tbMatched,
-                         "longFeature": longMean}
+        bContractor = ib.BackwardAlternator(
+            caNetwork=distribution,
+            forwardInferer=ib.ForwardContractor(caNetwork=distribution, dimensionDict=dimensionDict),
+            meanparamDict=meanParamDict,dimensionDict=dimensionDict)
 
-        bContractor = ib.BackwardAlternator(computationCores=computationCores, singleFeatureDict=singleFeatureDict,
-                                            partitionFeatureDict=partitionFeatureDict,
-                                            interpretationDict=interpretationDict,
-                                            forwardInferer=fContractor, canparamDict=None, meanparamDict=meanParamDict,
-                                            dimensionDict={"(and_a1_a2)_cV": 2, "a3_dV": 2,
-                                                           "longFeature": longfeatureLength})
-        bContractor.update_single_feature("longFeature")
-        self.assertTrue(bContractor.canParamDict["longFeature"] < 0)
+        bContractor.update_canParam("longFeature")
+        self.assertTrue(bContractor.caNetwork.canParamDict["longFeature"] > 0)
+
+    def test_smaller_longerfeature(self):
+        meanParamDict["longFeature"] = 2.15
+
+        bContractor = ib.BackwardAlternator(
+            caNetwork=distribution,
+            forwardInferer=ib.ForwardContractor(caNetwork=distribution, dimensionDict=dimensionDict),
+            meanparamDict=meanParamDict,dimensionDict=dimensionDict)
+
+        bContractor.update_canParam("longFeature")
+        self.assertTrue(bContractor.caNetwork.canParamDict["longFeature"] < 0)
+

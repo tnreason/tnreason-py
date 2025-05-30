@@ -10,7 +10,7 @@ from engine.conversion_unittest import IteratorConversionTest
 from engine.normation_unittest import NormationTest
 from engine.optimization_unittest import GurobiTest
 from engine.term_unittest import TermLoadingTest
-from encoding.sparqlwrapper_dppedia_unittest import DBpediaTest # Takes the longest
+from encoding.sparqlwrapper_dppedia_unittest import DBpediaTest  # Takes the longest
 from encoding.cnf_representation_unittest import CNFTest
 
 from knowledge.entropy_maximization_unittest import WeightEstimationTest
@@ -19,6 +19,6 @@ from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_test import HybridLearnerTest
 from knowledge.distribution_unittest import MNTest
 
-from reasoning.basic_forward_backward_test import ForwardBackwardTest
+from reasoning.forward_backward_test import ForwardBackwardTest
 
 unittest.main()

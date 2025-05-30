@@ -1,0 +1,53 @@
+import unittest
+
+from tnreason import representation
+from tnreason.reasoning import inference as ib
+
+from tnreason.reasoning import features as ed
+
+precisionTolerance = 1e-5
+
+f1 = ["and", "a1", "a2"]
+f2 = ["not", "a3"]
+
+computationCores = {
+    **representation.create_raw_formula_cores(f1),
+    **representation.create_raw_formula_cores(f2)}
+
+distribution = ed.ComputationActivationNetwork(
+    featureDict={
+        "(and_a1_a2)_cV": ed.SingleFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
+                                           name="f1"),
+        "(not_a3)_cV": ed.SingleFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
+                                        name="f2"),
+        "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
+    },
+    computationCoreDict={
+        **representation.create_raw_formula_cores(f1),
+        **representation.create_raw_formula_cores(f2),
+    }
+)
+
+fContractor = ib.ForwardContractor(caNetwork=distribution)
+
+
+class ForwardBackwardTest(unittest.TestCase):
+    def test_partition_single_overlap(self):
+        tbMatched = 0 * representation.create_trivial_core("a3_dV" + representation.suf.actCoreSuf, [2], ["a3_dV"])
+        tbMatched[{"a3_dV": 0}] = 0.1231
+        tbMatched[{"a3_dV": 1}] = 1 - tbMatched[{"a3_dV": 0}]
+
+        meanParamDict = {"(and_a1_a2)_cV": 0.91234,
+                         "(not_a3)_cV": tbMatched[{"a3_dV": 0}],
+                         "a3_dV": tbMatched}
+        bContractor = ib.BackwardAlternator(caNetwork=distribution, forwardInferer=fContractor,
+                                            meanparamDict=meanParamDict)
+        bContractor.alternating_updates()
+
+        matchedMeans = bContractor.forwardInferer.compute_environmentMean("a3_dV")
+        self.assertGreaterEqual(precisionTolerance, abs(matchedMeans[0] - tbMatched[{"a3_dV": 0}]))
+        self.assertGreaterEqual(precisionTolerance, abs(matchedMeans[1] - tbMatched[{"a3_dV": 1}]))
+
+        self.assertGreaterEqual(precisionTolerance,
+                                abs(bContractor.forwardInferer.infer_meanParam("(and_a1_a2)_cV") - meanParamDict[
+                                    "(and_a1_a2)_cV"]))
