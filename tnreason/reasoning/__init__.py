@@ -5,7 +5,7 @@ from tnreason.reasoning.constraint_propagation import ConstraintPropagator
 
 from tnreason.reasoning.energy_based_algorithms import EnergyGibbsSampleCore, NaiveMeanFieldApproximator
 
-from tnreason.reasoning.moment_matching import MomentMatcher
+
 
 from tnreason.reasoning.optimization_handling import core_based_optimize, energy_based_optimize, \
     energyOptimizationMethods, coreOptimizationMethods

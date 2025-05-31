@@ -89,7 +89,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
                                          backCores=restMeanCores, openColors=self.partitionColorDict[upKey],
                                          dimensionDict=self.dimensionDict, contractionMethod=self.contractionMethod,
                                          coreType=self.coreType)
-        self.meanCores[upKey] = engine.coordinatewise_transform([contracted],
+        self.meanCores[upKey] = representation.coordinatewise_transform([contracted],
                                                                 lambda x: np.exp(1 / temperature * x)).normalize()
 
         angle = engine.contract({"old": oldMean, "new": self.meanCores[upKey]}, openColors=[],
@@ -115,7 +115,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
 
     def get_energyDict(self):
         # In general the energy transform of Markov Networks -> to distributions?
-        return [(1, {coreKey: engine.coordinatewise_transform([self.meanCores[coreKey]], np.log)}) for coreKey in
+        return [(1, {coreKey: representation.coordinatewise_transform([self.meanCores[coreKey]], np.log)}) for coreKey in
                 self.meanCores]
 
 

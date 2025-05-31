@@ -1,4 +1,3 @@
-from tnreason.application import weight_estimation as wees
 from tnreason.application import grafting as gf
 from tnreason.application import distributions as dist
 from tnreason.application import deductive as ded
@@ -127,7 +126,9 @@ class HybridLearner:
                     booster.candidates}))
             if "calibrationSweeps" not in specDict:
                 specDict["calibrationSweeps"] = 10
-            self.calibrate_weights_on_data(specDict, empDistribution)
+            self.infer_weights_on_data(empDistribution)
+
+    #            self.calibrate_weights_on_data(specDict, empDistribution)
 
     # New based on inference
     def infer_weights_on_data(self, empDistribution, satInferenceMethod="ForwardContractor",
@@ -152,22 +153,25 @@ class HybridLearner:
 
         ## Update canonical parameters
         bInferer = reasoning.get_inferer(calInferenceMethod)(caNetwork=self.knowledgeBase.to_caNetwork(),
-                                                             forwardInferer = reasoning.get_inferer(satInferenceMethod)(
+                                                             forwardInferer=reasoning.get_inferer(
+                                                                 calForwardInferenceMethod)(
                                                                  self.knowledgeBase.to_caNetwork()
                                                              ),
                                                              meanParamDict={featureKey: satisfactionDict[featureKey] for
                                                                             featureKey in
                                                                             self.knowledgeBase.weightedFormulas})
 
-        bInferer.alternating_updates(featureKeys=list(self.knowledgeBase.weightedFormulas.keys()))
+        weights = bInferer.alternating_updates(featureKeys=list(self.knowledgeBase.weightedFormulas.keys()))
 
         for expressionKey in self.knowledgeBase.weightedFormulas:
             self.knowledgeBase.weightedFormulas[expressionKey][-1] = bInferer.caNetwork.canParamDict[expressionKey]
 
-    ## Old using customized inference
-    def calibrate_weights_on_data(self, specDict, empDistribution, engineSpec=dict()):
-        calibrator = wees.WeightEstimator(self.knowledgeBase)
-        calibrator.get_satisfaction_dict(empDistribution)
-        calibrator.fact_check()
-        calibrator.calibrate_weights(specDict["calibrationSweeps"], engineSpec)
-        self.knowledgeBase = calibrator.hybridKB
+        return weights
+
+    # ## Old using customized inference
+    # def calibrate_weights_on_data(self, specDict, empDistribution, engineSpec=dict()):
+    #     calibrator = wees.WeightEstimator(self.knowledgeBase)
+    #     calibrator.get_satisfaction_dict(empDistribution)
+    #     calibrator.fact_check()
+    #     calibrator.calibrate_weights(specDict["calibrationSweeps"], engineSpec)
+    #     self.knowledgeBase = calibrator.hybridKB

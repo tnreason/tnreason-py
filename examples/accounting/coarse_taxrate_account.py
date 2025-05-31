@@ -33,7 +33,7 @@ likelihood_gradient = positive_contracted + -1*negative_contracted
 learnedFormulas = dict()
 threshold = 0.1
 i = 0
-while np.max(likelihood_gradient.values) > threshold:
+while np.max(likelihood_gradient.values) > threshold: ## To be integrated in HybridLearner: Use the grafting method
     selMax = likelihood_gradient.get_argmax()
     learnedFormulas["coarse_"+str(i)] = representation.create_solution_expression(coarse_architecture, selMax)["neur1"]
     i+=1
@@ -45,11 +45,6 @@ currentModel.include(application.HybridKnowledgeBase(weightedFormulas={
     **{key: learnedFormulas[key]+[0] for key in learnedFormulas}
 }))
 
-weightEstimator = application.WeightEstimator(currentModel)
-weightEstimator.get_satisfaction_dict(empDist)
-weightEstimator.fact_check()
-weightEstimator.calibrate_weights(10)
-
-currentModel.to_yaml("assets/coarse_model.yaml")
-print(currentModel)
-
+hybridLearner = application.HybridLearner(currentModel)
+hybridLearner.infer_weights_on_data(empDist, satInferenceMethod="ForwardContractor")
+hybridLearner.knowledgeBase.to_yaml("assets/coarse_model.yaml")

@@ -54,9 +54,11 @@ class SingleFeature(ComputedFeature):
             if meanParam in [0, 1]:
                 raise ValueError("Mean parameter {} needs to be a constraint.".format(meanParam))
             if environmentMean[0] == 0:
-                raise ValueError("Indicator mean vector needs to be treated a constraint.")
+                #raise ValueError("Feature cannot be tuned!")
+                return 0
             if environmentMean[1] == 0:
-                raise ValueError("Indicator mean vector needs to be treated a constraint.")
+                #raise ValueError("Feature cannot be tuned!")
+                return 0
             return oldCanParam + np.log(meanParam / (1 - meanParam) * (environmentMean[0] / environmentMean[1]))
         else:
             return newton_canonical_optimization(environmentMean, meanParam,
@@ -224,7 +226,7 @@ def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, ima
                                     color=color, canParam=currCanParameter, interImage=imageInterpretation),
                                 "funTransform": representation.coordinatewise_transform(
                                     [representation.create_interpretation_vector(color=indicatorMeanVector.colors[0],
-                                                                                 interImage=imageInterpretation)],
+                                                                                                         interImage=imageInterpretation)],
                                     rDrFunction=lambda x: (x - meanParameter)
                                 )
                                 }, openColors=[]
@@ -234,7 +236,7 @@ def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, ima
                                     color=color, canParam=currCanParameter, interImage=imageInterpretation),
                                 "funTransform": representation.coordinatewise_transform(
                                     [representation.create_interpretation_vector(color=indicatorMeanVector.colors[0],
-                                                                                 interImage=imageInterpretation)],
+                                                                                                         interImage=imageInterpretation)],
                                     rDrFunction=lambda x: x * (x - meanParameter)
                                 )
                                 }, openColors=[]

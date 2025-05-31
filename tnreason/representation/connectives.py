@@ -1,4 +1,4 @@
-def get_connectives(connectiveKey):
+def get_connectives(connectiveKey): # Better: as slice iterators, to use sparsity
     if connectiveKey == "imp":
         return lambda a, b: [int(not a or b)]
     elif connectiveKey == "and":

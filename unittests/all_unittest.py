@@ -13,7 +13,8 @@ from engine.term_unittest import TermLoadingTest
 from encoding.sparqlwrapper_dppedia_unittest import DBpediaTest  # Takes the longest
 from encoding.cnf_representation_unittest import CNFTest
 
-from knowledge.entropy_maximization_unittest import WeightEstimationTest
+from application.entropy_maximization_unittest import WeightEstimationTest
+
 from knowledge.hybridKB_unittest import HybridKBTest
 from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_test import HybridLearnerTest

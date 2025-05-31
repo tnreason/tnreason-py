@@ -37,7 +37,6 @@ negative_contracted = 1 / fineModel.get_partition_function() * engine.contract(
 
 likelihood_gradient = positive_contracted + -1 * negative_contracted
 
-
 ## Extract formulas in gradient by threshold criterion
 learnedFormulas = dict()
 threshold = 0.08
@@ -52,12 +51,7 @@ fineModel.include(application.HybridKnowledgeBase(weightedFormulas={
     **{key: learnedFormulas[key]+[0] for key in learnedFormulas}
 }))
 
-weightEstimator = application.WeightEstimator(fineModel)
-weightEstimator.get_satisfaction_dict(empDist)
-weightEstimator.fact_check()
-weightEstimator.calibrate_weights(10)
 
-
-fineModel.to_yaml("assets/fine_model.yaml")
-print(fineModel)
-
+hybridLearner = application.HybridLearner(fineModel)
+hybridLearner.infer_weights_on_data(empDist, satInferenceMethod="ForwardContractor")
+hybridLearner.knowledgeBase.to_yaml("assets/fine_model.yaml")

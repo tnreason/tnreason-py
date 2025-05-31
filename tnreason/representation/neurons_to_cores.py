@@ -1,3 +1,5 @@
+import tnreason.representation.basis_calculus
+import tnreason.representation.coordinate_calculus
 from tnreason.representation import creation_handling as ch
 from tnreason.representation import connectives as con
 from tnreason.representation import suffixes as suf
@@ -79,7 +81,7 @@ def create_variable_selectors(candidateKey, variables,
         dim = int(dimBracket.split("[")[1][:-1])
 
         selFunc = lambda s, c: [c == s]  # Whether selection variable coincides with control variable
-        return {candidateKey + "_" + variables + suf.vselCoreSuf: ch.create_relational_encoding(
+        return {candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_relational_encoding(
             inshape=[dim, dim], outshape=[2], incolors=[candidateKey + suf.selVarSuf, catName],
             outcolors=[candidateKey],
             function=selFunc, coreType=coreType,
@@ -87,7 +89,7 @@ def create_variable_selectors(candidateKey, variables,
     cSelectorDict = {}
     for i, variableKey in enumerate(variables):
         coreFunc = lambda c, a, o: (not (c == i)) or (a == o)
-        cSelectorDict[candidateKey + "_" + variableKey + suf.vselCoreSuf] = ch.create_tensor_encoding(
+        cSelectorDict[candidateKey + "_" + variableKey + suf.vselCoreSuf] = tnreason.representation.coordinate_calculus.create_tensor_encoding(
             inshape=[len(variables), 2, 2], incolors=[candidateKey + suf.selVarSuf, variableKey, candidateKey],
             function=coreFunc, coreType=coreType,
             name=candidateKey + "_" + variableKey + suf.vselCoreSuf
@@ -100,19 +102,19 @@ def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreT
     Creates the connective selection core, using the candidateKeys as color and arity specification
     """
     if len(candidateKeys) == 1:
-        return ch.create_relational_encoding(inshape=[len(connectiveList), 2], outshape=[2],
-                                                 incolors=[neuronName + funPre + suf.comVarSuf, *candidateKeys],
-                                                 outcolors=[neuronName + heaPre + suf.comVarSuf],
-                                                 function=con.get_unary_connective_selector(connectiveList),
-                                                 coreType=coreType,
-                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
+        return tnreason.representation.basis_calculus.create_relational_encoding(inshape=[len(connectiveList), 2], outshape=[2],
+                                                                                 incolors=[neuronName + funPre + suf.comVarSuf, *candidateKeys],
+                                                                                 outcolors=[neuronName + heaPre + suf.comVarSuf],
+                                                                                 function=con.get_unary_connective_selector(connectiveList),
+                                                                                 coreType=coreType,
+                                                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
     elif len(candidateKeys) == 2:
-        return ch.create_relational_encoding(inshape=[len(connectiveList), 2, 2], outshape=[2],
-                                                 incolors=[neuronName + funPre + suf.comVarSuf, *candidateKeys],
-                                                 outcolors=[neuronName + heaPre + suf.comVarSuf],
-                                                 function=con.get_binary_connective_selector(connectiveList),
-                                                 coreType=coreType,
-                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
+        return tnreason.representation.basis_calculus.create_relational_encoding(inshape=[len(connectiveList), 2, 2], outshape=[2],
+                                                                                 incolors=[neuronName + funPre + suf.comVarSuf, *candidateKeys],
+                                                                                 outcolors=[neuronName + heaPre + suf.comVarSuf],
+                                                                                 function=con.get_binary_connective_selector(connectiveList),
+                                                                                 coreType=coreType,
+                                                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
     else:
         raise ValueError(
             "Number {} of candidates wrong in Neuron {} with connectives {}!".format(len(candidateKeys), neuronName,

@@ -2,96 +2,18 @@ import math
 
 from tnreason import engine
 
+from tnreason.representation import suffixes as suf#, create_tensor_encoding
+
 import numpy as np
 
-from tnreason.representation import suffixes as suf
 
-defaultCoreType = "NumpyCore"
-
+# Now in coordiante calculus!
 def create_tensor_encoding(inshape, incolors, function, coreType=None, name="Encoding"):
-    if coreType is None:
-        coreType = defaultCoreType
     return engine.create_from_slice_iterator(inshape, incolors,
                                       sliceIterator=[
                                           (function(*idx), {color: idx[i] for i, color in enumerate(incolors)}) for
                                           idx in np.ndindex(*inshape)],
                                       coreType=coreType, name=name)
-
-
-
-
-
-def create_relational_encoding(inshape, outshape, incolors, outcolors, function, coreType=None,
-                               name="Encoding"):
-    """
-    Creates relational representation of a function as a single core.
-    The function has to be a map from the indices in inshape to the indices in outshape.
-    """
-    if coreType is None:
-        coreType = defaultCoreType
-    return engine.create_from_slice_iterator(inshape + outshape, incolors + outcolors,
-                                      sliceIterator=[(1, {**{color: idx[i] for i, color in enumerate(incolors)},
-                                                          **{color: int(function(*idx)[i]) for i, color in
-                                                             enumerate(outcolors)}}) for idx in np.ndindex(*inshape)],
-                                      coreType=coreType, name=name)
-
-
-def coordinate_slice_iterator(inshape, incolors, coordFunction):
-    return [(coordFunction(*idx), {color: idx[i] for i, color in enumerate(incolors)}) for idx in np.ndindex(*inshape)]
-
-
-def get_image(core, inShape, imageValues=[float(0), float(1)]):
-    import numpy as np
-    for indices in np.ndindex(tuple(inShape)):
-        coordinate = float(core[indices])
-        if coordinate not in imageValues:
-            imageValues.append(coordinate)
-    return imageValues
-
-
-def core_to_relational_encoding(core, headColor, outCoreType=None):
-    imageValues = get_image(core, core.shape)
-    return create_relational_encoding(inshape=core.shape, outshape=[len(imageValues)], incolors=core.colors,
-                                      outcolors=[headColor], function=lambda *args: [imageValues.index(core[args])],
-                                      coreType=outCoreType), imageValues
-
-
-def reduce_function(function, coordinates):
-    return lambda x: [function(x)[coordinate] for coordinate in coordinates]
-
-
-def create_partitioned_relational_encoding(inshape, outshape, incolors, outcolors, function, coreType=defaultCoreType,
-                                           partitionDict=None, nameSuffix="_encodingCore"):
-    """
-    Creates relational representation of a function as a tensor network, where the output axis are splitted according to the partionDict.
-    """
-    if partitionDict is None:
-        partitionDict = {color: [color] for color in outcolors}
-    return {parKey + nameSuffix:
-                create_relational_encoding(inshape=inshape,
-                                           outshape=[outshape[outcolors.index(c)] for c in partitionDict[parKey]],
-                                           incolors=incolors,
-                                           outcolors=partitionDict[parKey],
-                                           function=lambda x: [function(x)[outcolors.index(c)] for c in
-                                                               partitionDict[parKey]],
-                                           coreType=coreType,
-                                           name=parKey + nameSuffix)
-            for parKey in partitionDict}
-
-
-## Coordinate Calculus -> Generalizing Numpy
-def coordinatewise_transform(coreList, rDrFunction, outCoreType=None, outName="Transformed"):
-    """
-    Computed the coordiantewise transform of tensors
-    * coreList: List of d tensor cores of same shape and colors
-    * rDrFunction: Function from \mathbb{R}^d to \mathbb{R}, computing the coordinate of the output core
-    """
-    newCore = engine.get_core(coreType=outCoreType)(shape=coreList[0].shape, colors=coreList[0].colors, name=outName)
-    for index in np.ndindex(*coreList[0].shape):
-        newCore[{color: index[k] for k, color in enumerate(coreList[0].colors)}] = rDrFunction(
-            *[core[index] for core in coreList])
-    return newCore
-
 
 def create_trivial_cores(rawKeys, shapeDict=None, suffix="", coreType=None):
     """
@@ -122,21 +44,12 @@ def create_activation_vector(color, canParam=0, supportConstraint=None, coreType
                                       sliceIterator=[
                                           (interFunction(entry), {color: i}) for i, entry in enumerate(interImage)],
                                       coreType=coreType, name=name)
-def create_interpretation_vector(color, coreType=None, name=None, interImage=[0,1]):
-    """
-    Creates the vector interpretation of a term variable color, where interImage specifies the interpretation
-    """
-    return engine.create_from_slice_iterator(
-        shape=[len(interImage)], colors=[color],
-        sliceIterator=[(interImage[i], {color: i}) for i in range(len(interImage))],
-        coreType=coreType, name=name
-    )
 
-## Special cases
 
+## Special cases of activation cores
 def create_trivial_core(name, shape, colors, coreType=None):
     return create_tensor_encoding(inshape=shape, incolors=colors, function=lambda *args: 1, coreType=coreType,
-                                         name=name)
+                                  name=name)
 
 def create_vanishing_core(colors, shape, coreType=None, name=None):
     return engine.create_from_slice_iterator(shape=shape, colors=colors, sliceIterator=[], coreType=coreType, name=name)
@@ -148,7 +61,7 @@ def create_basis_core(name, shape, colors, numberTuple, coreType=None):
     else:  # Dealing with np.int, Booleans, Floats
         numberTuple = tuple([int(numberTuple)])
     return create_tensor_encoding(inshape=shape, incolors=colors,
-                                         function=lambda *args: int(args == numberTuple), coreType=coreType, name=name)
+                                  function=lambda *args: int(args == numberTuple), coreType=coreType, name=name)
 
 
 def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
@@ -169,4 +82,4 @@ def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
     if name is None:
         name = color + suf.actCoreSuf
     return {name: create_tensor_encoding([2], [color], headFunction, coreType=coreType,
-                                                name=name)}
+                                         name=name)}

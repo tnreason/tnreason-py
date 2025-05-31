@@ -1,5 +1,7 @@
 from tnreason import engine
 
+import numpy as np
+
 canCorePre = "_can"  # Suffix for canonical parameter cores, to distinguish from the exponentiated ones being propert activation cores
 
 
@@ -64,6 +66,7 @@ class BackwardAlternator(InferenceBase):
 
         self.caNetwork.canParamDict[featureKey] = updatedCanParam
         self.forwardInferer.caNetwork.canParamDict[featureKey] = updatedCanParam
+        return updatedCanParam
 
     def alternating_updates(self, featureKeys=None, sweepNum=10):
         """
@@ -71,7 +74,9 @@ class BackwardAlternator(InferenceBase):
         """
         if featureKeys is None:
             featureKeys = list(self.caNetwork.featureDict.keys())
-
+        weightDict = {featureKey : [] for featureKey in featureKeys}
         for _ in range(sweepNum):
             for featureKey in featureKeys:
                 self.update_canParam(featureKey)
+                weightDict[featureKey].append(self.caNetwork.canParamDict[featureKey])
+        return weightDict

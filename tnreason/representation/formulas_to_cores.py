@@ -1,3 +1,4 @@
+import tnreason.representation.basis_calculus
 from tnreason.representation import creation_handling as ch
 from tnreason.representation import connectives as con
 from tnreason.representation import suffixes as suf
@@ -58,13 +59,13 @@ def create_connective_core(expression, coreType=None):
     if isinstance(expression, str):
         return {}
     return {get_formula_string(expression) + suf.comCoreSuf:
-                ch.create_relational_encoding(inshape=[2 for _ in range(1, len(expression))], outshape=[2],
-                                                  incolors=[get_formula_color(expression[i]) for i in
+                tnreason.representation.basis_calculus.create_relational_encoding(inshape=[2 for _ in range(1, len(expression))], outshape=[2],
+                                                                                  incolors=[get_formula_color(expression[i]) for i in
                                                             range(1, len(expression))],
-                                                  outcolors=[get_formula_color(expression)],
-                                                  function=con.get_connectives(expression[0]),
-                                                  coreType=coreType,
-                                                  name=get_formula_string(expression) + suf.comCoreSuf)}
+                                                                                  outcolors=[get_formula_color(expression)],
+                                                                                  function=con.get_connectives(expression[0]),
+                                                                                  coreType=coreType,
+                                                                                  name=get_formula_string(expression) + suf.comCoreSuf)}
 
 
 def create_formula_head(expression, headType, weight=None, name=None, coreType=None):
