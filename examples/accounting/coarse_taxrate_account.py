@@ -6,7 +6,7 @@ sampleDf = pd.read_csv("assets/toy_accounting.csv")
 vat_list = [col for col in sampleDf.columns if 'TAX_RATE' in col]
 account_list = [col for col in sampleDf.columns if 'ACCOUNT' in col]
 
-empDist = application.get_empirical_distribution(sampleDf, atomColors=vat_list + account_list)
+empDist = application.get_empirical_distribution(sampleDf, atomColumns=vat_list + account_list)
 currentModel = application.HybridKnowledgeBase(categoricalConstraints={"tax" : vat_list, "account": account_list})
 
 ## Define selection architecture and current model

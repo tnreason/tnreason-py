@@ -1,5 +1,7 @@
 import unittest
 
+from knowledge.distribution_unittest import MNTest
+
 from algorithms.kp_sudoku_test import SudokuTest
 from algorithms.kp_forward_chaining_test import FCTest
 from algorithms.als_matrix_test import AlsMatrixTest
@@ -18,7 +20,7 @@ from application.entropy_maximization_unittest import WeightEstimationTest
 from knowledge.hybridKB_unittest import HybridKBTest
 from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_test import HybridLearnerTest
-from knowledge.distribution_unittest import MNTest
+
 
 from reasoning.forward_backward_test import ForwardBackwardTest
 

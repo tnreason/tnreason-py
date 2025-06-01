@@ -19,20 +19,20 @@ genKB = application.HybridKnowledgeBase(
     }
 )
 sampleDf = application.InferenceProvider(genKB).draw_samples(100, dfOutput=True)
-
+empDist = application.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv"), atomColumns=["a1","a2","a3","a4"])
 
 class FormulaBoostingTest(unittest.TestCase):
     def test_yaml_als(self):
         booster = application.Grafter(knowledgeBase=backKb,
                                       specDict={**representation.load_from_yaml(assetsBasePath + "fb_energyMax_boostSpec.yaml"),
                                               "headNeurons": ["neur1"], "architecture": architecture})
-        booster.find_candidate(application.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
+        booster.find_candidate(empDist)
 
     def test_yaml_gibbs(self):
         booster = application.Grafter(knowledgeBase=application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
                                       specDict={**representation.load_from_yaml(assetsBasePath + "fb_gibbs_boostSpec.yaml"),
                                               "headNeurons": ["neur1"], "architecture": architecture})
-        booster.find_candidate(application.get_empirical_distribution(pd.read_csv(assetsBasePath + "fb_sampleDf.csv")))
+        booster.find_candidate(empDist)
 
     def test_exact_implication_finding(self):
         booster = application.Grafter(knowledgeBase=application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),

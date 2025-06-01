@@ -3,7 +3,7 @@ from tnreason.representation import creation_handling as ch
 from tnreason.representation import connectives as con
 from tnreason.representation import suffixes as suf
 
-
+## To be dropped: avoid create_boolean head!
 def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     """
     Creates a tensor network of connective and head cores
@@ -100,13 +100,13 @@ def create_connective_core(expression, coreType=None):
             coreType=coreType,
             name=get_formula_string(expression) + suf.comCoreSuf)}
 
-
-def create_formula_head(expression, headType, weight=None, name=None, coreType=None):
-    """
-    Created the head core to an expression activating it, which is the boolean head to the formula color
-    """
-    return ch.create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, name=name,
-                                  coreType=coreType)
+## To be dropped into features
+#def create_formula_head(expression, headType, weight=None, name=None, coreType=None):
+#    """
+#    Created the head core to an expression activating it, which is the boolean head to the formula color
+#    """
+#    return ch.create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, name=name,
+#                                  coreType=coreType)
 
 
 def create_evidence_cores(evidenceDict, coreType=None):

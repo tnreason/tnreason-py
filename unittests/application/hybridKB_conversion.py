@@ -14,8 +14,21 @@ caNet = hybridKB.create_caNetwork()
 caCores = caNet.create_cores()
 directedCores = hybridKB.create_cores()
 
+
 caComputed = engine.contract(caCores, openColors=["a", "b", "c"], contractionMethod="NumpyEinsum")
 dirComputed = engine.contract(directedCores, openColors=["a", "b", "c"], contractionMethod="NumpyEinsum")
+assert caComputed[0,0,0] == dirComputed[0,0,0]
+assert caComputed[0,0,1] == dirComputed[0,0,1]
+assert caComputed[0,1,0] == dirComputed[0,1,0]
+assert caComputed[1,1,1] == dirComputed[1,1,1]
+
+
+caCores = caNet.create_energyDict()
+dirEnergy = hybridKB.get_energy_dict()
+
+caComputed = engine.sum_contract(weightedCoreDicts=list(caCores.values()), openColors=["a", "b", "c"])
+dirComputed = engine.sum_contract(weightedCoreDicts=list(dirEnergy.values()), openColors=["a", "b", "c"])
+
 assert caComputed[0,0,0] == dirComputed[0,0,0]
 assert caComputed[0,0,1] == dirComputed[0,0,1]
 assert caComputed[0,1,0] == dirComputed[0,1,0]

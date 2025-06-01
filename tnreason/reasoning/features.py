@@ -5,6 +5,7 @@ import numpy as np
 
 canCorePre = "_can"
 
+
 class ComputedFeature:
     def __init__(self, featureColors, affectedComputationCores=[], interpretationDict=dict(), name=None):
         self.featureColors = featureColors
@@ -63,6 +64,9 @@ class SingleSoftFeature(ComputedFeature):
         else:
             return newton_canonical_optimization(environmentMean, meanParam,
                                                  imageInterpretation=self.interpretationDict[self.featureColors[0]])
+
+
+#    def compute_energy(self, cutoffWeight=None):
 
 
 class SoftPartitionFeature(ComputedFeature):
@@ -140,7 +144,6 @@ class HardPartitionFeature(ComputedFeature):
 
 class ComputationActivationNetwork(engine.EngineUser):
     def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),
-                 # meanParamDict=dict(),
                  **engineSpec):
         """
         * featureSpecDict: {featureKey : ExpDistFeature for all features}
@@ -171,6 +174,34 @@ class ComputationActivationNetwork(engine.EngineUser):
         return {**self.computationCoreDict,
                 **self.create_activation_cores(),
                 **self.baseMeasureCoreDict}
+
+    def create_energyDict(self, cutoffWeight=100):
+        """
+        Not a feature method, since the features do not know their computationCores nor canParams
+        """
+        energyDict = dict()
+        for featureKey in self.featureDict:  # Different treatment of weights and activation vectors for energy terms, specific to each feature
+            affectedComCores = {coreKey: self.computationCoreDict[coreKey] for coreKey in
+                                self.featureDict[featureKey].affectedComputationCores}
+            if isinstance(self.featureDict[featureKey], SingleSoftFeature):
+                energyDict[featureKey] = (self.canParamDict[featureKey],
+                                          {**affectedComCores,
+                                              "intCore_" + featureKey: representation.create_interpretation_vector(
+                                                  color=self.featureDict[featureKey].featureColors[0],
+                                                  coreType=self.coreType,
+                                                  name="intCore_" + featureKey)})
+            elif isinstance(self.featureDict[featureKey], SoftPartitionFeature):
+                energyDict[featureKey] = (1,
+                                          {**affectedComCores,
+                                           "canParamCore_" + featureKey: self.canParamDict[featureKey]})
+            elif isinstance(self.featureDict[featureKey], HardPartitionFeature):
+                energyDict[featureKey] = (cutoffWeight,
+                                          {**affectedComCores,
+                                           "headCore_" + featureKey: self.canParamDict[featureKey]})
+            else:
+                raise ValueError("Unsupported feature type {}.".format(type(self.featureDict[featureKey])))
+        energyDict["baseMeasure"] = (cutoffWeight, self.baseMeasureCoreDict)
+        return energyDict
 
     def include_features(self, featureDict, canParamDict=dict(), computationCores=dict()):
         self.featureDict.update(featureDict)

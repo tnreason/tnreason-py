@@ -8,7 +8,7 @@ vat_list = [col for col in sampleDf.columns if 'TAX_RATE' in col]
 account_list = [col for col in sampleDf.columns if 'ACCOUNT' in col]
 product_list = [col for col in sampleDf.columns if 'PRODUCT_CLASS' in col]
 
-empDist = application.get_empirical_distribution(sampleDf, atomColors=vat_list + account_list + product_list)
+empDist = application.get_empirical_distribution(sampleDf, atomColumns=vat_list + account_list + product_list)
 
 ## Load current model, extend it to product atoms
 fineModel = application.load_kb_from_yaml("assets/coarse_model.yaml")

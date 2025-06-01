@@ -27,16 +27,16 @@ class DistributionBase(engine.EngineUser):
         self.partitionFunction = partitionFunction
         self.distributedVariables = distributedVariables or dict()
 
+
+    def create_cores(self):
+        return self.create_caNetwork(hardOnly=False).create_cores()
+
     def get_partition_function(self, addDimDict={}):
         if self.partitionFunction is None:
             self.partitionFunction = engine.contract(self.create_cores(), openColors=[],
                                                      contractionMethod=self.contractionMethod)[:]
         return math.prod(
             [addDimDict[color] for color in addDimDict if color not in self.dimensionDict]) * self.partitionFunction
-
-    def as_core(self):
-        return engine.contract(self.create_cores(), openColors=self.distributedVariables,
-                               contractionMethod=self.contractionMethod)
 
     def is_normable(self):
         """
@@ -47,10 +47,12 @@ class DistributionBase(engine.EngineUser):
         return engine.contract(coreDict=self.create_caNetwork(hardOnly=True).create_cores(),
                                openColors=[])[:] > 0
 
+    def get_energy_dict(self, cutoffWeight=100):
+        return self.create_caNetwork(hardOnly=False).create_energyDict(cutoffWeight=cutoffWeight)
 
-# To be implemented:
-# class HybridExpDist(DistributionBase):
-
+    def as_core(self):
+        return engine.contract(self.create_cores(), openColors=self.distributedVariables,
+                               contractionMethod=self.contractionMethod)
 
 class ProposalDistribution(DistributionBase):
 
@@ -64,6 +66,9 @@ class ProposalDistribution(DistributionBase):
         raise ValueError("Cores of Proposal Distribution cannot be instantiated, only its energy can!")
 
     def get_energy_dict(self):
+        """
+        Different from rest: canetwork not instantiatable
+        """
         correctionColorDict = {color: self.dimensionDict[color] for color in self.distributedVariables}
         return {"pos": (1 / self.positivePhase.get_partition_function(correctionColorDict),
                         {**self.statisticCores, **self.positivePhase.create_cores()}),
@@ -83,8 +88,8 @@ class MarkovNetwork(DistributionBase):
         self.dimDict = engine.get_dimDict(coreDict)
 
     def create_cores(self, hardOnly=False):
-        #return self.create_caNetwork(hardOnly=hardOnly).create_cores() # better: can filter the hard cores for entailment propagation! but there are errors in unittests to be corrected!
-        return self.coreDict
+        return self.create_caNetwork(hardOnly=hardOnly).create_cores()  # better: can filter the hard cores for entailment propagation! but there are errors in unittests to be corrected!
+        #return self.coreDict
 
     def create_caNetwork(self, hardOnly=False):
         """
@@ -95,7 +100,8 @@ class MarkovNetwork(DistributionBase):
 
         # Decide Hard Features
         for coreKey in self.coreDict:
-            supportCore, needed = create_factor_hardCore(self.coreDict[coreKey])
+            supportCore, needed = create_factor_hardCore(self.coreDict[coreKey], outCoreType=self.coreType,
+                                                         outName=coreKey + mnHardFeatureSuffix)
             if needed:
                 featureDict[coreKey + mnHardFeatureSuffix] = reasoning.HardPartitionFeature(
                     featureColors=supportCore.colors,
@@ -104,7 +110,8 @@ class MarkovNetwork(DistributionBase):
                 canParamDict[coreKey + mnHardFeatureSuffix] = supportCore
         if not hardOnly:
             for coreKey in self.coreDict:
-                canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType)
+                canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType,
+                                                              outName=coreKey + mnSoftFeatureSuffix)
                 if needed:
                     featureDict[coreKey + mnSoftFeatureSuffix] = reasoning.SoftPartitionFeature(
                         featureColors=self.coreDict[coreKey].colors,
@@ -113,10 +120,11 @@ class MarkovNetwork(DistributionBase):
                     canParamDict[coreKey + mnSoftFeatureSuffix] = canParamCore
         return reasoning.ComputationActivationNetwork(featureDict=featureDict,
                                                       canParamDict=canParamDict,
+                                                      coreType=self.coreType
                                                       )
 
 
-def get_empirical_distribution(sampleDf, atomColors=None, interpretation="atomic", dimensionsDict=None):
+def get_empirical_distribution(sampleDf, atomColumns=None, interpretation="atomic", dimensionsDict=None):
     """
     Returns an empirical distributions as a MarkovNetwork
         * sampleDf: pd.DataFrame containing the samples defining the empirical distributions
@@ -125,15 +133,18 @@ def get_empirical_distribution(sampleDf, atomColors=None, interpretation="atomic
             - "atomic": Variables have dimension 2 and entries in [0,1] are the probability of the atom holding.
             - "categorical": Variables have dimension m specified in dimensionsDict and entries are the certain value of the variable in [m]
     """
-    if atomColors is not None:
-        sampleDf = sampleDf[atomColors]
+    if atomColumns is not None:
+        sampleDf = sampleDf[atomColumns]
     else:
-        atomColors = list(sampleDf.columns)
+        atomColumns = list(sampleDf.columns)
     if "value" not in sampleDf.columns:
         sampleDf["value"] = 1
-    return MarkovNetwork(representation.create_data_cores(sampleDf, atomKeys=atomColors,
+    return MarkovNetwork(representation.create_data_cores(sampleDf, atomKeys=atomColumns,
                                                           interpretation=interpretation,
                                                           dimensionsDict=dimensionsDict),
+                         distributedVariables=[atomKey if atomKey.endswith(
+                             representation.suf.disVarSuf) else atomKey + representation.suf.disVarSuf for atomKey in
+                                               atomColumns],
                          partitionFunction=sampleDf["value"].sum())
 
 
@@ -227,8 +238,7 @@ class HybridKnowledgeBase(DistributionBase):
                          **secondHybridKB.evidence}
         self.find_atoms()
 
-    def create_cores(self):
-        return self.create_caNetwork(hardOnly=False).create_cores()
+
 
         # categoricalConstraintColors = {
         #     catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
@@ -259,42 +269,42 @@ class HybridKnowledgeBase(DistributionBase):
     #                            openColors=[]).values > 0
 
     ## Energy Representation
-    def get_energy_dict(self, cutoffWeight=100, sliceSparse=False, outCoreType="PolynomialCore"):
-        """
-        ToDo: Implement Slice-Sparse version! (refer to representation.cnf_to_cores)
-
-        """
-        if sliceSparse:
-            weightedFactsEnergyDict = representation.weightedFormulas_to_sparseCore(
-                {**self.weightedFormulas,
-                 **{key: self.facts[key] + [cutoffWeight] for key in self.facts},
-                 }, coreType=outCoreType
-            )
-            constraintsEnergyDict = {constraintKey: (cutoffWeight,
-                                                     representation.create_constraintCoresDict(
-                                                         self.categoricalConstraints[constraintKey], constraintKey,
-                                                         coreType=outCoreType)) for
-                                     constraintKey in self.categoricalConstraints}
-            return {"energy": (1, {"energyCore": weightedFactsEnergyDict}), **constraintsEnergyDict}
-        else:
-            weightedEnergyDict = {
-                formulaKey: (self.weightedFormulas[formulaKey][-1],
-                             {**representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]),
-                              **representation.create_formula_head(self.weightedFormulas[formulaKey][:-1],
-                                                                   headType="truthEvaluation")
-                              }) for formulaKey in self.weightedFormulas}
-            factsEnergyDict = {
-                formulaKey: (cutoffWeight, {**representation.create_formula_computation_cores(self.facts[formulaKey]),
-                                            **representation.create_formula_head(self.facts[formulaKey],
-                                                                                 headType="truthEvaluation")
-                                            }) for formulaKey in
-                self.facts}
-            constraintsEnergyDict = {constraintKey: (cutoffWeight,
-                                                     representation.create_constraintCoresDict(
-                                                         self.categoricalConstraints[constraintKey], constraintKey)) for
-                                     constraintKey in self.categoricalConstraints}
-
-            return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}
+    # def get_energy_dict(self, cutoffWeight=100, sliceSparse=False, outCoreType="PolynomialCore"):
+    #     """
+    #     ToDo: Implement Slice-Sparse version! (refer to representation.cnf_to_cores)
+    #
+    #     """
+    #     if sliceSparse:
+    #         weightedFactsEnergyDict = representation.weightedFormulas_to_sparseCore(
+    #             {**self.weightedFormulas,
+    #              **{key: self.facts[key] + [cutoffWeight] for key in self.facts},
+    #              }, coreType=outCoreType
+    #         )
+    #         constraintsEnergyDict = {constraintKey: (cutoffWeight,
+    #                                                  representation.create_constraintCoresDict(
+    #                                                      self.categoricalConstraints[constraintKey], constraintKey,
+    #                                                      coreType=outCoreType)) for
+    #                                  constraintKey in self.categoricalConstraints}
+    #         return {"energy": (1, {"energyCore": weightedFactsEnergyDict}), **constraintsEnergyDict}
+    #     else:
+    #         weightedEnergyDict = {
+    #             formulaKey: (self.weightedFormulas[formulaKey][-1],
+    #                          {**representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]),
+    #                           **representation.create_formula_head(self.weightedFormulas[formulaKey][:-1],
+    #                                                                headType="truthEvaluation")
+    #                           }) for formulaKey in self.weightedFormulas}
+    #         factsEnergyDict = {
+    #             formulaey: (cutoffWeight, {**representation.create_formula_computation_cores(self.facts[formulaKey]),
+    #     #                                         **representation.create_formula_head(self.facts[formulaKey],
+    #     #                                                                              headType="truthEvaluation")
+    #     #                                         }) for formulaKey in
+    #     #             self.facts}
+    #     #         constraintsEnergyDict = {constraintKey: (cutoffWeight,
+    #     #                                                  representation.create_constraintCoresDict(
+    #     #                                                      self.categoricalConstraints[constraintKey], constraintKey)) for
+    #     #                                  constraintKey in self.categoricalConstraints}
+    #     #
+    #     #         return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}K
 
     def create_caNetwork(self, hardOnly=False):
         featureDict = {formulaKey: reasoning.HardPartitionFeature(
@@ -339,7 +349,8 @@ class HybridKnowledgeBase(DistributionBase):
                                                       coreType=self.coreType)
 
 
-def create_factor_hardCore(core, outCoreType=None, outName="SupportCore"):
+## For Markov Networks: Find Hard and Soft Features to each core
+def create_factor_hardCore(core, outCoreType, outName):
     needed = False
     newCore = engine.get_core(coreType=outCoreType)(colors=core.colors, shape=core.shape, name=outName)
     for posTuple in np.ndindex(*core.shape):
@@ -351,7 +362,7 @@ def create_factor_hardCore(core, outCoreType=None, outName="SupportCore"):
     return newCore, needed
 
 
-def create_factor_softCore(core, outCoreType=None, outName="SupportCore"):
+def create_factor_softCore(core, outCoreType, outName):
     needed = False
     newCore = engine.get_core(coreType=outCoreType)(colors=core.colors, shape=core.shape, name=outName)
     for posTuple in np.ndindex(*core.shape):
@@ -359,5 +370,8 @@ def create_factor_softCore(core, outCoreType=None, outName="SupportCore"):
         coreValue = core[posDict]
         if coreValue not in [0, 1]:  # Those are handled by hard core
             needed = True
+            # try:
             newCore[posDict] = math.log(coreValue)
+        # except ValueError:
+        #     print(coreValue)
     return newCore, needed

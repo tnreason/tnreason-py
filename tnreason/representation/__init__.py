@@ -1,6 +1,6 @@
-from tnreason.representation.formulas_to_cores import create_formulas_cores, create_formula_computation_cores, \
+from tnreason.representation.formulas_to_cores import create_formula_computation_cores, \
     get_formula_color, \
-    create_formula_head, create_evidence_cores, create_atom_evidence_cores, create_expressionDict_computation_cores
+    create_evidence_cores, create_atom_evidence_cores, create_expressionDict_computation_cores, create_formulas_cores#, create_formula_head
 from tnreason.representation.categoricals_to_cores import create_categorical_cores, create_atomization_cores, \
     create_constraintCoresDict
 from tnreason.representation.neurons_to_cores import create_neuron, create_architecture, find_atom_colors, \
@@ -26,7 +26,7 @@ from tnreason.representation.coordinate_calculus import coordinatewise_transform
 from tnreason.representation.basis_calculus import create_relational_encoding, create_partitioned_relational_encoding, \
     create_interpretation_vector
 #
-# ## Auxiliary to support old examples
+## Auxiliary to support old examples
 # def create_formulas_cores(expressionsDict, coreType=None):
 #
 #     """
