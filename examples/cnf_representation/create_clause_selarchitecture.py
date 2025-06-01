@@ -30,7 +30,7 @@ if __name__ == "__main__":
         outshape=[len(atomList)+1 for i in range(maxSize)] + [2 for i in range(maxSize)],
         incolors=["l"],
         outcolors=["neur"+str(i)+"_p0_selVar" for i in range(maxSize)] + ["neur"+str(i)+"_actVar" for i in range(maxSize)],
-        function=clauses_to_lambda(testClause, atomList, 2))
+        indicesToIndicesFunction=clauses_to_lambda(testClause, atomList, 2))
 
     relCores = tnreason.representation.basis_calculus.create_partitioned_relational_encoding(
         inshape=[len(testClause)],

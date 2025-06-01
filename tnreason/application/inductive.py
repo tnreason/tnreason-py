@@ -45,8 +45,6 @@ class HybridLearner:
         startKB a application.HybridKnowledgeBase instance representing the current application to be extended.
         """
         self.knowledgeBase = startKB
-        # self.coreType = coreType
-        # self.contractionMethod = contractionMethod
         self.engineSpec = engineSpec
 
     def get_knowledge_base(self):
@@ -128,8 +126,6 @@ class HybridLearner:
                 specDict["calibrationSweeps"] = 10
             self.infer_weights_on_data(empDistribution)
 
-    #            self.calibrate_weights_on_data(specDict, empDistribution)
-
     # New based on inference
     def infer_weights_on_data(self, empDistribution, satInferenceMethod="ForwardContractor",
                               calForwardInferenceMethod="ForwardContractor",
@@ -166,12 +162,4 @@ class HybridLearner:
         for expressionKey in self.knowledgeBase.weightedFormulas:
             self.knowledgeBase.weightedFormulas[expressionKey][-1] = bInferer.caNetwork.canParamDict[expressionKey]
 
-        return weights
-
-    # ## Old using customized inference
-    # def calibrate_weights_on_data(self, specDict, empDistribution, engineSpec=dict()):
-    #     calibrator = wees.WeightEstimator(self.knowledgeBase)
-    #     calibrator.get_satisfaction_dict(empDistribution)
-    #     calibrator.fact_check()
-    #     calibrator.calibrate_weights(specDict["calibrationSweeps"], engineSpec)
-    #     self.knowledgeBase = calibrator.hybridKB
+        return weights  # Used only in unittests for investigation

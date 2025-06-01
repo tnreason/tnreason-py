@@ -1,8 +1,8 @@
 import unittest
 
 from tnreason import representation
-from tnreason.reasoning import inference as ib
 
+from tnreason.reasoning import inference as ib
 from tnreason.reasoning import features as ed
 
 precisionTolerance = 1e-5
@@ -14,12 +14,12 @@ computationCores = {
     **representation.create_raw_formula_cores(f1),
     **representation.create_raw_formula_cores(f2)}
 
-distribution = ed.ComputationActivationNetwork(
+caNetwork = ed.ComputationActivationNetwork(
     featureDict={
-        "(and_a1_a2)_cV": ed.SingleFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
-                                           name="f1"),
-        "(not_a3)_cV": ed.SingleFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
-                                        name="f2"),
+        "(and_a1_a2)_cV": ed.SingleSoftFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
+                                               name="f1"),
+        "(not_a3)_cV": ed.SingleSoftFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
+                                            name="f2"),
         "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
     },
     computationCoreDict={
@@ -27,9 +27,6 @@ distribution = ed.ComputationActivationNetwork(
         **representation.create_raw_formula_cores(f2),
     }
 )
-
-fContractor = ib.ForwardContractor(caNetwork=distribution)
-
 
 class ForwardBackwardTest(unittest.TestCase):
     def test_partition_single_overlap(self):
@@ -40,8 +37,8 @@ class ForwardBackwardTest(unittest.TestCase):
         meanParamDict = {"(and_a1_a2)_cV": 0.91234,
                          "(not_a3)_cV": tbMatched[{"a3_dV": 0}],
                          "a3_dV": tbMatched}
-        bContractor = ib.BackwardAlternator(caNetwork=distribution, forwardInferer=fContractor,
-                                            meanparamDict=meanParamDict)
+        bContractor = ib.BackwardAlternator(caNetwork=caNetwork,
+                                            meanParamDict=meanParamDict)
         bContractor.alternating_updates()
 
         matchedMeans = bContractor.forwardInferer.compute_environmentMean("a3_dV")

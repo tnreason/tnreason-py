@@ -3,11 +3,7 @@ from tnreason import representation, engine
 import math
 import numpy as np
 
-partitionFeaturePre = "_pF"
-singeFeaturePre = "_sF"
-
 canCorePre = "_can"
-
 
 class ComputedFeature:
     def __init__(self, featureColors, affectedComputationCores=[], interpretationDict=dict(), name=None):
@@ -22,7 +18,11 @@ class ComputedFeature:
         self.name = str(name)
 
 
-class SingleFeature(ComputedFeature):
+class SingleSoftFeature(ComputedFeature):
+    """
+    One-dimensional (scalar) canonical parameter and mean parameter, which represents the exponentiation of the interpreted image.
+    """
+
     def __init__(self, featureColor, **featSpec):
         super().__init__(featureColors=[featureColor], **featSpec)
 
@@ -54,10 +54,10 @@ class SingleFeature(ComputedFeature):
             if meanParam in [0, 1]:
                 raise ValueError("Mean parameter {} needs to be a constraint.".format(meanParam))
             if environmentMean[0] == 0:
-                #raise ValueError("Feature cannot be tuned!")
+                # raise ValueError("Feature cannot be tuned!")
                 return 0
             if environmentMean[1] == 0:
-                #raise ValueError("Feature cannot be tuned!")
+                # raise ValueError("Feature cannot be tuned!")
                 return 0
             return oldCanParam + np.log(meanParam / (1 - meanParam) * (environmentMean[0] / environmentMean[1]))
         else:
@@ -139,7 +139,8 @@ class HardPartitionFeature(ComputedFeature):
 
 
 class ComputationActivationNetwork(engine.EngineUser):
-    def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),  # meanParamDict=dict(),
+    def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),
+                 # meanParamDict=dict(),
                  **engineSpec):
         """
         * featureSpecDict: {featureKey : ExpDistFeature for all features}
@@ -174,9 +175,10 @@ class ComputationActivationNetwork(engine.EngineUser):
     def include_features(self, featureDict, canParamDict=dict(), computationCores=dict()):
         self.featureDict.update(featureDict)
         self.canParamDict.update(canParamDict)
-        self.canParamDict.update({featureKey : self.featureDict[featureKey].create_trivial_canParam()
+        self.canParamDict.update({featureKey: self.featureDict[featureKey].create_trivial_canParam()
                                   for featureKey in featureDict if featureKey not in self.canParamDict})
         self.computationCoreDict.update(computationCores)
+
 
 def calculate_single_canonical(indicatorMeanVector, meanParameter, imageInterpretation=[0, 1]):
     if len(imageInterpretation) == 1:
@@ -226,7 +228,7 @@ def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, ima
                                     color=color, canParam=currCanParameter, interImage=imageInterpretation),
                                 "funTransform": representation.coordinatewise_transform(
                                     [representation.create_interpretation_vector(color=indicatorMeanVector.colors[0],
-                                                                                                         interImage=imageInterpretation)],
+                                                                                 interImage=imageInterpretation)],
                                     rDrFunction=lambda x: (x - meanParameter)
                                 )
                                 }, openColors=[]
@@ -236,7 +238,7 @@ def newton_step_single(indicatorMeanVector, meanParameter, currCanParameter, ima
                                     color=color, canParam=currCanParameter, interImage=imageInterpretation),
                                 "funTransform": representation.coordinatewise_transform(
                                     [representation.create_interpretation_vector(color=indicatorMeanVector.colors[0],
-                                                                                                         interImage=imageInterpretation)],
+                                                                                 interImage=imageInterpretation)],
                                     rDrFunction=lambda x: x * (x - meanParameter)
                                 )
                                 }, openColors=[]

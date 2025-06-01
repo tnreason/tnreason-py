@@ -17,13 +17,13 @@ computationCores = {
 }
 
 featureDict = {
-    "(and_a1_a2)_cV": ed.SingleFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
-                                       name="f1"),
-    "(not_a3)_cV": ed.SingleFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
-                                    name="f2"),
-    "longFeature": ed.SingleFeature(featureColor="longFeature", affectedComputationCores=[],
-                                           name="f3",
-                                           interpretationDict={"longFeature": [i for i in range(longfeatureLength)]}),
+    "(and_a1_a2)_cV": ed.SingleSoftFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
+                                           name="f1"),
+    "(not_a3)_cV": ed.SingleSoftFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
+                                        name="f2"),
+    "longFeature": ed.SingleSoftFeature(featureColor="longFeature", affectedComputationCores=[],
+                                        name="f3",
+                                        interpretationDict={"longFeature": [i for i in range(longfeatureLength)]}),
     "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
 }
 

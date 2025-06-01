@@ -63,7 +63,7 @@ def create_connective_core(expression, coreType=None):
                                                                                   incolors=[get_formula_color(expression[i]) for i in
                                                             range(1, len(expression))],
                                                                                   outcolors=[get_formula_color(expression)],
-                                                                                  function=con.get_connectives(expression[0]),
+                                                                                  indicesToIndicesFunction=con.get_connectives(expression[0]),
                                                                                   coreType=coreType,
                                                                                   name=get_formula_string(expression) + suf.comCoreSuf)}
 

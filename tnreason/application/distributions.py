@@ -92,7 +92,7 @@ class MarkovNetwork(DistributionBase):
                 canParamDict[coreKey + mnHardFeatureSuffix] = supportCore
             canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType)
             if needed:
-                featureDict[coreKey+mnSoftFeatureSuffix] = reasoning.SingleFeature(
+                featureDict[coreKey+mnSoftFeatureSuffix] = reasoning.SingleSoftFeature(
                     featureColor=coreKey,
                     affectedComputationCores=[coreKey],
                 )
@@ -281,7 +281,7 @@ class HybridKnowledgeBase(DistributionBase):
 
     def to_caNetwork(self):
         featureDict = {
-            **{formulaKey: reasoning.SingleFeature(
+            **{formulaKey: reasoning.SingleSoftFeature(
                 featureColor=representation.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
                 affectedComputationCores=list(
                     representation.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]).keys()),

@@ -2,18 +2,8 @@ import math
 
 from tnreason import engine
 
-from tnreason.representation import suffixes as suf#, create_tensor_encoding
-
-import numpy as np
-
-
-# Now in coordiante calculus!
-def create_tensor_encoding(inshape, incolors, function, coreType=None, name="Encoding"):
-    return engine.create_from_slice_iterator(inshape, incolors,
-                                      sliceIterator=[
-                                          (function(*idx), {color: idx[i] for i, color in enumerate(incolors)}) for
-                                          idx in np.ndindex(*inshape)],
-                                      coreType=coreType, name=name)
+from tnreason.representation import suffixes as suf
+from tnreason.representation import coordinate_calculus as cc
 
 def create_trivial_cores(rawKeys, shapeDict=None, suffix="", coreType=None):
     """
@@ -48,7 +38,7 @@ def create_activation_vector(color, canParam=0, supportConstraint=None, coreType
 
 ## Special cases of activation cores
 def create_trivial_core(name, shape, colors, coreType=None):
-    return create_tensor_encoding(inshape=shape, incolors=colors, function=lambda *args: 1, coreType=coreType,
+    return cc.create_tensor_encoding(inshape=shape, incolors=colors, function=lambda *args: 1, coreType=coreType,
                                   name=name)
 
 def create_vanishing_core(colors, shape, coreType=None, name=None):
@@ -60,7 +50,7 @@ def create_basis_core(name, shape, colors, numberTuple, coreType=None):
         numberTuple = tuple([int(number) for number in numberTuple])
     else:  # Dealing with np.int, Booleans, Floats
         numberTuple = tuple([int(numberTuple)])
-    return create_tensor_encoding(inshape=shape, incolors=colors,
+    return cc.create_tensor_encoding(inshape=shape, incolors=colors,
                                   function=lambda *args: int(args == numberTuple), coreType=coreType, name=name)
 
 
@@ -81,5 +71,5 @@ def create_boolean_head(color, headType, weight=None, coreType=None, name=None):
         raise ValueError("Headtype {} not understood!".format(headType))
     if name is None:
         name = color + suf.actCoreSuf
-    return {name: create_tensor_encoding([2], [color], headFunction, coreType=coreType,
+    return {name: cc.create_tensor_encoding([2], [color], headFunction, coreType=coreType,
                                          name=name)}

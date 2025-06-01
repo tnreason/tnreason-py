@@ -13,7 +13,7 @@ from tnreason.reasoning.optimization_handling import core_based_optimize, energy
 from tnreason.reasoning.sampling_handling import get_core_based_sampler, get_energy_based_sampler, coreSamplingMethods, \
     energySamplingMethods
 
-from tnreason.reasoning.features import SingleFeature, SoftPartitionFeature, HardPartitionFeature, \
+from tnreason.reasoning.features import SingleSoftFeature, SoftPartitionFeature, HardPartitionFeature, \
     ComputationActivationNetwork
 
 from tnreason.reasoning.inference import ForwardContractor, BackwardAlternator

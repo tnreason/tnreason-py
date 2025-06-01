@@ -33,7 +33,7 @@ def create_single_atomization(catColor, catDim, position, atomColor=None, coreTy
     return {catColor + "_" + atomColor + suf.atoCoreSuf:
                 tnreason.representation.basis_calculus.create_relational_encoding(inshape=[catDim], outshape=[2], incolors=[catColor],
                                                                                   outcolors=[atomColor],
-                                                                                  function=atomizer, coreType=coreType,
+                                                                                  indicesToIndicesFunction=atomizer, coreType=coreType,
                                                                                   name=catColor + "_" + atomColor + suf.atoCoreSuf
                                                                                   )}
 
