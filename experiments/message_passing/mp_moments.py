@@ -18,7 +18,7 @@ class MPMomentMatcher:
 
         self.directedCores = dict()
         for key in expressionsDict:
-            self.directedCores.update(representation.create_raw_formula_cores(expressionsDict[key]))
+            self.directedCores.update(representation.create_formula_computation_cores(expressionsDict[key]))
 
         self.headCores = dict()
         for key in expressionsDict:

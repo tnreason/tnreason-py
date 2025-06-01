@@ -11,8 +11,8 @@ f1 = ["and", "a1", "a2"]
 f2 = ["not", "a3"]
 
 computationCores = {
-    **representation.create_raw_formula_cores(f1),
-    **representation.create_raw_formula_cores(f2)}
+    **representation.create_formula_computation_cores(f1),
+    **representation.create_formula_computation_cores(f2)}
 
 caNetwork = ed.ComputationActivationNetwork(
     featureDict={
@@ -23,8 +23,8 @@ caNetwork = ed.ComputationActivationNetwork(
         "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
     },
     computationCoreDict={
-        **representation.create_raw_formula_cores(f1),
-        **representation.create_raw_formula_cores(f2),
+        **representation.create_formula_computation_cores(f1),
+        **representation.create_formula_computation_cores(f2),
     }
 )
 

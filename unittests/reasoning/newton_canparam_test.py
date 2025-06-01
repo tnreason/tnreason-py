@@ -12,8 +12,8 @@ f2 = ["not", "a3"]
 longfeatureLength = 10
 
 computationCores = {
-    **representation.create_raw_formula_cores(f1),
-    **representation.create_raw_formula_cores(f2)
+    **representation.create_formula_computation_cores(f1),
+    **representation.create_formula_computation_cores(f2)
 }
 
 featureDict = {

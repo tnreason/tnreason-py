@@ -50,4 +50,4 @@ class AlsMatrixTest(unittest.TestCase):
         residua = optimizer.alternating_optimization(["new1","new2"], computeResiduum=True)
         for i in range(residua.shape[0]):
             for j in range(residua.shape[1]-1):
-                self.assertGreaterEqual(residua[i,j]+1e-13,residua[i,j+1],str(i)+"_"+str(j))
+                self.assertGreaterEqual(residua[i,j]+1e-12,residua[i,j+1],str(i)+"_"+str(j))

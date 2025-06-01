@@ -35,7 +35,7 @@ class InferenceProvider(engine.EngineUser):
             coreDict={
                 **self.distribution.create_cores(),
                 **representation.create_atom_evidence_cores(evidenceDict),
-                **representation.create_raw_formula_cores(queryFormula)
+                **representation.create_formula_computation_cores(queryFormula)
             },
             contractionMethod=self.contractionMethod, openColors=[queryColor])
         return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])

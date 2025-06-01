@@ -3,6 +3,7 @@ from tnreason import engine
 from tnreason import reasoning
 
 import math
+import numpy as np
 
 probFormulasKey = "weightedFormulas"
 logFormulasKey = "facts"
@@ -11,6 +12,7 @@ evidenceKey = "evidence"
 
 mnSoftFeatureSuffix = "_mSoft"
 mnHardFeatureSuffix = "_mHard"
+
 
 class DistributionBase(engine.EngineUser):
     """
@@ -35,6 +37,15 @@ class DistributionBase(engine.EngineUser):
     def as_core(self):
         return engine.contract(self.create_cores(), openColors=self.distributedVariables,
                                contractionMethod=self.contractionMethod)
+
+    def is_normable(self):
+        """
+        For HybridKnowledgeBase: Decides whether the Knowledge Base is satisfiable, i.e. whether a model exists
+        For CSP: Decides whether the CSP has a solution, i.e. whether a model exists
+        Suffices to create the hard features, since only those restrict the support of the network (whereas the partition function needs all features)
+        """
+        return engine.contract(coreDict=self.create_caNetwork(hardOnly=True).create_cores(),
+                               openColors=[])[:] > 0
 
 
 # To be implemented:
@@ -71,32 +82,35 @@ class MarkovNetwork(DistributionBase):
         self.coreDict = coreDict
         self.dimDict = engine.get_dimDict(coreDict)
 
-    def create_cores(self):
+    def create_cores(self, hardOnly=False):
+        #return self.create_caNetwork(hardOnly=hardOnly).create_cores() # better: can filter the hard cores for entailment propagation! but there are errors in unittests to be corrected!
         return self.coreDict
 
-    def to_caNetwork(self):
+    def create_caNetwork(self, hardOnly=False):
         """
         Converts the Markov Network to a Computation Activation Network
         """
-        featureDict=dict()
-        canParamDict=dict()
+        featureDict = dict()
+        canParamDict = dict()
 
         # Decide Hard Features
         for coreKey in self.coreDict:
             supportCore, needed = create_factor_hardCore(self.coreDict[coreKey])
             if needed:
-                featureDict[coreKey+mnHardFeatureSuffix] = reasoning.HardPartitionFeature(
+                featureDict[coreKey + mnHardFeatureSuffix] = reasoning.HardPartitionFeature(
                     featureColors=supportCore.colors,
-                    affectedComputationCores=[coreKey],
+                    affectedComputationCores=[],
                 )
                 canParamDict[coreKey + mnHardFeatureSuffix] = supportCore
-            canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType)
-            if needed:
-                featureDict[coreKey+mnSoftFeatureSuffix] = reasoning.SingleSoftFeature(
-                    featureColor=coreKey,
-                    affectedComputationCores=[coreKey],
-                )
-                canParamDict[coreKey+mnSoftFeatureSuffix] = canParamCore
+        if not hardOnly:
+            for coreKey in self.coreDict:
+                canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType)
+                if needed:
+                    featureDict[coreKey + mnSoftFeatureSuffix] = reasoning.SoftPartitionFeature(
+                        featureColors=self.coreDict[coreKey].colors,
+                        affectedComputationCores=[],
+                    )
+                    canParamDict[coreKey + mnSoftFeatureSuffix] = canParamCore
         return reasoning.ComputationActivationNetwork(featureDict=featureDict,
                                                       canParamDict=canParamDict,
                                                       )
@@ -214,38 +228,41 @@ class HybridKnowledgeBase(DistributionBase):
         self.find_atoms()
 
     def create_cores(self):
-        categoricalConstraintColors = {
-            catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
-            self.categoricalConstraints}  # Only categorical constraints remain interpreted as colors !
+        return self.create_caNetwork(hardOnly=False).create_cores()
 
-        return {**representation.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),
-                **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
-                **representation.create_categorical_cores(categoricalConstraintColors, coreType=self.coreType),
-                **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
-                                                          self.dimDict, coreType=self.coreType),
-                **self.backCores}
+        # categoricalConstraintColors = {
+        #     catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
+        #     self.categoricalConstraints}  # Only categorical constraints remain interpreted as colors !
+        #
+        # return {**representation.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),
+        #         **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
+        #         **representation.create_categorical_cores(categoricalConstraintColors, coreType=self.coreType),
+        #         **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
+        #                                                   self.dimDict, coreType=self.coreType),
+        #         **self.backCores}
 
-    ### Special to Hybrid Knowledge Bases
-    def create_hard_cores(self):
-        """
-        Returns the cores posing hard logical constraints on the worlds to be models
-        """
-        return {**representation.create_formulas_cores(self.facts),
-                **representation.create_atom_evidence_cores(self.evidence),
-                **representation.create_categorical_cores(self.categoricalConstraints),
-                **self.backCores}
-
-    def is_satisfiable(self):
-        """
-        Decides whether the Knowledge Base is satisfiable, i.e. whether a model exists
-        """
-        return engine.contract(coreDict=self.create_hard_cores(),
-                               openColors=[]).values > 0
+    # ### Special to Hybrid Knowledge Bases
+    # def create_hard_cores(self):
+    #     """
+    #     Returns the cores posing hard logical constraints on the worlds to be models
+    #     """
+    #     return {**representation.create_formulas_cores(self.facts),
+    #             **representation.create_atom_evidence_cores(self.evidence),
+    #             **representation.create_categorical_cores(self.categoricalConstraints),
+    #             **self.backCores}
+    #
+    # def old_is_satisfiable(self):
+    #     """
+    #     Decides whether the Knowledge Base is satisfiable, i.e. whether a model exists
+    #     """
+    #     return engine.contract(coreDict=self.create_hard_cores(),
+    #                            openColors=[]).values > 0
 
     ## Energy Representation
     def get_energy_dict(self, cutoffWeight=100, sliceSparse=False, outCoreType="PolynomialCore"):
         """
         ToDo: Implement Slice-Sparse version! (refer to representation.cnf_to_cores)
+
         """
         if sliceSparse:
             weightedFactsEnergyDict = representation.weightedFormulas_to_sparseCore(
@@ -262,12 +279,12 @@ class HybridKnowledgeBase(DistributionBase):
         else:
             weightedEnergyDict = {
                 formulaKey: (self.weightedFormulas[formulaKey][-1],
-                             {**representation.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]),
+                             {**representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]),
                               **representation.create_formula_head(self.weightedFormulas[formulaKey][:-1],
                                                                    headType="truthEvaluation")
                               }) for formulaKey in self.weightedFormulas}
             factsEnergyDict = {
-                formulaKey: (cutoffWeight, {**representation.create_raw_formula_cores(self.facts[formulaKey]),
+                formulaKey: (cutoffWeight, {**representation.create_formula_computation_cores(self.facts[formulaKey]),
                                             **representation.create_formula_head(self.facts[formulaKey],
                                                                                  headType="truthEvaluation")
                                             }) for formulaKey in
@@ -279,28 +296,33 @@ class HybridKnowledgeBase(DistributionBase):
 
             return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}
 
-    def to_caNetwork(self):
-        featureDict = {
-            **{formulaKey: reasoning.SingleSoftFeature(
-                featureColor=representation.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
-                affectedComputationCores=list(
-                    representation.create_raw_formula_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
-            ) for formulaKey in self.weightedFormulas},
-            **{formulaKey: reasoning.HardPartitionFeature(
-                featureColors=[representation.get_formula_color(self.facts[formulaKey])],
-                affectedComputationCores=list(representation.create_raw_formula_cores(self.facts[formulaKey]).keys()),
-            ) for formulaKey in self.facts},
-        }
+    def create_caNetwork(self, hardOnly=False):
+        featureDict = {formulaKey: reasoning.HardPartitionFeature(
+            featureColors=[representation.get_formula_color(self.facts[formulaKey])],
+            affectedComputationCores=list(
+                representation.create_formula_computation_cores(self.facts[formulaKey]).keys()),
+        ) for formulaKey in self.facts}
+        computationCoreDict = representation.create_expressionDict_computation_cores(self.facts, coreType=self.coreType)
 
-        computationCoreDict = {
-            **representation.create_formulas_cores({**self.weightedFormulas, **self.facts})
-        }
+        if not hardOnly:
+            featureDict.update(
+                {formulaKey: reasoning.SingleSoftFeature(
+                    featureColor=representation.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
+                    affectedComputationCores=list(
+                        representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
+                    # Faster to have a function getting the coreKeys without instantiating the network!
+                ) for formulaKey in self.weightedFormulas}
+            )
+            computationCoreDict.update(
+                representation.create_expressionDict_computation_cores(self.weightedFormulas, coreType=self.coreType))
 
         baseMeasureCoreDict = {
-            **representation.create_atom_evidence_cores(self.evidence),
-            **representation.create_categorical_cores(self.categoricalConstraints),
+            **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
+            **representation.create_categorical_cores({
+                catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
+                self.categoricalConstraints}, coreType=self.coreType),
             **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
-                                                      self.dimDict),
+                                                      self.dimDict, coreType=self.coreType),
             **self.backCores
         }
 
@@ -313,28 +335,29 @@ class HybridKnowledgeBase(DistributionBase):
 
         return reasoning.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,
                                                       computationCoreDict=computationCoreDict,
-                                                      baseMeasureCoreDict=baseMeasureCoreDict)
+                                                      baseMeasureCoreDict=baseMeasureCoreDict,
+                                                      coreType=self.coreType)
 
-import numpy as np
 
 def create_factor_hardCore(core, outCoreType=None, outName="SupportCore"):
-    needed=False
+    needed = False
     newCore = engine.get_core(coreType=outCoreType)(colors=core.colors, shape=core.shape, name=outName)
     for posTuple in np.ndindex(*core.shape):
-        posDict = {color : posTuple[i] for i, color in enumerate(core.colors)}
+        posDict = {color: posTuple[i] for i, color in enumerate(core.colors)}
         if core[posDict] == 0:
-            needed=True
+            needed = True
         else:
             newCore[posDict] = 1
     return newCore, needed
 
+
 def create_factor_softCore(core, outCoreType=None, outName="SupportCore"):
-    needed=False
+    needed = False
     newCore = engine.get_core(coreType=outCoreType)(colors=core.colors, shape=core.shape, name=outName)
     for posTuple in np.ndindex(*core.shape):
-        posDict = {color : posTuple[i] for i, color in enumerate(core.colors)}
-        coreValue =core[posDict]
-        if coreValue not in [0,1]: # Those are handled by hard core
-            needed=True
+        posDict = {color: posTuple[i] for i, color in enumerate(core.colors)}
+        coreValue = core[posDict]
+        if coreValue not in [0, 1]:  # Those are handled by hard core
+            needed = True
             newCore[posDict] = math.log(coreValue)
     return newCore, needed

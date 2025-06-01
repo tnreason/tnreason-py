@@ -13,7 +13,7 @@ class HybridKBTest(unittest.TestCase):
             weightedFormulas={"e": ["a1", 2]},
             facts={"c1": ["a1"],
                    "c2": ["imp", "a1", "a2"]})
-        self.assertTrue(kb.is_satisfiable())
+        self.assertTrue(kb.is_normable())
 
     ## Functionality no longer supported!
     # def test_satisfiability2(self):

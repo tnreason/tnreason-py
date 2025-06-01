@@ -10,7 +10,7 @@ from tnreason.reasoning import alternating_least_squares as als
 aSuf = representation.suf.disVarSuf
 
 networkCores = {
-    **representation.create_raw_formula_cores(["imp", "a1", "a2"])
+    **representation.create_formula_computation_cores(["imp", "a1", "a2"])
 }
 
 targetCores = {
@@ -60,7 +60,7 @@ class AlsKnowledgeTest(unittest.TestCase):
         data[1, 1, 3] = 1
 
         dataOptimizer = als.ALS(
-            networkCores=representation.create_raw_formula_cores(["imp", "a1", "a2"]),
+            networkCores=representation.create_formula_computation_cores(["imp", "a1", "a2"]),
             targetCores={"tarCore": engine.get_core()(values=np.ones(dataNum), colors=["dat"])},
             importanceList=[
                 (1, {"dataTensor": engine.get_core()(values=data, colors=["a1" + aSuf, "a2" + aSuf, "dat"])})],

@@ -1,6 +1,6 @@
-from tnreason.representation.formulas_to_cores import create_formulas_cores, create_raw_formula_cores, \
+from tnreason.representation.formulas_to_cores import create_formulas_cores, create_formula_computation_cores, \
     get_formula_color, \
-    create_formula_head, create_evidence_cores, create_atom_evidence_cores
+    create_formula_head, create_evidence_cores, create_atom_evidence_cores, create_expressionDict_computation_cores
 from tnreason.representation.categoricals_to_cores import create_categorical_cores, create_atomization_cores, \
     create_constraintCoresDict
 from tnreason.representation.neurons_to_cores import create_neuron, create_architecture, find_atom_colors, \
@@ -25,3 +25,20 @@ from tnreason.representation.coordinate_calculus import coordinatewise_transform
 
 from tnreason.representation.basis_calculus import create_relational_encoding, create_partitioned_relational_encoding, \
     create_interpretation_vector
+#
+# ## Auxiliary to support old examples
+# def create_formulas_cores(expressionsDict, coreType=None):
+#
+#     """
+#     Creates a tensor network of connective and head cores
+#         * expressionsDict (script language): Dictionary of nested lists representing expressions
+#         * alreadyCreated: List of keys to computation cores to be omitted
+#     """
+#     coresDict = create_formula_computation_cores(expressionsDict, coreType=coreType)
+#     for formulaKey in expressionsDict:
+#         if isinstance(expressionsDict[formulaKey][-1], float) or isinstance(expressionsDict[formulaKey][-1], int):
+#             coresDict.update(create_boolean_head(get_formula_color(expressionsDict[formulaKey][:-1]), "expFactor",
+#                                                      weight=expressionsDict[formulaKey][-1], coreType=coreType))
+#         else:
+#             coresDict.update(create_boolean_head(get_formula_color(expressionsDict[formulaKey]), "truthEvaluation"))
+#     return coresDict

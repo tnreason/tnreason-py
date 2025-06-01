@@ -10,16 +10,16 @@ architectureString = "architecture"
 
 
 def calculate_satisfactionDict(empDistribution, expressionDict, inferenceMethod=None):
-    empCaNet = empDistribution.to_caNetwork()
+    empCaNet = empDistribution.create_caNetwork()
 
     expressionComputationCores = dict()
     for expressionKey in expressionDict:
-        expressionComputationCores.update(representation.create_raw_formula_cores(expressionDict[expressionKey]))
+        expressionComputationCores.update(representation.create_formula_computation_cores(expressionDict[expressionKey]))
 
     empCaNet.include_features(
         featureDict={expressionKey: reasoning.SoftPartitionFeature(
             featureColors=[representation.get_formula_color(expressionDict[expressionKey])],
-            affectedComputationCores=representation.create_raw_formula_cores(expressionDict[expressionKey]).keys())
+            affectedComputationCores=representation.create_formula_computation_cores(expressionDict[expressionKey]).keys())
             for expressionKey in expressionDict},
         computationCores=expressionComputationCores
     )
@@ -148,10 +148,10 @@ class HybridLearner:
                 print("Feature {} to be calibrated to match {}.".format(featureKey, satisfactionDict[featureKey]))
 
         ## Update canonical parameters
-        bInferer = reasoning.get_inferer(calInferenceMethod)(caNetwork=self.knowledgeBase.to_caNetwork(),
+        bInferer = reasoning.get_inferer(calInferenceMethod)(caNetwork=self.knowledgeBase.create_caNetwork(),
                                                              forwardInferer=reasoning.get_inferer(
                                                                  calForwardInferenceMethod)(
-                                                                 self.knowledgeBase.to_caNetwork()
+                                                                 self.knowledgeBase.create_caNetwork()
                                                              ),
                                                              meanParamDict={featureKey: satisfactionDict[featureKey] for
                                                                             featureKey in
