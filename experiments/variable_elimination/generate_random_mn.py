@@ -16,5 +16,3 @@ if __name__ == "__main__":
         "v2": ["b"],
         "e2": ["a", "b", "c"]
     }, shapeDict={"a": 2, "b": 3, "c": 5})
-
-    pass
