@@ -129,7 +129,7 @@ class HybridLearner:
     # New based on inference
     def infer_weights_on_data(self, empDistribution, satInferenceMethod="ForwardContractor",
                               calForwardInferenceMethod="ForwardContractor",
-                              calInferenceMethod="BackAlternator"):
+                              calInferenceMethod="BackwardAlternator"):
         satisfactionDict = calculate_satisfactionDict(empDistribution,
                                                       {expressionKey: self.knowledgeBase.weightedFormulas[
                                                                           expressionKey][:-1] for expressionKey in

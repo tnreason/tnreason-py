@@ -52,6 +52,7 @@ class SingleSoftFeature(ComputedFeature):
         environmentMean: mean parameter, when canonical parameter
         """
         if self.interpretationDict[self.featureColors[0]] == [0, 1]:
+            assert meanParam <= 1 and meanParam >= 0
             if meanParam in [0, 1]:
                 raise ValueError("Mean parameter {} needs to be a constraint.".format(meanParam))
             if environmentMean[0] == 0:
@@ -65,8 +66,6 @@ class SingleSoftFeature(ComputedFeature):
             return newton_canonical_optimization(environmentMean, meanParam,
                                                  imageInterpretation=self.interpretationDict[self.featureColors[0]])
 
-
-#    def compute_energy(self, cutoffWeight=None):
 
 
 class SoftPartitionFeature(ComputedFeature):

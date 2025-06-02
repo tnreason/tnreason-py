@@ -16,12 +16,5 @@ from tnreason.reasoning.sampling_handling import get_core_based_sampler, get_ene
 from tnreason.reasoning.features import SingleSoftFeature, SoftPartitionFeature, HardPartitionFeature, \
     ComputationActivationNetwork
 
-from tnreason.reasoning.inference import ForwardContractor, BackwardAlternator
+from tnreason.reasoning.inference import ForwardContractor, BackwardAlternator, get_inferer
 
-def get_inferer(inferenceMethod):
-    if inferenceMethod is None or inferenceMethod == "ForwardContractor":
-        return ForwardContractor
-    elif inferenceMethod == "BackAlternator":
-        return BackwardAlternator
-    else:
-        raise ValueError("Inference Method {} not implemented!".format(inferenceMethod))
