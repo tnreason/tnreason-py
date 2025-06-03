@@ -12,60 +12,61 @@ def get_sudoku_constraints(num=3):
 
 
 def get_column_constraints(num=3):
-    categoricalConstraints = {}
-    for c1 in range(num):
-        for c2 in range(num):
-            for n in range(num ** 2):
-                catVarKey = "col_" + str(n) + "_" + str(c1) + "_" + str(c2)
-                categoricalConstraints[catVarKey] = []
-                for r1 in range(num):
-                    for r2 in range(num):
-                        categoricalConstraints[catVarKey].append(
-                            "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n))
-
-    return categoricalConstraints
+    """
+    In each column each number appears exactly once.
+    """
+    return {"col_" + str(n) + "_" + str(c1) + "_" + str(c2): [
+        "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n) for r1 in range(num) for r2 in
+        range(num)] for c1 in range(num) for c2 in range(num) for n in range(num ** 2)}
 
 
 def get_row_constraints(num=3):
-    categoricalConstraints = {}
-    for r1 in range(num):
-        for r2 in range(num):
-            for n in range(num ** 2):
-                catVarKey = "row_" + str(n) + "_" + str(r1) + "_" + str(r2)
-                categoricalConstraints[catVarKey] = []
-                for c1 in range(num):
-                    for c2 in range(num):
-                        categoricalConstraints[catVarKey].append(
-                            "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n))
-    return categoricalConstraints
+    """
+    In each row each number appears exactly once.
+    """
+    return {"row_" + str(n) + "_" + str(r1) + "_" + str(r2): [
+        "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n) for c1 in range(num) for c2 in
+        range(num)
+    ] for r1 in range(num) for r2 in range(num) for n in
+        range(num ** 2)}
 
 
 def get_squares_constraints(num=3):
-    categoricalConstraints = {}
-    for r1 in range(num):
-        for c1 in range(num):
-            for n in range(num ** 2):
-                catVarKey = "square_" + str(n) + "_" + str(r1) + "_" + str(c1)
-                categoricalConstraints[catVarKey] = []
-                for r2 in range(num):
-                    for c2 in range(num):
-                        categoricalConstraints[catVarKey].append(
-                            "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n))
-    return categoricalConstraints
+    """
+    In each square each number appears exactly once.
+    """
+    return {"square_" + str(n) + "_" + str(r1) + "_" + str(c1): [
+        "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
+        for r2 in range(num) for c2 in range(num)
+    ]
+        for r1 in range(num) for c1 in range(num) for n in range(num ** 2)}
+
+
+#    return categoricalConstraints
 
 
 def get_position_constraints(num=3):
-    categoricalConstraints = {}
-    for r1 in range(num):
-        for r2 in range(num):
-            for c1 in range(num):
-                for c2 in range(num):
-                    catVarKey = "pos_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2)
-                    categoricalConstraints[catVarKey] = []
-                    for n in range(num ** 2):
-                        categoricalConstraints[catVarKey].append(
-                            "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n))
-    return categoricalConstraints
+    """
+    Exactly one number is assigned at each position.
+    """
+    return {"pos_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2): [
+        "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
+        for n in range(num ** 2)
+    ] for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num)}
+
+
+def evidenceDict_to_array(evidenceDict, num):
+    array = np.zeros(shape=(num ** 2, num ** 2))
+    for variableKey in evidenceDict:
+        varDecom = variableKey.split("_")
+        if varDecom[0] == "a" and evidenceDict[variableKey] == 1:
+            # print(variableKey)
+            array[int(varDecom[1]) * num + int(varDecom[2]), int(varDecom[3]) * num + int(varDecom[4])] = int(
+                varDecom[5]) + 1
+        elif varDecom[0] == "pos":
+            array[int(varDecom[1]) * num + int(varDecom[2]), int(varDecom[3]) * num + int(varDecom[4])] = evidenceDict[
+                                                                                                              variableKey] + 1
+    return array
 
 
 ## Visualization
@@ -86,17 +87,3 @@ def evidence_to_array(evidenceDict, num, verbose=False):
                     else:
                         array[r1 * num + r2, c1 * num + c2] = 0
     return array
-
-def array_to_catEvidence(array, num, verbose=False):
-    evidenceDict = {}
-    rearranged = array.reshape((num,num,num,num))
-    for r1 in range(num):
-        for r2 in range(num):
-            for c1 in range(num):
-                for c2 in range(num):
-                    if rearranged[r1,r2,c1,c2] != 0:
-                        evidenceDict["pos_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2)] = rearranged[r1,r2,c1,c2] - 1
-    return evidenceDict
-
-def catEvidence_to_atomEvidence(catEvidence):
-    return {"a_"+"_".join(key.split("_")[1:]) + "_" + str(catEvidence[key]) : 1  for key in catEvidence}

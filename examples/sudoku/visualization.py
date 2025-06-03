@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def visualize_sudoku(sudoku, number=3):
+def visualize_sudoku(sudokuArray, number=3):
     fig, ax = plt.subplots(figsize=(6, 6))
 
     # Hide axes
@@ -10,7 +10,7 @@ def visualize_sudoku(sudoku, number=3):
     ax.yaxis.set_visible(False)
 
     # Create a table
-    table = plt.table(cellText=sudoku,
+    table = plt.table(cellText=sudokuArray,
                       cellLoc='center',
                       loc='center',
                       cellColours=[['white'] * number ** 2 for _ in range(number ** 2)],

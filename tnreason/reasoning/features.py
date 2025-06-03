@@ -66,7 +66,11 @@ class SingleSoftFeature(ComputedFeature):
             return newton_canonical_optimization(environmentMean, meanParam,
                                                  imageInterpretation=self.interpretationDict[self.featureColors[0]])
 
-
+    def combine_canParams(self, canParamList):
+        """
+        Combine the canonical parameters such that the activation core contraction is reproduced
+        """
+        return sum(canParamList)
 
 class SoftPartitionFeature(ComputedFeature):
     """
@@ -101,6 +105,11 @@ class SoftPartitionFeature(ComputedFeature):
             outCoreType=coreType, outName=self.name + canCorePre + representation.suf.actCoreSuf
         )
 
+    def combine_canParams(self, canParamList):
+        """
+        Combine the canonical parameters such that the activation core contraction is reproduced
+        """
+        return sum(canParamList)
 
 class HardPartitionFeature(ComputedFeature):
     """
@@ -115,6 +124,9 @@ class HardPartitionFeature(ComputedFeature):
 
     def create_activation_core(self, canParam, coreType=None):
         return canParam
+
+    def compute_meanParam(self, environmentMean=None):
+        return self.local_adjustment(environmentMean=environmentMean)
 
     def local_adjustment(self, environmentMean=None, meanParam=None, oldCanParam=None, coreType=None):
         """
@@ -140,6 +152,15 @@ class HardPartitionFeature(ComputedFeature):
                 newCanparam[posDict] = 1
         return newCanparam
 
+    def combine_canParams(self, canParamList):
+        """
+        Combine the canonical parameters such that the activation core contraction is reproduced
+        """
+        return engine.contract(
+            {"can"+str(i):canCore for i, canCore in enumerate(canParamList)},
+            openColors=self.featureColors
+        )
+
 
 class ComputationActivationNetwork(engine.EngineUser):
     def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),
@@ -160,7 +181,9 @@ class ComputationActivationNetwork(engine.EngineUser):
         for featureKey in self.featureDict:
             if featureKey not in self.canParamDict:
                 self.canParamDict[featureKey] = self.featureDict[featureKey].create_trivial_canParam()
-
+            for coreKey in self.featureDict[featureKey].affectedComputationCores:
+                if coreKey not in self.computationCoreDict:
+                    raise ValueError("Computation core {} not found for feature {}.".format(coreKey, featureKey))
     def create_activation_cores(self, featureKeys=None):
         if featureKeys is None:
             featureKeys = list(self.featureDict.keys())

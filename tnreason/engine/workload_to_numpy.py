@@ -68,6 +68,14 @@ class NumpyCore:
             self.index = 0
             raise StopIteration
 
+    def __eq__(self, other):
+        if isinstance(other, NumpyCore):
+            return np.array_equal(self.values, other.values) and \
+                   self.colors == other.colors and \
+                   self.name == other.name
+        else:
+            return False
+
     def clone(self):
         return NumpyCore(self.values.copy(), self.colors.copy(), self.name)  # ! Shallow Copies?
 

@@ -73,7 +73,9 @@ class ForwardContractor(InferenceBase):
             dimensionDict=self.dimensionDict
         )
         if normalize:
-            return 1 / engine.contract({"pre": preEnvironmentMean}, openColors=[])[:] * preEnvironmentMean
+            norm = engine.contract({"pre": preEnvironmentMean}, openColors=[])[:]
+            assert norm > 0, "Inconsistency detected at environment mean to feature {}".format(featureKey)
+            return 1 / norm * preEnvironmentMean
         else:
             return preEnvironmentMean
 
@@ -162,8 +164,9 @@ class ExpectationPropagator(InferenceBase):
                     if otherReceiveCluster != sendCluster:
                         # Then this is a message from childCluster to sendCluster
                         for featureKey in self.clusterFeatures[childCluster]:
-                            effectiveCanParamDict[featureKey] += self.messageDict[childCluster][otherReceiveCluster][
-                                featureKey]
+                            effectiveCanParamDict[featureKey] = self.caNetwork.featureDict[featureKey].combine_canParams([effectiveCanParamDict[featureKey], self.messageDict[childCluster][otherReceiveCluster][featureKey]])
+                            #effectiveCanParamDict[featureKey] += self.messageDict[childCluster][otherReceiveCluster][
+                            #    featureKey]
 
         ## Forward inference in sendKeys
         forwardInferer = get_inferer(self.forwardInferenceMethod)(
@@ -171,6 +174,19 @@ class ExpectationPropagator(InferenceBase):
         )
         forwardInferer.infer_meanParams(self.clusterFeatures[receiveCluster])
 
+
+        ## Find features which meanParam has changed
+        changedMeans = {featureKey : False for featureKey in self.clusterFeatures[receiveCluster]}
+        for featureKey in self.clusterFeatures[receiveCluster]:
+            if featureKey in self.meanParamDict:
+                if not self.meanParamDict[featureKey] == forwardInferer.meanParamDict[featureKey]:
+                    self.meanParamDict[featureKey] = forwardInferer.meanParamDict[featureKey]
+                    changedMeans[featureKey] = True
+            else:
+                self.meanParamDict[featureKey] = forwardInferer.meanParamDict[featureKey]
+                changedMeans[featureKey] = True
+
+        ## Compute the message to be sent as canParams
         backwardInferer = get_inferer(self.backwardInferenceMethod)(
             caNetwork=self.get_caNetwork(self.clusterFeatures[receiveCluster]),
             meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.clusterFeatures[receiveCluster]},
@@ -182,6 +198,8 @@ class ExpectationPropagator(InferenceBase):
             if parentCluster != sendCluster:
                 # Then this is a message from receiveCluster to parentCluster
                 for featureKey in self.clusterFeatures[receiveCluster]:
-                    messageCanParamDict[featureKey] += -1 * self.messageDict[receiveCluster][parentCluster][featureKey]
+                    if type(self.caNetwork.featureDict[featureKey]) in [ft.SoftPartitionFeature, ft.SingleSoftFeature]:
+                        messageCanParamDict[featureKey] += -1 * self.messageDict[receiveCluster][parentCluster][featureKey]
 
         self.messageDict[receiveCluster][sendCluster] = messageCanParamDict
+        return changedMeans
