@@ -1,5 +1,7 @@
 import pandas as pd
 
+from tnreason.engine import core_base as cb
+
 from tnreason.representation import suffixes as suf
 
 import numpy as np
@@ -8,13 +10,13 @@ defaultValueColumnString = "values"
 defaultNanValue = -1
 
 
-class PandasCore:
-    coreType="PandasCore"
+class PandasCore(cb.TensorCore):
+    coreType = "PandasCore"
+
     def __init__(self, values=None, colors=None, name="NoName", shape=None, valueColumn=defaultValueColumnString,
                  nanValue=defaultNanValue):
-        self.colors = colors
-        self.name = name
-        self.shape = shape
+
+        super().__init__(colors, name, shape)
 
         if values is None:  # Empty initialization based on colors
             self.values = pd.DataFrame(columns=colors)
@@ -110,10 +112,6 @@ class PandasCore:
     def add_identical_slices(self):
         self.values = self.values.groupby(self.colors)[self.valueColumn].sum().reset_index()
 
-    def __rmul__(self, scalar):
-        self.values[self.valueColumn] = scalar * self.values[self.valueColumn]
-        return self
-
     def slice_multiply(self, weight, sliceDict=dict()):
         """
         Cannot handle yet situation of nans in sliceDict
@@ -134,6 +132,12 @@ class PandasCore:
         newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
         return PandasCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_" + self.name)
 
+    def reorder_colors(self, newColors):
+        if set(self.colors) == set(newColors):
+            self.colors = newColors
+        else:
+            raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
+
     def __add__(self, otherCore):
         otherCore.values = otherCore.values.rename(columns={otherCore.valueColumn: self.valueColumn})
 
@@ -144,16 +148,14 @@ class PandasCore:
                           shape=list(colorsShapeDict.values()),
                           valueColumn=self.valueColumn)
 
+    def __rmul__(self, scalar):
+        self.values[self.valueColumn] = scalar * self.values[self.valueColumn]
+        return self
+
     def enumerate_slices(self, enumerationColor="j"):
         self.values[enumerationColor] = [i for i in range(len(self.values))]
         self.colors = self.colors + [enumerationColor]
         self.shape = self.shape + [len(self.values)]
-
-    def reorder_colors(self, newColors):
-        if set(self.colors) == set(newColors):
-            self.colors = newColors
-        else:
-            raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
 
 
 class PandasTermCore:

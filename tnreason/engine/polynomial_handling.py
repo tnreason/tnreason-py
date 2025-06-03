@@ -1,7 +1,9 @@
+from tnreason.engine import core_base as cb
+
 import numpy as np
 
 
-class PolynomialCore:
+class PolynomialCore(cb.TensorCore):
     """
     :values: Storing the polynomial by a list of tuples, each representing a weighted monomial by
         - value: Weight of the monomial
@@ -10,22 +12,15 @@ class PolynomialCore:
             - its value k specifies the variable to X==k
     Each monomial seen as a tensor is specified by a weighted trivial slice.
     """
-    coreType= "PolynomialCore"
+    coreType = "PolynomialCore"
+
     def __init__(self, values=None, colors=None, name="NoName", shape=None):
+        super().__init__(colors, name, shape)
 
         if values is None:  # Empty intialization
             self.values = []
         else:  # Initialization based on values
-            self.values = values
-
-        self.colors = colors
-        self.name = name
-
-        self.shape = shape
-
-    def __str__(self):
-        return "## Polynomial Core " + self.name + " ##\nValues: " + str(self.values) + "\nColors: " + str(
-            self.colors)
+            self.values = values  # ! No check is done, whether the colors coincide with self.colors and their assignments are below the shape
 
     def __getitem__(self, item):
         if isinstance(item, dict):
@@ -54,7 +49,7 @@ class PolynomialCore:
 
     def contract_with(self, core2):
         newColors = list(set(self.colors) | set(core2.colors))
-        newShapes = [0 for color in newColors]
+        newShapes = [0 for _ in newColors]
         for i, color in enumerate(self.colors):
             newShapes[newColors.index(color)] = self.shape[i]
         for i, color in enumerate(core2.colors):
@@ -90,6 +85,12 @@ class PolynomialCore:
                 newSlices.append((val, pos))
         self.values = newSlices
 
+    def reorder_colors(self, newColors):
+        if set(self.colors) == set(newColors):
+            self.colors = newColors
+        else:
+            raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
+
     def __add__(self, otherCore):
         ## Speciality: Can extend the colors by trivial extension
         colorsShapeDict = {**{color: self.shape[i] for i, color in enumerate(self.colors)},
@@ -121,12 +122,6 @@ class PolynomialCore:
         self.colors = self.colors + [enumerationColor]
         self.values = [(entry[0], {**entry[1], enumerationColor: i}) for i, entry in enumerate(self.values)]
         self.shape = self.shape + [len(self.values)]
-
-    def reorder_colors(self, newColors):
-        if set(self.colors) == set(newColors):
-            self.colors = newColors
-        else:
-            raise ValueError("Reordering of Colors in Core {} not possible, since different!".format(self.name))
 
     def get_argmax(self, method="gurobi"):
         """
@@ -180,5 +175,5 @@ def binarize_polyCore(polyCore):
         binarizedValues.append((weight, binPosDict))
 
     return PolynomialCore(values=binarizedValues,
-                          shape=[2 for i in range(len(binarizedColors))],
+                          shape=[2 for _ in range(len(binarizedColors))],
                           colors=binarizedColors)

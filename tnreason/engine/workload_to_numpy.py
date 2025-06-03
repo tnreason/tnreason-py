@@ -1,7 +1,7 @@
 import numpy as np
 
 from tnreason.engine import subscript_creation as subc
-
+from tnreason.engine import core_base as cb
 
 def np_random_core(shape, colors, randomEngine, name):
     if randomEngine == "NumpyUniform":
@@ -12,30 +12,19 @@ def np_random_core(shape, colors, randomEngine, name):
         raise ValueError("Random Engine {} not known for core creation!".format(randomEngine))
 
 
-class NumpyCore:
+class NumpyCore(cb.TensorCore):
     coreType = "NumpyCore"
-    def __init__(self, values=None, colors=None, name="NoName", shape=None):
 
+    def __init__(self, values=None, colors=None, name="NoName", shape=None):
         if values is None:  # Empty initialization based on shape
             self.values = np.zeros(shape=shape).astype(float)
-            self.shape = shape
         else:  # Initialization based on values
             self.values = np.array(values)
-            self.shape = self.values.shape
+            shape = self.values.shape
 
-        self.colors = colors
-        self.name = name
-
-        if len(self.colors) != len(self.values.shape):
-            raise ValueError("Number of Colors does not match the Value Shape in Core {}!".format(name))
-        if len(self.colors) != len(set(self.colors)):
-            raise ValueError("There are duplicate colors in the colors {} of Core {}!".format(colors, name))
+        super().__init__(colors, name, shape)
 
         self.index = 0
-
-    def __str__(self):
-        return "## Numpy Core " + self.name + " ##\nValues with shape: " + str(self.shape) + "\nColors: " + str(
-            self.colors)
 
     def __getitem__(self, item):
         if isinstance(item, dict):
@@ -68,16 +57,17 @@ class NumpyCore:
             self.index = 0
             raise StopIteration
 
-    def __eq__(self, other):
-        if isinstance(other, NumpyCore):
-            return np.array_equal(self.values, other.values) and \
-                   self.colors == other.colors and \
-                   self.name == other.name
-        else:
-            return False
-
     def clone(self):
         return NumpyCore(self.values.copy(), self.colors.copy(), self.name)  # ! Shallow Copies?
+
+    def contract_with(self, core2): # For usage in Corewise Contractor
+        newColors = list(set(self.colors) | set(core2.colors))
+        newShapes = [0 for _ in newColors]
+        for i, color in enumerate(self.colors):
+            newShapes[newColors.index(color)] = self.shape[i]
+        for i, color in enumerate(core2.colors):
+            newShapes[newColors.index(color)] = core2.shape[i]
+        return NumpyEinsumContractor(coreDict={self.name: self, core2.name: core2}, openColors=newColors).contract()
 
     ## For Sampling
     def normalize(self):
@@ -87,13 +77,6 @@ class NumpyCore:
     def reorder_colors(self, newColors):
         self.values = np.einsum(subc.get_reorder_substring(self.colors, newColors), self.values)
         self.colors = newColors
-
-    def get_slice(self, colorEvidenceDict={}):
-        newValues = self.values[tuple(colorEvidenceDict.get(color, slice(None))
-                                        for i, color in enumerate(self.colors))]
-        newColors = [color for color in self.colors if color not in colorEvidenceDict]
-        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
-        return NumpyCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def __add__(self, otherCore):
         if set(self.colors) != set(otherCore.colors):
@@ -106,15 +89,17 @@ class NumpyCore:
         self.values = scalar * self.values
         return self
 
-
     def slice_multiply(self, weight, sliceDict=dict()):
         subscript = tuple([slice(None) if color not in sliceDict else sliceDict[color] for color in self.colors])
         self.values[tuple(subscript)] = weight * self.values[tuple(subscript)]
         return self
 
-    #def build_ln(self, threshold=1e-8):
-    #    # To be replaced by creation_handling.coordinatewise_tranform
-    #    return NumpyCore(np.log(np.clip(self.values, threshold, None)), self.colors, self.name)
+    def get_slice(self, colorEvidenceDict={}):
+        newValues = self.values[tuple(colorEvidenceDict.get(color, slice(None))
+                                        for i, color in enumerate(self.colors))]
+        newColors = [color for color in self.colors if color not in colorEvidenceDict]
+        newShape = [self.shape[i] for i, color in enumerate(self.colors) if color not in colorEvidenceDict]
+        return NumpyCore(values=newValues, colors=newColors, shape=newShape, name="Sliced_"+self.name)
 
     def get_argmax(self):
         return {self.colors[i]: maxPos for i, maxPos in
