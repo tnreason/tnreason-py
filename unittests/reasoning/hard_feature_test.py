@@ -7,7 +7,7 @@ from tnreason import representation
 
 class HardFeatureTest(unittest.TestCase):
     def test_capture_hardConstraint(self):
-        hardFeat = ft.HardPartitionFeature(featureColors=["bazant"], interpretationDict={"bazant": [2, 1.2, 5, 6]})
+        hardFeat = ft.HardPartitionFeature(featureColors=["bazant"], shape=[3])
         trivCanparam = hardFeat.create_trivial_canParam()
         self.assertTrue(trivCanparam[1] == 1)
 

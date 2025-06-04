@@ -52,9 +52,8 @@ class VariableEliminationTest(unittest.TestCase):
             varKey + "_mesTo_" + varKey2: representation.SoftPartitionFeature(
                 featureColors=[variableKey for variableKey in clusterVariablesDict[varKey]
                                if variableKey in clusterVariablesDict[varKey2]],
-                interpretationDict={variableKey: range(shapeDict[variableKey]) for variableKey in
-                                    clusterVariablesDict[varKey] if variableKey in clusterVariablesDict[varKey2]}) for
-            varKey, varKey2 in mesSched
+                shape = [shapeDict[variableKey] for variableKey in clusterVariablesDict[varKey] if variableKey in clusterVariablesDict[varKey2]])
+            for varKey, varKey2 in mesSched
         }
         randomTN = gr.generate_random_positive_tn(
             hyperedgeDict=hyperedgeDict,

@@ -22,7 +22,9 @@ featureDict = {
                                         name="f2"),
     "longFeature": ed.SingleSoftFeature(featureColor="longFeature", affectedComputationCores=[],
                                         name="f3",
-                                        interpretationDict={"longFeature": [i for i in range(longfeatureLength)]}),
+                                        interpretedImage=[i for i in range(longfeatureLength)],
+                                        interpretationDict={"longFeature": [i for i in range(longfeatureLength)]}
+                                        ),
     "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
 }
 
