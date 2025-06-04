@@ -109,6 +109,8 @@ class SoftPartitionFeature(ComputedFeature):
         """
         Combine the canonical parameters such that the activation core contraction is reproduced
         """
+        if len(canParamList) == 1: ## Avoid problem with single core -> Would try 0 + canparamList[0]?
+            return canParamList[0]
         return sum(canParamList)
 
 class HardPartitionFeature(ComputedFeature):

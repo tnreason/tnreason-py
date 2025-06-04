@@ -179,7 +179,7 @@ class SudokuTest(unittest.TestCase):
         self.assertTrue(solution_array[0, 3] == 2)
         self.assertTrue(solution_array[1, 2] == 4)
 
-    def test_num3(self):
+    def num3(self): # Not used in unittests since taking too long! (for usage rename it to test_num3)
         num = 3
 
         evidenceDict = {

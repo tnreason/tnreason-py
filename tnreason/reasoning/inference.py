@@ -135,7 +135,7 @@ class ExpectationPropagator(InferenceBase):
     Forward inference by propagation of messages (additive canParams) through the computation activation network.
     """
 
-    def __init__(self, clusterDict=dict(), forwardInferenceMethod="ForwardContractor",
+    def __init__(self, clusterDict=dict(), startMessageSchedule=None, forwardInferenceMethod="ForwardContractor",
                  backwardInferenceMethod="BackwardAlternator", **inferenceSpec):
         super().__init__(**inferenceSpec)
         self.clusterFeatures = clusterDict  # Dictionary of featureKeys to clusters: send and message clusters!
@@ -153,7 +153,10 @@ class ExpectationPropagator(InferenceBase):
             receiveCluster in self.clusterFeatures  # dictionary of received messages
         }
 
-        self.messageQueue = SortedList()
+        if startMessageSchedule is None:
+            self.messageQueue = SortedList() # FIFO -> Stack
+        else:
+            self.messageQueue = SortedList(startMessageSchedule)
 
         self.messageCount = 0
 
@@ -169,6 +172,9 @@ class ExpectationPropagator(InferenceBase):
                                                                                        maxMessageCount))
 
     def collapse_hard_feature_message(self, hardFeatureKeys):
+        """
+        Optional: Smallen the message dictionary by absorbing messages to the canParams
+        """
         for featureKey in hardFeatureKeys:
             assert type(self.caNetwork.featureDict[featureKey]) == ft.HardPartitionFeature
             self.caNetwork.canParamDict[featureKey] = self.caNetwork.featureDict[featureKey].combine_canParams(
@@ -189,48 +195,7 @@ class ExpectationPropagator(InferenceBase):
         assert sendCluster in self.clusterParents[receiveCluster], "Cluster {} is not a parent of cluster {}.".format(
             sendCluster, receiveCluster)
 
-        # Compute effective canParams: Those assigned to the sendCluster and those received from childClusters
-
-        # effectiveCanParamDict = dict()
-        # for featureKey in self.clusterFeatures[sendCluster]:
-        #     relevantMessages = [self.messageDict[childCluster][otherParentCluster][featureKey] for childCluster in self.messageDict
-        #                         for otherParentCluster in self.messageDict[childCluster]
-        #                         if sendCluster in self.clusterParents[childCluster]
-        #                         and featureKey in self.clusterFeatures[otherParentCluster]
-        #                         and otherParentCluster != sendCluster]
-        #     effectiveCanParamDict[featureKey] = self.caNetwork.featureDict[featureKey].combine_canParams(
-        #         [self.caNetwork.canParamDict[featureKey],*relevantMessages]
-        #     )
-
-        # efCanParamDict = {featureKey:
-        #     self.caNetwork.featureDict[featureKey].combine_canParams(
-        #         [self.caNetwork.canParamDict[featureKey]] + [
-        #             self.messageDict[childCluster][otherParentCluster][featureKey] for childCluster in self.messageDict
-        #             for otherParentCluster in self.messageDict[childCluster]
-        #             if sendCluster in self.clusterParents[childCluster]
-        #             and featureKey in self.clusterFeatures[otherParentCluster]
-        #             and otherParentCluster != sendCluster]
-        #     )
-        #     for featureKey in self.clusterFeatures[sendCluster]}
-        #
-        # effectiveCanParamDict = {featureKey: self.caNetwork.canParamDict[featureKey] for featureKey in
-        #                          self.clusterFeatures[sendCluster]}
-        #
-        # for childCluster in self.clusterFeatures:
-        #     if childCluster != sendCluster and sendCluster in self.clusterParents[childCluster]:
-        #         # Then childCluster is a child of sendCluster and its other received messages need to be added
-        #         for otherReceiveCluster in self.messageDict[childCluster]:
-        #             if otherReceiveCluster != sendCluster:
-        #                 # Then this is a message from childCluster to sendCluster
-        #                 for featureKey in self.clusterFeatures[childCluster]:
-        #                     effectiveCanParamDict[featureKey] = self.caNetwork.featureDict[
-        #                         featureKey].combine_canParams([effectiveCanParamDict[featureKey],
-        #                                                        self.messageDict[childCluster][otherReceiveCluster][
-        #                                                            featureKey]])
-        #                     # effectiveCanParamDict[featureKey] += self.messageDict[childCluster][otherReceiveCluster][
-        #                     #    featureKey]
-
-        ## Forward inference in sendKeys
+        ## Forward inference in sendKeys: Infer using the effective canParams (those assigned and those communicated)
         forwardInferer = get_inferer(self.forwardInferenceMethod)(
             caNetwork=self.get_caNetwork(self.clusterFeatures[sendCluster], canParamDict={featureKey:
                 self.caNetwork.featureDict[featureKey].combine_canParams(
@@ -247,7 +212,7 @@ class ExpectationPropagator(InferenceBase):
         forwardInferer.infer_meanParams(self.clusterFeatures[receiveCluster])
 
         # ## Find features which meanParam has changed
-        changedMeans = []#{featureKey: False for featureKey in self.clusterFeatures[receiveCluster]}
+        changedMeans = []
         for featureKey in self.clusterFeatures[receiveCluster]:
             if featureKey in self.meanParamDict:
                 if not self.meanParamDict[featureKey] == forwardInferer.meanParamDict[featureKey]:

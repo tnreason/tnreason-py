@@ -24,4 +24,6 @@ from knowledge.learning_test import HybridLearnerTest
 
 from reasoning.forward_backward_test import ForwardBackwardTest
 
+from experiments.variable_elimination.ep_along_clusterTree import VariableEliminationTest
+
 unittest.main()
