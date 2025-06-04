@@ -78,12 +78,12 @@ def get_featureDict_computationCoresDict_clusterDict(num):
                      range(num ** 2)]
 
     featureDict = {
-        **{atomKey: reasoning.HardPartitionFeature(featureColors=[atomKey], affectedComputationCores={}) for atomKey in
+        **{atomKey: representation.HardPartitionFeature(featureColors=[atomKey], affectedComputationCores={}) for atomKey in
            atomVariables},  # Atomic Variable Features
-        **{categoricalKey: reasoning.HardPartitionFeature(featureColors=[categoricalKey], affectedComputationCores={},
+        **{categoricalKey: representation.HardPartitionFeature(featureColors=[categoricalKey], affectedComputationCores={},
                                                           interpretationDict={categoricalKey: range(num ** 2)})
            for categoricalKey in constraints},
-        **{categoricalKey + "_" + atomKey: reasoning.HardPartitionFeature(featureColors=[categoricalKey, atomKey],
+        **{categoricalKey + "_" + atomKey: representation.HardPartitionFeature(featureColors=[categoricalKey, atomKey],
                                                                           interpretationDict={
                                                                               categoricalKey: range(num ** 2),
                                                                               atomKey: range(2)},
@@ -154,7 +154,7 @@ class SudokuTest(unittest.TestCase):
         ## Representation ##
 
         featureDict, computationCores, clusterDict = get_featureDict_computationCoresDict_clusterDict(num=num)
-        caNetwork = reasoning.ComputationActivationNetwork(
+        caNetwork = representation.ComputationActivationNetwork(
             featureDict=featureDict,
             computationCoreDict=computationCores,
             canParamDict=evidence_into_canParams(evidenceDict)
@@ -193,7 +193,7 @@ class SudokuTest(unittest.TestCase):
         ## Representation ##
 
         featureDict, computationCores, clusterDict = get_featureDict_computationCoresDict_clusterDict(num=num)
-        caNetwork = reasoning.ComputationActivationNetwork(
+        caNetwork = representation.ComputationActivationNetwork(
             featureDict=featureDict,
             computationCoreDict=computationCores,
             canParamDict=evidence_into_canParams(evidenceDict)

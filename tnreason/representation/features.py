@@ -24,8 +24,11 @@ class SingleSoftFeature(ComputedFeature):
     One-dimensional (scalar) canonical parameter and mean parameter, which represents the exponentiation of the interpreted image.
     """
 
-    def __init__(self, featureColor, **featSpec):
+    def __init__(self, featureColor, interpretedImage=[0,1], **featSpec):
         super().__init__(featureColors=[featureColor], **featSpec)
+        self.interpretationVector = representation.create_interpretation_vector(
+                                    color=featureColor,
+                                    interImage=interpretedImage)
 
     def create_trivial_canParam(self, coreType=None):
         return 0

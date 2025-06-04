@@ -1,4 +1,4 @@
-from tnreason import application, reasoning, engine
+from tnreason import application, reasoning, engine, representation
 
 firstPolCore = engine.get_core("PolynomialCore")(
     values=[(1, {"a": 0}), (1.24, {"a": 1, "b": 0}), (0.36, {"a": 0, "c": 4})
@@ -17,7 +17,7 @@ testMN = application.MarkovNetwork(coreDict=tensorNetwork)
 
 testCANetwork = testMN.create_caNetwork()
 testCANetwork.include_features(
-    featureDict={"mesFeature": reasoning.SoftPartitionFeature(name="mesFeature", featureColors=["b", "c"],
+    featureDict={"mesFeature": representation.SoftPartitionFeature(name="mesFeature", featureColors=["b", "c"],
                                                               interpretationDict={"b": range(3), "c": range(5)})}
 )
 

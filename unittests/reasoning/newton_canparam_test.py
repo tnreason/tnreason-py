@@ -1,10 +1,9 @@
 import unittest
 
 from tnreason import representation
-from tnreason.reasoning import inference as ib
+from tnreason.reasoning import variational_inference as ib
 
-import math
-from tnreason.reasoning import features as ed
+from tnreason.representation import features as ed
 
 f1 = ["and", "a1", "a2"]
 f2 = ["not", "a3"]

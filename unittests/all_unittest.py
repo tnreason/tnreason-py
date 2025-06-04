@@ -21,8 +21,8 @@ from knowledge.hybridKB_unittest import HybridKBTest
 from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_test import HybridLearnerTest
 
-
 from reasoning.forward_backward_test import ForwardBackwardTest
+from reasoning.hard_feature_test import HardFeatureTest
 
 from experiments.variable_elimination.ep_along_clusterTree import VariableEliminationTest
 

@@ -103,7 +103,7 @@ class MarkovNetwork(DistributionBase):
             supportCore, needed = create_factor_hardCore(self.coreDict[coreKey], outCoreType=self.coreType,
                                                          outName=coreKey + mnHardFeatureSuffix)
             if needed:
-                featureDict[coreKey + mnHardFeatureSuffix] = reasoning.HardPartitionFeature(
+                featureDict[coreKey + mnHardFeatureSuffix] = representation.HardPartitionFeature(
                     featureColors=supportCore.colors,
                     affectedComputationCores=[],
                 )
@@ -113,12 +113,12 @@ class MarkovNetwork(DistributionBase):
                 canParamCore, needed = create_factor_softCore(self.coreDict[coreKey], outCoreType=self.coreType,
                                                               outName=coreKey + mnSoftFeatureSuffix)
                 if needed:
-                    featureDict[coreKey + mnSoftFeatureSuffix] = reasoning.SoftPartitionFeature(
+                    featureDict[coreKey + mnSoftFeatureSuffix] = representation.SoftPartitionFeature(
                         featureColors=self.coreDict[coreKey].colors,
                         affectedComputationCores=[],
                     )
                     canParamDict[coreKey + mnSoftFeatureSuffix] = canParamCore
-        return reasoning.ComputationActivationNetwork(featureDict=featureDict,
+        return representation.ComputationActivationNetwork(featureDict=featureDict,
                                                       canParamDict=canParamDict,
                                                       coreType=self.coreType
                                                       )
@@ -307,7 +307,7 @@ class HybridKnowledgeBase(DistributionBase):
     #     #         return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}K
 
     def create_caNetwork(self, hardOnly=False):
-        featureDict = {formulaKey: reasoning.HardPartitionFeature(
+        featureDict = {formulaKey: representation.HardPartitionFeature(
             featureColors=[representation.get_formula_color(self.facts[formulaKey])],
             affectedComputationCores=list(
                 representation.create_formula_computation_cores(self.facts[formulaKey]).keys()),
@@ -316,7 +316,7 @@ class HybridKnowledgeBase(DistributionBase):
 
         if not hardOnly:
             featureDict.update(
-                {formulaKey: reasoning.SingleSoftFeature(
+                {formulaKey: representation.SingleSoftFeature(
                     featureColor=representation.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
                     affectedComputationCores=list(
                         representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
@@ -343,7 +343,7 @@ class HybridKnowledgeBase(DistributionBase):
                                                             ) for formulaKey in self.facts}
         }
 
-        return reasoning.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,
+        return representation.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,
                                                       computationCoreDict=computationCoreDict,
                                                       baseMeasureCoreDict=baseMeasureCoreDict,
                                                       coreType=self.coreType)

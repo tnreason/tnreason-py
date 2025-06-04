@@ -1,6 +1,5 @@
 from tnreason import engine
-from tnreason.reasoning import features as ft
-import numpy as np
+from tnreason import representation
 
 from sortedcontainers import SortedList
 
@@ -47,7 +46,7 @@ class InferenceBase(engine.EngineUser):
         else:
             reducedCanParamDict = canParamDict
 
-        return ft.ComputationActivationNetwork(featureDict=reducedFeatureDict,
+        return representation.ComputationActivationNetwork(featureDict=reducedFeatureDict,
                                                computationCoreDict=reducedComputationCoreDict,
                                                baseMeasureCoreDict=self.caNetwork.baseMeasureCoreDict,
                                                canParamDict=reducedCanParamDict)
@@ -176,7 +175,7 @@ class ExpectationPropagator(InferenceBase):
         Optional: Smallen the message dictionary by absorbing messages to the canParams
         """
         for featureKey in hardFeatureKeys:
-            assert type(self.caNetwork.featureDict[featureKey]) == ft.HardPartitionFeature
+            assert type(self.caNetwork.featureDict[featureKey]) == representation.HardPartitionFeature
             self.caNetwork.canParamDict[featureKey] = self.caNetwork.featureDict[featureKey].combine_canParams(
                 [self.caNetwork.canParamDict[featureKey]] + [
                     self.messageDict[childCluster][parentCluster].pop(featureKey) for childCluster in
@@ -231,7 +230,7 @@ class ExpectationPropagator(InferenceBase):
 
         messageCanParamDict = backwardInferer.caNetwork.canParamDict
         for featureKey in self.clusterFeatures[receiveCluster]:
-            if type(self.caNetwork.featureDict[featureKey]) in [ft.SoftPartitionFeature, ft.SingleSoftFeature]:
+            if type(self.caNetwork.featureDict[featureKey]) in [representation.SoftPartitionFeature, representation.SingleSoftFeature]:
                 """
                 Soft features canParams are communicated by differences to rest messages
                 """
@@ -241,7 +240,7 @@ class ExpectationPropagator(InferenceBase):
                         messageCanParamDict[featureKey] += -1 * self.messageDict[receiveCluster][parentCluster][
                             featureKey]
                 self.messageDict[receiveCluster][sendCluster][featureKey] = messageCanParamDict[featureKey]
-            elif type(self.caNetwork.featureDict[featureKey]) in [ft.HardPartitionFeature]:
+            elif type(self.caNetwork.featureDict[featureKey]) in [representation.HardPartitionFeature]:
                 """
                 Hard feature canParams used to directly modify the canonical parameters
                 -> If support changes, the feature gets assigned to changedMeans

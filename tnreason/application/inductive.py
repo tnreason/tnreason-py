@@ -17,7 +17,7 @@ def calculate_satisfactionDict(empDistribution, expressionDict, inferenceMethod=
         expressionComputationCores.update(representation.create_formula_computation_cores(expressionDict[expressionKey]))
 
     empCaNet.include_features(
-        featureDict={expressionKey: reasoning.SoftPartitionFeature(
+        featureDict={expressionKey: representation.SoftPartitionFeature(
             featureColors=[representation.get_formula_color(expressionDict[expressionKey])],
             affectedComputationCores=representation.create_formula_computation_cores(expressionDict[expressionKey]).keys())
             for expressionKey in expressionDict},

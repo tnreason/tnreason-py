@@ -1,6 +1,6 @@
 import unittest
 
-from tnreason import reasoning, engine, application
+from tnreason import reasoning, engine, application, representation
 from experiments.variable_elimination import generate_random_mn as gr
 from experiments.variable_elimination import generate_clusterTree as gc
 
@@ -49,7 +49,7 @@ class VariableEliminationTest(unittest.TestCase):
         shapeDict = {"a": 2, "b": 3, "c": 5}
         ## Prepare CA Network: Including message dictionaries between clusters
         addFeatureDict = {
-            varKey + "_mesTo_" + varKey2: reasoning.SoftPartitionFeature(
+            varKey + "_mesTo_" + varKey2: representation.SoftPartitionFeature(
                 featureColors=[variableKey for variableKey in clusterVariablesDict[varKey]
                                if variableKey in clusterVariablesDict[varKey2]],
                 interpretationDict={variableKey: range(shapeDict[variableKey]) for variableKey in

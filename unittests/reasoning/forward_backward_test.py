@@ -2,8 +2,8 @@ import unittest
 
 from tnreason import representation
 
-from tnreason.reasoning import inference as ib
-from tnreason.reasoning import features as ed
+from tnreason.reasoning import variational_inference as ib
+from tnreason.representation import features as ed
 
 precisionTolerance = 1e-5
 
@@ -14,13 +14,13 @@ computationCores = {
     **representation.create_formula_computation_cores(f1),
     **representation.create_formula_computation_cores(f2)}
 
-caNetwork = ed.ComputationActivationNetwork(
+caNetwork = representation.ComputationActivationNetwork(
     featureDict={
-        "(and_a1_a2)_cV": ed.SingleSoftFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
+        "(and_a1_a2)_cV": representation.SingleSoftFeature(featureColor="(and_a1_a2)_cV", affectedComputationCores=["(and_a1_a2)_cC"],
                                                name="f1"),
-        "(not_a3)_cV": ed.SingleSoftFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
+        "(not_a3)_cV": representation.SingleSoftFeature(featureColor="(not_a3)_cV", affectedComputationCores=["(not_a3)_cC"],
                                             name="f2"),
-        "a3_dV": ed.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
+        "a3_dV": representation.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
     },
     computationCoreDict={
         **representation.create_formula_computation_cores(f1),

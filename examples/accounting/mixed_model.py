@@ -31,11 +31,11 @@ catComCores = representation.create_categorical_cores({
     catColor: representation.add_color_suffixes(categoricalConstraints[catColor]) for catColor in
     categoricalConstraints})
 
-mnFeatures = {"accountTaxHard": reasoning.HardPartitionFeature(featureColors=["account", "tax"],
+mnFeatures = {"accountTaxHard": representation.HardPartitionFeature(featureColors=["account", "tax"],
                                                                affectedComputationCores=list(catComCores.keys()),
                                                                interpretationDict={"account": account_list,
                                                                                    "tax": vat_list}),
-              # "accountTaxSoft": reasoning.SoftPartitionFeature(featureColors=["account", "tax"],
+              # "accountTaxSoft": representation.SoftPartitionFeature(featureColors=["account", "tax"],
               #                                                 affectedComputationCores=list(catComCores.keys()),
               #                                                 interpretationDict={"account": account_list,
               #                                                                     "tax": vat_list})
