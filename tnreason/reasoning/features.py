@@ -95,7 +95,7 @@ class SoftPartitionFeature(ComputedFeature):
         """
         return environmentMean
 
-    def local_adjustment(self, environmentMean, meanParam, oldCanParam=None, coreType=None):
+    def local_adjustment(self, environmentMean, meanParam, oldCanParam, coreType=None):
         """
         Do the IPF adjustment.
         """
