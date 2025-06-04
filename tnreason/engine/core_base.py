@@ -24,11 +24,16 @@ class TensorCore:
         """
         if sorted(self.shape) != sorted(other.shape):  # Check whether mismatch in shape or dimDict
             return False
-        elif {color: self.shape[i] for i, color in self.colors} != {color: other.shape[i] for i, color in other.colors}:
-            return False
-        else:  # Then check their values
-            for index in np.ndindex(*self.shape):
+
+        for i, color in enumerate(self.colors):
+            if color in other.colors:
+                if not self.shape[i] == other.shape[other.colors.index(color)]:
+                    return False
+            else:
+                return False
+        #lse:  # Then check their values
+        for index in np.ndindex(*self.shape):
                 colorPosDict = {color: index[i] for i, color in enumerate(self.colors)}
                 if self[colorPosDict] != other[colorPosDict]:
                     return False
-            return True
+        return True

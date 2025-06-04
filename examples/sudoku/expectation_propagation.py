@@ -54,6 +54,18 @@ def canParams_into_evidence(meanParamsDict):
             meanParamsDict[featureKey][{featureKey: 0}] == 0 and featureKey.startswith("a")}
 
 
+def find_affected_directions(clusterFeatures, clusterParents, featureKeys):
+    return [(parentKey, childKey) for childKey in clusterParents for parentKey in clusterParents[childKey] if
+            any([featureKey in clusterFeatures[parentKey] for featureKey in featureKeys])]
+    # affectedDirections = []
+    # for featureKey in featureKeys:
+    #     ## Add all parent - child messages, when the child contains the feature
+    #     for childKey in clusterParents:
+    #         for parentKey in clusterParents[childKey]:
+    #             if featureKey in clusterFeatures[parentKey]:
+    #                 affectedDirections.append((parentKey, childKey))
+
+
 if __name__ == "__main__":
     num = 2
     verbose = False
@@ -66,6 +78,8 @@ if __name__ == "__main__":
         "a_0_0_1_0_2": 1
     }
 
+    ## Representation ##
+
     featureDict, computationCores, clusterDict = get_featureDict_computationCoresDict_clusterDict(num=num)
     caNetwork = reasoning.ComputationActivationNetwork(
         featureDict=featureDict,
@@ -73,36 +87,15 @@ if __name__ == "__main__":
         canParamDict=evidence_into_canParams(evidenceDict)
     )
 
+    ## Reasoning ##
+
     propagator = reasoning.get_inferer("ExpectationPropagator")(
         caNetwork=caNetwork,
         clusterDict=clusterDict,
         meanParamDict=dict()
     )
 
-    from sortedcontainers import SortedList
-
-    messageQueue = SortedList()
-    for childKey in propagator.clusterParents:
-        for parentKey in propagator.clusterParents[childKey]:
-            messageQueue.add((parentKey, childKey))
-
-    while len(messageQueue) > 0:
-        parentKey, childKey = messageQueue.pop()
-        changedMeans = propagator.compute_canParam_message(parentKey, childKey)
-
-        ## Add further messages to messageQue
-        for featureKey in changedMeans:
-            if changedMeans[featureKey]:
-                ## Add all parent - child messages, when the child contains the feature
-                for childKey in propagator.clusterParents:
-                    for parentKey in propagator.clusterParents[childKey]:
-                        if featureKey in propagator.clusterFeatures[parentKey]:
-                            ## Then parentKey, childKey should be in messageQueue: Add if not there
-                            if (parentKey, childKey) not in messageQueue:
-                                ## Only add if not already in queue
-                                messageQueue.add((parentKey, childKey))
-                                if verbose:
-                                    print("Added message from {} to {}".format(parentKey, childKey))
+    propagator.propagate_until_convergence(evidenceDict.keys())
 
     solution_array = rep.evidenceDict_to_array(canParams_into_evidence(propagator.meanParamDict), num=num)
     assert solution_array[0, 0] == 4
