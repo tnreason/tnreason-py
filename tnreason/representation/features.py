@@ -11,7 +11,10 @@ class ComputedFeature:
         self.featureColors = featureColors
         self.affectedComputationCores = affectedComputationCores
 
-        self.name = str(name)
+        if name is None:
+            self.name = "_".join(featureColors)
+        else:
+            self.name = str(name)
 
         if shape is None:
             self.shape = [2 for _ in self.featureColors]
@@ -22,6 +25,9 @@ class PassiveFeature(ComputedFeature):
     featureType = "PassiveFeature"
 #    def __init__(self, **feat):
 #        super().__init__(featureColors=featureColors, affectedComputationCores=affectedComputationCores, shape=[])
+
+    def create_activation_cores(self, **kwargs):
+        return dict()
 
 class SingleSoftFeature(ComputedFeature):
     featureType = "SingleSoftFeature"
@@ -38,13 +44,22 @@ class SingleSoftFeature(ComputedFeature):
     def create_trivial_canParam(self, coreType=None):
         return 0
 
+    def create_activation_cores(self, canParam, coreType=None):
+        return {self.name + canCorePre + representation.suf.actCoreSuf: representation.create_activation_vector(
+            color=self.featureColors[0],
+            canParam=canParam,
+            interImage=self.interpretedImage,
+            coreType=coreType,
+            name=self.name + canCorePre + representation.suf.actCoreSuf
+        )}
+
     def create_activation_core(self, canParam, coreType=None):
         return representation.create_activation_vector(
             color=self.featureColors[0],
             canParam=canParam,
             interImage=self.interpretedImage,
             coreType=coreType,
-            name=self.featureColors[0] + representation.suf.actCoreSuf
+            name=self.name + canCorePre + representation.suf.actCoreSuf
         )
 
     def compute_meanParam(self, environmentMean):
@@ -90,6 +105,12 @@ class SoftPartitionFeature(ComputedFeature):
             name=canCorePre, shape=self.shape,
             colors=self.featureColors, coreType=coreType)
 
+    def create_activation_cores(self, canParam, coreType=None):
+        return {self.name + canCorePre + representation.suf.actCoreSuf : representation.coordinatewise_transform(
+            coreList=[canParam], rDrFunction=math.exp, outCoreType=coreType,
+            outName=self.name + canCorePre + representation.suf.actCoreSuf,
+        )}
+
     def create_activation_core(self, canParam, coreType=None):
         return representation.coordinatewise_transform(
             coreList=[canParam], rDrFunction=math.exp, outCoreType=coreType,
@@ -131,6 +152,9 @@ class HardPartitionFeature(ComputedFeature):
         return representation.create_trivial_core(
             name=canCorePre, shape=self.shape,
             colors=self.featureColors, coreType=coreType)
+
+    def create_activation_cores(self, canParam, coreType=None):
+        return {self.name + canCorePre + representation.suf.actCoreSuf: canParam}
 
     def create_activation_core(self, canParam, coreType=None):
         return canParam
@@ -195,12 +219,23 @@ class ComputationActivationNetwork(engine.EngineUser):
                 if coreKey not in self.computationCoreDict:
                     raise ValueError("Computation core {} not found for feature {}.".format(coreKey, featureKey))
     def create_activation_cores(self, featureKeys=None):
+        for featureKey in self.featureDict:
+            self.featureDict[featureKey].name = featureKey
+
         if featureKeys is None:
             featureKeys = list(self.featureDict.keys())
-        return {featureKey + representation.suf.actCoreSuf: self.featureDict[featureKey].create_activation_core(
-            canParam=self.canParamDict[featureKey],
-            coreType=self.coreType) for
-            featureKey in featureKeys if type(self.featureDict[featureKey]) != PassiveFeature}
+        activationCores = dict()
+        for featureKey in featureKeys:
+            activationCores.update(self.featureDict[featureKey].create_activation_cores(
+                canParam=self.canParamDict[featureKey], coreType=self.coreType
+            ))
+        # # return activationCores
+        # singleCreated = {featureKey + representation.suf.actCoreSuf: self.featureDict[featureKey].create_activation_core(
+        #    canParam=self.canParamDict[featureKey],
+        #    coreType=self.coreType) for
+        #    featureKey in featureKeys if type(self.featureDict[featureKey]) != PassiveFeature}
+        return activationCores
+
 
     def create_cores(self):
         return {**self.computationCoreDict,
