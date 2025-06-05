@@ -1,10 +1,6 @@
-from tnreason import reasoning
-from tnreason import representation
-from tnreason import engine
-
 from tnreason.application import distributions as dist
 from tnreason.application import deductive as ded
-
+from tnreason.application import script_transform as st
 from tnreason.application import neurons_to_cores as ntc
 
 headNeuronString = "headNeurons"
@@ -54,7 +50,7 @@ class Grafter:
             optimizationMethod=self.specDict.get("method", "numpyArgMax")
         )
 
-        self.candidates = representation.create_solution_expression(self.specDict[architectureString], solutionDict)
+        self.candidates = st.create_solution_expression(self.specDict[architectureString], solutionDict)
 
     def test_candidates(self):
         """

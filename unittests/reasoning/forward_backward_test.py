@@ -6,14 +6,16 @@ from tnreason import representation
 from tnreason.reasoning import variational_inference as ib
 from tnreason.representation import features as ed
 
+from tnreason.application import  formulas_to_cores as ftc
+
 precisionTolerance = 1e-5
 
 f1 = ["and", "a1", "a2"]
 f2 = ["not", "a3"]
 
 computationCores = {
-    **representation.create_formula_computation_cores(f1),
-    **representation.create_formula_computation_cores(f2)}
+    **ftc.create_formula_computation_cores(f1),
+    **ftc.create_formula_computation_cores(f2)}
 
 caNetwork = representation.ComputationActivationNetwork(
     featureDict={
@@ -24,14 +26,14 @@ caNetwork = representation.ComputationActivationNetwork(
         "a3_dV": representation.SoftPartitionFeature(featureColors=["a3_dV"], affectedComputationCores=[], name="f3")
     },
     computationCoreDict={
-        **representation.create_formula_computation_cores(f1),
-        **representation.create_formula_computation_cores(f2),
+        **ftc.create_formula_computation_cores(f1),
+        **ftc.create_formula_computation_cores(f2),
     }
 )
 
 class ForwardBackwardTest(unittest.TestCase):
     def test_partition_single_overlap(self):
-        tbMatched = 0 * tnreason.representation.coordinate_calculus.create_trivial_core(name="a3_dV" + representation.suf.actCoreSuf, shape=[2], colors=["a3_dV"])
+        tbMatched = representation.create_vanishing_core(name="a3_dV" + representation.suf.actCoreSuf, shape=[2], colors=["a3_dV"])
         tbMatched[{"a3_dV": 0}] = 0.1231
         tbMatched[{"a3_dV": 1}] = 1 - tbMatched[{"a3_dV": 0}]
 

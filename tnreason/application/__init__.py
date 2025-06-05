@@ -11,6 +11,9 @@ from tnreason.application.knowledge_visualization import visualize
 
 from tnreason.application.storage import load_from_yaml, save_as_yaml
 
+from tnreason.application.categoricals_to_cores import create_categorical_cores, create_atomization_cores, \
+    create_constraintCoresDict
+
 def load_kb_from_yaml(loadPath):
     kb = HybridKnowledgeBase()
     kb.from_yaml(loadPath)

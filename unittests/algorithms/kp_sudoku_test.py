@@ -1,8 +1,8 @@
 import unittest
 
-import tnreason.representation.coordinate_calculus
 from tnreason import reasoning
 from tnreason import representation
+from tnreason import application
 
 import numpy as np
 
@@ -94,7 +94,7 @@ def get_featureDict_computationCoresDict_clusterDict(num):
            for categoricalKey in constraints for atomKey in constraints[categoricalKey]}
     }
 
-    computationCores = representation.create_categorical_cores(constraints)
+    computationCores = application.create_categorical_cores(constraints)
 
     clusterDict = {
         **{atomKey: [atomKey] for atomKey in atomVariables},
@@ -110,7 +110,7 @@ def evidence_into_canParams(evidenceDict):
     """
     use, that evidenceKey is a colorKey and a featureKey
     """
-    return {evidenceKey: tnreason.representation.coordinate_calculus.create_basis_core(name=evidenceKey, shape=[2], colors=[evidenceKey],
+    return {evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2], colors=[evidenceKey],
                                                                                        numberTuple=[evidenceDict[evidenceKey]]) for evidenceKey in
             evidenceDict}
 

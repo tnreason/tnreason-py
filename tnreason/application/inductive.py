@@ -2,6 +2,10 @@ from tnreason.application import grafting as gf
 from tnreason.application import distributions as dist
 from tnreason.application import deductive as ded
 
+from tnreason.application import formulas_to_cores as ftc
+from tnreason.application import neurons_to_cores as ntc
+from tnreason.application import script_transform as st
+
 from tnreason import reasoning
 from tnreason import representation
 
@@ -14,12 +18,12 @@ def calculate_satisfactionDict(empDistribution, expressionDict, inferenceMethod=
 
     expressionComputationCores = dict()
     for expressionKey in expressionDict:
-        expressionComputationCores.update(representation.create_formula_computation_cores(expressionDict[expressionKey]))
+        expressionComputationCores.update(ftc.create_formula_computation_cores(expressionDict[expressionKey]))
 
     empCaNet.include_features(
         featureDict={expressionKey: representation.SoftPartitionFeature(
-            featureColors=[representation.get_formula_color(expressionDict[expressionKey])],
-            affectedComputationCores=representation.create_formula_computation_cores(expressionDict[expressionKey]).keys())
+            featureColors=[ftc.get_formula_color(expressionDict[expressionKey])],
+            affectedComputationCores=ftc.create_formula_computation_cores(expressionDict[expressionKey]).keys())
             for expressionKey in expressionDict},
         computationCores=expressionComputationCores
     )
@@ -83,7 +87,7 @@ class HybridLearner:
         self.proposalDistribution = dist.ProposalDistribution(
             positivePhase=empiricalDistribution,
             negativePhase=negativePhase,
-            statisticCores=representation.create_architecture(architecture,
+            statisticCores=ntc.create_architecture(architecture,
                                                               [headNeuron], coreType=self.engineSpec["coreType"]),
             **self.engineSpec
         )
@@ -93,11 +97,11 @@ class HybridLearner:
         Can only use energy-based methods, since proposal distribution has no core instantiation
         """
         solutionDict = ded.InferenceProvider(self.proposalDistribution).search_mode(
-            variableList=representation.find_selection_colors(architecture),
+            variableList=ntc.find_selection_colors(architecture),
             **specDict,
             **self.engineSpec
         )
-        return representation.create_solution_expression(architecture, solutionDict)
+        return st.create_solution_expression(architecture, solutionDict)
 
     ## OLD -> Should be dropped along application.Grafter! -> Now proposal distribution inference is directly available
     def graft_formula(self, specDict, empDistribution, stepName="_grafted"):

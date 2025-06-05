@@ -1,6 +1,7 @@
 from tnreason import representation
 from tnreason import reasoning
 
+from tnreason.application import formulas_to_cores as ftc
 
 class KnowledgePropagator:
     """
@@ -11,7 +12,7 @@ class KnowledgePropagator:
         self.atoms = knowledgeBase.distributedVariables
         self.knowledgeCores = {
             **knowledgeBase.create_cores(),
-            **representation.create_atom_evidence_cores(evidenceDict)}
+            **ftc.create_atom_evidence_cores(evidenceDict)}
 
         self.propagator = reasoning.ConstraintPropagator(binaryCoresDict=self.knowledgeCores)
 
@@ -35,5 +36,5 @@ class KnowledgePropagator:
                                                                  variable not in variablesShape}})
 
 def get_evidence_headKeys(evidenceDict):
-    return [representation.get_formula_color(key) + representation.suf.eviCoreIn + representation.suf.actCoreSuf for key in
+    return [ftc.get_formula_color(key) + representation.suf.eviCoreIn + representation.suf.actCoreSuf for key in
             evidenceDict]

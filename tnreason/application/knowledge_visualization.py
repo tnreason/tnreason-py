@@ -1,4 +1,5 @@
-from tnreason import representation
+from tnreason.application import script_transform as st
+from tnreason.application import formulas_to_cores as ftc
 
 def visualize(hybridKB, title="Visualization of the Knowledge Base",
               savePath=None):
@@ -27,7 +28,7 @@ def visualize_with_differing_evidence(expressionsDict={},
 
 
 def get_edges_and_positions(expression):
-    expressionString = representation.get_formula_color(expression)
+    expressionString = ftc.get_formula_color(expression)
 
     if isinstance(expression, str):
         return [], {expressionString: 0}, [expressionString]
@@ -40,10 +41,10 @@ def get_edges_and_positions(expression):
                 positions = {**positions, **subPositions}
                 subExpressions = subExpressions + subSubExpressions
 
-                edges.append([representation.get_formula_color(expression), representation.get_formula_color(subExpression)])
+                edges.append([ftc.get_formula_color(expression), ftc.get_formula_color(subExpression)])
 
-        positions[representation.get_formula_color(expression)] = 1 + max(
-            [positions[representation.get_formula_color(subExpression)] for subExpression in expression if
+        positions[ftc.get_formula_color(expression)] = 1 + max(
+            [positions[ftc.get_formula_color(subExpression)] for subExpression in expression if
              is_subexpression(subExpression)])
 
         return edges, positions, subExpressions
@@ -79,7 +80,7 @@ def visualize_subexpressions(expressionsDict={},
     for nodeKey in pos:
         pos[nodeKey][0] = horPositions[nodeKey]
 
-    atoms = representation.get_all_atom_colors({**{key: expressionsDict[key][:-1] for key in expressionsDict}, **factsDict})
+    atoms = st.get_all_atom_colors({**{key: expressionsDict[key][:-1] for key in expressionsDict}, **factsDict})
     return graph, pos, atoms
 
 

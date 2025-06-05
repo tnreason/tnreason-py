@@ -6,15 +6,17 @@ from tnreason import engine
 import numpy as np
 
 from tnreason.reasoning import alternating_least_squares as als
+from tnreason.application import formulas_to_cores as ftc
+
 
 aSuf = representation.suf.disVarSuf
 
 networkCores = {
-    **representation.create_formula_computation_cores(["imp", "a1", "a2"])
+    **ftc.create_formula_computation_cores(["imp", "a1", "a2"])
 }
 
 targetCores = {
-    **als.copy_cores(representation.create_formulas_cores({"f1": ["imp", "a1", "a2"]}), "_tar", ["a1" + aSuf, "a2" + aSuf]),
+    **als.copy_cores(ftc.create_formulas_cores({"f1": ["imp", "a1", "a2"]}), "_tar", ["a1" + aSuf, "a2" + aSuf]),
 }
 
 optimizer = als.ALS(
@@ -60,7 +62,7 @@ class AlsKnowledgeTest(unittest.TestCase):
         data[1, 1, 3] = 1
 
         dataOptimizer = als.ALS(
-            networkCores=representation.create_formula_computation_cores(["imp", "a1", "a2"]),
+            networkCores=ftc.create_formula_computation_cores(["imp", "a1", "a2"]),
             targetCores={"tarCore": engine.get_core()(values=np.ones(dataNum), colors=["dat"])},
             importanceList=[
                 (1, {"dataTensor": engine.get_core()(values=data, colors=["a1" + aSuf, "a2" + aSuf, "dat"])})],

@@ -1,19 +1,20 @@
 from tnreason import engine
 
 from tnreason import representation
+from tnreason.application import formulas_to_cores as ftc
 
 aSuf = representation.suf.disVarSuf
 
 method = {"coreType": "HypertrieCore", "contractionMethod": "TentrisEinsum"}
 
-cores = representation.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
+cores = ftc.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
 contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
                                     contractionMethod=method["contractionMethod"])
 
 assert contractionResult[0] == 0
 assert contractionResult[1] == 1
 
-cores = representation.create_formulas_cores({"f1": ["and", ["not", "a"], ["or", "b", "c"]]},
+cores = ftc.create_formulas_cores({"f1": ["and", ["not", "a"], ["or", "b", "c"]]},
                                              coreType=method["coreType"])
 contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
                                     contractionMethod=method["contractionMethod"])
@@ -21,7 +22,7 @@ contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
 assert contractionResult[0] == 3
 assert contractionResult[1] == 0
 
-cores = representation.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
+cores = ftc.create_formulas_cores({"f1": ["and", "a", "b"]}, coreType=method["coreType"])
 contractionResult = engine.contract(coreDict=cores, openColors=["a" + aSuf],
                                     contractionMethod=method["contractionMethod"])
 
