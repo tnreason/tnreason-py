@@ -5,6 +5,8 @@ from tnreason import engine
 from tnreason.application import distributions as dist
 from tnreason.application import deductive as ded
 
+from tnreason.application import neurons_to_cores as ntc
+
 headNeuronString = "headNeurons"
 architectureString = "architecture"
 acceptanceCriterionString = "acceptanceCriterion"
@@ -44,11 +46,11 @@ class Grafter:
         self.proposalDistribution = dist.ProposalDistribution(
             positivePhase=empiricalDistribution,
             negativePhase=self.knowledgeBase,
-            statisticCores=representation.create_architecture(self.specDict[architectureString],
+            statisticCores=ntc.create_architecture(self.specDict[architectureString],
                                                               self.specDict[headNeuronString])
         )
         solutionDict = ded.InferenceProvider(self.proposalDistribution).search_mode(
-            variableList=representation.find_selection_colors(self.specDict[architectureString]),
+            variableList=ntc.find_selection_colors(self.specDict[architectureString]),
             optimizationMethod=self.specDict.get("method", "numpyArgMax")
         )
 

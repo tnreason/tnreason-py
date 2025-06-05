@@ -1,6 +1,6 @@
 import tnreason.representation.basis_calculus
 from tnreason.representation import auxiliary_cores as ch
-from tnreason.representation import connectives as con
+from tnreason.application import connectives as con
 from tnreason.representation import suffixes as suf
 
 ## To be dropped: avoid create_boolean head!

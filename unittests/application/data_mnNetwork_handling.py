@@ -7,7 +7,7 @@ import pandas as pd
 assetsBasePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/unittests/knowledge/assets/"
 
 backKb = application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml")
-architecture = representation.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
+architecture = application.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
 
 genKB = application.HybridKnowledgeBase(
     facts={"f1": ["a1"]},

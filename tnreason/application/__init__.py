@@ -9,6 +9,8 @@ from tnreason.application.batch_evaluation import KnowledgePropagator
 
 from tnreason.application.knowledge_visualization import visualize
 
+from tnreason.application.storage import load_from_yaml, save_as_yaml
+
 def load_kb_from_yaml(loadPath):
     kb = HybridKnowledgeBase()
     kb.from_yaml(loadPath)

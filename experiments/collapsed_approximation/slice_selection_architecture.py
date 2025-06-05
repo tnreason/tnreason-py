@@ -1,7 +1,7 @@
 import tnreason.representation.coordinate_calculus
 from tnreason import representation, engine
 
-from tnreason.representation import neurons_to_cores as ntc
+from tnreason.application import neurons_to_cores as ntc
 
 """
 Differs from old binary_selection_architecture by the true passes u3 and a single land

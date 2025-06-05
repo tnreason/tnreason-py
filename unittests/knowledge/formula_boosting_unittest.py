@@ -8,7 +8,7 @@ import pandas as pd
 assetsBasePath = "/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/unittests/knowledge/assets/"
 
 backKb = application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml")
-architecture = representation.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
+architecture = application.load_from_yaml(assetsBasePath + "fb_architecture.yaml")
 
 genKB = application.HybridKnowledgeBase(
     facts={"f1": ["a1"]},
@@ -24,13 +24,13 @@ empDist = application.get_empirical_distribution(pd.read_csv(assetsBasePath + "f
 class FormulaBoostingTest(unittest.TestCase):
     def test_yaml_als(self):
         booster = application.Grafter(knowledgeBase=backKb,
-                                      specDict={**representation.load_from_yaml(assetsBasePath + "fb_energyMax_boostSpec.yaml"),
+                                      specDict={**application.load_from_yaml(assetsBasePath + "fb_energyMax_boostSpec.yaml"),
                                               "headNeurons": ["neur1"], "architecture": architecture})
         booster.find_candidate(empDist)
 
     def test_yaml_gibbs(self):
         booster = application.Grafter(knowledgeBase=application.load_kb_from_yaml(assetsBasePath + "fb_backKb.yaml"),
-                                      specDict={**representation.load_from_yaml(assetsBasePath + "fb_gibbs_boostSpec.yaml"),
+                                      specDict={**application.load_from_yaml(assetsBasePath + "fb_gibbs_boostSpec.yaml"),
                                               "headNeurons": ["neur1"], "architecture": architecture})
         booster.find_candidate(empDist)
 

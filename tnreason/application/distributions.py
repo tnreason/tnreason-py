@@ -1,7 +1,12 @@
-import tnreason.representation.coordinate_calculus
 from tnreason import representation
 from tnreason import engine
 from tnreason import reasoning
+
+from tnreason.application import data_to_cores as dtc
+from tnreason.application import formulas_to_cores as ftc
+from tnreason.application import categoricals_to_cores as ctc
+from tnreason.application import script_transform as st
+from tnreason.application import storage as stor
 
 import math
 import numpy as np
@@ -140,7 +145,7 @@ def get_empirical_distribution(sampleDf, atomColumns=None, interpretation="atomi
         atomColumns = list(sampleDf.columns)
     if "value" not in sampleDf.columns:
         sampleDf["value"] = 1
-    return MarkovNetwork(representation.create_data_cores(sampleDf, atomKeys=atomColumns,
+    return MarkovNetwork(dtc.create_data_cores(sampleDf, atomKeys=atomColumns,
                                                           interpretation=interpretation,
                                                           dimensionsDict=dimensionsDict),
                          distributedVariables=[atomKey if atomKey.endswith(
@@ -176,12 +181,12 @@ class HybridKnowledgeBase(DistributionBase):
         outString = "Hybrid Knowledge Base consistent of"
         if self.weightedFormulas:
             outString = outString + "\n######## probabilistic formulas:\n" + "\n".join(
-                [representation.get_formula_color(expression[:-1]) + " with weight " + str(expression[-1]) for
+                [ftc.get_formula_color(expression[:-1]) + " with weight " + str(expression[-1]) for
                  expression in
                  self.weightedFormulas.values()])
         if self.facts:
             outString = outString + "\n######## logical formulas:\n" + "\n".join(
-                [representation.get_formula_color(expression) for expression in self.facts.values()])
+                [ftc.get_formula_color(expression) for expression in self.facts.values()])
         if self.categoricalConstraints:
             outString = outString + "\n######## categorical variables:\n" + "\n".join(
                 [key + " selecting one of " + " ".join(self.categoricalConstraints[key]) for key in
@@ -195,7 +200,7 @@ class HybridKnowledgeBase(DistributionBase):
         """
         Identifies the atoms of the Knowledge Base
         """
-        self.distributedVariables = representation.get_all_atom_colors(
+        self.distributedVariables = st.get_all_atom_colors(
             {**{key: self.weightedFormulas[key][:-1] for key in self.weightedFormulas},
              **self.facts})
         for constraintKey in self.categoricalConstraints:
@@ -208,7 +213,7 @@ class HybridKnowledgeBase(DistributionBase):
         self.distributedVariables = list(self.distributedVariables)
 
     def from_yaml(self, loadPath):
-        modelSpec = representation.load_from_yaml(loadPath)
+        modelSpec = stor.load_from_yaml(loadPath)
         if probFormulasKey in modelSpec:
             self.weightedFormulas = modelSpec[probFormulasKey]
         if logFormulasKey in modelSpec:
@@ -220,7 +225,7 @@ class HybridKnowledgeBase(DistributionBase):
         self.find_atoms()
 
     def to_yaml(self, savePath):
-        representation.storage.save_as_yaml({
+        stor.save_as_yaml({
             probFormulasKey: {key: self.weightedFormulas[key][:-1] + [float(self.weightedFormulas[key][-1])] for key in
                               self.weightedFormulas},
             logFormulasKey: self.facts,
@@ -239,108 +244,40 @@ class HybridKnowledgeBase(DistributionBase):
                          **secondHybridKB.evidence}
         self.find_atoms()
 
-
-
-        # categoricalConstraintColors = {
-        #     catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
-        #     self.categoricalConstraints}  # Only categorical constraints remain interpreted as colors !
-        #
-        # return {**representation.create_formulas_cores({**self.weightedFormulas, **self.facts}, coreType=self.coreType),
-        #         **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
-        #         **representation.create_categorical_cores(categoricalConstraintColors, coreType=self.coreType),
-        #         **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
-        #                                                   self.dimDict, coreType=self.coreType),
-        #         **self.backCores}
-
-    # ### Special to Hybrid Knowledge Bases
-    # def create_hard_cores(self):
-    #     """
-    #     Returns the cores posing hard logical constraints on the worlds to be models
-    #     """
-    #     return {**representation.create_formulas_cores(self.facts),
-    #             **representation.create_atom_evidence_cores(self.evidence),
-    #             **representation.create_categorical_cores(self.categoricalConstraints),
-    #             **self.backCores}
-    #
-    # def old_is_satisfiable(self):
-    #     """
-    #     Decides whether the Knowledge Base is satisfiable, i.e. whether a model exists
-    #     """
-    #     return engine.contract(coreDict=self.create_hard_cores(),
-    #                            openColors=[]).values > 0
-
-    ## Energy Representation
-    # def get_energy_dict(self, cutoffWeight=100, sliceSparse=False, outCoreType="PolynomialCore"):
-    #     """
-    #     ToDo: Implement Slice-Sparse version! (refer to representation.cnf_to_cores)
-    #
-    #     """
-    #     if sliceSparse:
-    #         weightedFactsEnergyDict = representation.weightedFormulas_to_sparseCore(
-    #             {**self.weightedFormulas,
-    #              **{key: self.facts[key] + [cutoffWeight] for key in self.facts},
-    #              }, coreType=outCoreType
-    #         )
-    #         constraintsEnergyDict = {constraintKey: (cutoffWeight,
-    #                                                  representation.create_constraintCoresDict(
-    #                                                      self.categoricalConstraints[constraintKey], constraintKey,
-    #                                                      coreType=outCoreType)) for
-    #                                  constraintKey in self.categoricalConstraints}
-    #         return {"energy": (1, {"energyCore": weightedFactsEnergyDict}), **constraintsEnergyDict}
-    #     else:
-    #         weightedEnergyDict = {
-    #             formulaKey: (self.weightedFormulas[formulaKey][-1],
-    #                          {**representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]),
-    #                           **representation.create_formula_head(self.weightedFormulas[formulaKey][:-1],
-    #                                                                headType="truthEvaluation")
-    #                           }) for formulaKey in self.weightedFormulas}
-    #         factsEnergyDict = {
-    #             formulaey: (cutoffWeight, {**representation.create_formula_computation_cores(self.facts[formulaKey]),
-    #     #                                         **representation.create_formula_head(self.facts[formulaKey],
-    #     #                                                                              headType="truthEvaluation")
-    #     #                                         }) for formulaKey in
-    #     #             self.facts}
-    #     #         constraintsEnergyDict = {constraintKey: (cutoffWeight,
-    #     #                                                  representation.create_constraintCoresDict(
-    #     #                                                      self.categoricalConstraints[constraintKey], constraintKey)) for
-    #     #                                  constraintKey in self.categoricalConstraints}
-    #     #
-    #     #         return {**weightedEnergyDict, **factsEnergyDict, **constraintsEnergyDict}K
-
     def create_caNetwork(self, hardOnly=False):
         featureDict = {formulaKey: representation.HardPartitionFeature(
-            featureColors=[representation.get_formula_color(self.facts[formulaKey])],
+            featureColors=[ftc.get_formula_color(self.facts[formulaKey])],
             affectedComputationCores=list(
-                representation.create_formula_computation_cores(self.facts[formulaKey]).keys()),
+                ftc.create_formula_computation_cores(self.facts[formulaKey]).keys()),
         ) for formulaKey in self.facts}
-        computationCoreDict = representation.create_expressionDict_computation_cores(self.facts, coreType=self.coreType)
+        computationCoreDict = ftc.create_expressionDict_computation_cores(self.facts, coreType=self.coreType)
 
         if not hardOnly:
             featureDict.update(
                 {formulaKey: representation.SingleSoftFeature(
-                    featureColor=representation.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
+                    featureColor=ftc.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
                     affectedComputationCores=list(
-                        representation.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
+                        ftc.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
                     # Faster to have a function getting the coreKeys without instantiating the network!
                 ) for formulaKey in self.weightedFormulas}
             )
             computationCoreDict.update(
-                representation.create_expressionDict_computation_cores(self.weightedFormulas, coreType=self.coreType))
+                ftc.create_expressionDict_computation_cores(self.weightedFormulas, coreType=self.coreType))
 
         baseMeasureCoreDict = {
-            **representation.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
-            **representation.create_categorical_cores({
-                catColor: representation.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
+            **ftc.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
+            **ctc.create_categorical_cores({
+                catColor: st.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
                 self.categoricalConstraints}, coreType=self.coreType),
-            **representation.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
+            **ctc.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
                                                       self.dimDict, coreType=self.coreType),
             **self.backCores
         }
 
         canParamDict = {
             **{formulaKey: self.weightedFormulas[formulaKey][-1] for formulaKey in self.weightedFormulas},
-            **{formulaKey: tnreason.representation.coordinate_calculus.create_basis_core(name=formulaKey, shape=[2], colors=[
-                representation.get_formula_color(self.facts[formulaKey])], numberTuple=(1)
+            **{formulaKey: representation.create_basis_core(name=formulaKey, shape=[2], colors=[
+                ftc.get_formula_color(self.facts[formulaKey])], numberTuple=(1)
                                                                                          ) for formulaKey in self.facts}
         }
 

@@ -1,7 +1,7 @@
 import ipywidgets as widgets
 from IPython.display import display
 
-from tnreason.representation import neurons_to_cores as ntc
+from tnreason.application import neurons_to_cores as ntc
 from tnreason.representation import suffixes as suf
 
 def find_selection_variables_neuron(neuronSpecList, neuronName):
