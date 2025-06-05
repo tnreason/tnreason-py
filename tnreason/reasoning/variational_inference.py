@@ -226,7 +226,7 @@ class ExpectationPropagator(InferenceBase):
             caNetwork=self.get_caNetwork(self.clusterFeatures[receiveCluster]),
             meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.clusterFeatures[receiveCluster]},
         )
-        backwardInferer.alternating_updates(featureKeys=self.clusterFeatures[receiveCluster])
+        backwardInferer.alternating_updates(featureKeys={featureKey for featureKey in self.clusterFeatures[receiveCluster] if self.caNetwork.featureDict[featureKey].featureType != "PassiveFeature"})
 
         messageCanParamDict = backwardInferer.caNetwork.canParamDict
         for featureKey in self.clusterFeatures[receiveCluster]:

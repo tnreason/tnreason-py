@@ -84,7 +84,7 @@ def get_featureDict_computationCoresDict_clusterDict(num):
            atomKey in
            atomVariables},  # Atomic Variable Features
         **{categoricalKey: representation.HardPartitionFeature(featureColors=[categoricalKey],
-                                                               affectedComputationCores={}, shape=[num ** 2])
+                                                               affectedComputationCores=[], shape=[num ** 2])
            for categoricalKey in constraints},
         **{categoricalKey + "_" + atomKey: representation.HardPartitionFeature(featureColors=[categoricalKey, atomKey],
                                                                                shape=[num ** 2, 2],

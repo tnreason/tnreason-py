@@ -28,7 +28,7 @@ from tnreason.representation.basis_calculus import create_relational_encoding, c
     create_interpretation_vector
 
 from tnreason.representation.features import ComputationActivationNetwork, SingleSoftFeature, SoftPartitionFeature, \
-    HardPartitionFeature
+    HardPartitionFeature, PassiveFeature
 
 #
 ## Auxiliary to support old examples

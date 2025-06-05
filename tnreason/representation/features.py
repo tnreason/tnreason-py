@@ -18,7 +18,13 @@ class ComputedFeature:
         else:
             self.shape = shape
 
+class PassiveFeature(ComputedFeature):
+    featureType = "PassiveFeature"
+#    def __init__(self, **feat):
+#        super().__init__(featureColors=featureColors, affectedComputationCores=affectedComputationCores, shape=[])
+
 class SingleSoftFeature(ComputedFeature):
+    featureType = "SingleSoftFeature"
     """
     One-dimensional (scalar) canonical parameter and mean parameter, which represents the exponentiation of the interpreted image.
     """
@@ -73,6 +79,7 @@ class SingleSoftFeature(ComputedFeature):
         return sum(canParamList)
 
 class SoftPartitionFeature(ComputedFeature):
+    featureType = "SoftPartitionFeature"
     """
     Feature Colors are head colors of computation cores and the indices are indicating subsets of a partition.
     canParams and meanParams are tensors with the feature colors
@@ -114,6 +121,7 @@ class SoftPartitionFeature(ComputedFeature):
         return sum(canParamList)
 
 class HardPartitionFeature(ComputedFeature):
+    featureType = "HardPartitionFeature"
     """
     Activation cores are boolean tensors -> Interpretation as boolean base measure of the family<
     ! canParam interpreted as activation vector
@@ -181,7 +189,7 @@ class ComputationActivationNetwork(engine.EngineUser):
         self.canParamDict = canParamDict
 
         for featureKey in self.featureDict:
-            if featureKey not in self.canParamDict:
+            if featureKey not in self.canParamDict and type(self.featureDict[featureKey]) != PassiveFeature:
                 self.canParamDict[featureKey] = self.featureDict[featureKey].create_trivial_canParam()
             for coreKey in self.featureDict[featureKey].affectedComputationCores:
                 if coreKey not in self.computationCoreDict:
@@ -192,7 +200,7 @@ class ComputationActivationNetwork(engine.EngineUser):
         return {featureKey + representation.suf.actCoreSuf: self.featureDict[featureKey].create_activation_core(
             canParam=self.canParamDict[featureKey],
             coreType=self.coreType) for
-            featureKey in featureKeys}
+            featureKey in featureKeys if type(self.featureDict[featureKey]) != PassiveFeature}
 
     def create_cores(self):
         return {**self.computationCoreDict,
