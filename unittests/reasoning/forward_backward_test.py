@@ -1,5 +1,6 @@
 import unittest
 
+import tnreason.representation.coordinate_calculus
 from tnreason import representation
 
 from tnreason.reasoning import variational_inference as ib
@@ -30,7 +31,7 @@ caNetwork = representation.ComputationActivationNetwork(
 
 class ForwardBackwardTest(unittest.TestCase):
     def test_partition_single_overlap(self):
-        tbMatched = 0 * representation.create_trivial_core("a3_dV" + representation.suf.actCoreSuf, [2], ["a3_dV"])
+        tbMatched = 0 * tnreason.representation.coordinate_calculus.create_trivial_core(name="a3_dV" + representation.suf.actCoreSuf, shape=[2], colors=["a3_dV"])
         tbMatched[{"a3_dV": 0}] = 0.1231
         tbMatched[{"a3_dV": 1}] = 1 - tbMatched[{"a3_dV": 0}]
 

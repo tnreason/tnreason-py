@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import engine, representation
 import numpy as np
 
@@ -33,7 +34,7 @@ class MaxCalibrator:
             rawCore = engine.contract({**self.clusters[clusterKey],
                                        **{key: self.messages[key] for key in self.messages if key.split("_")[
                                            1] == clusterKey},
-                                       **{color + "_knownMax": representation.create_basis_core(
+                                       **{color + "_knownMax": tnreason.representation.coordinate_calculus.create_basis_core(
                                            color + "_knownMax", shape=[colorDimDict[color]], colors=[color],
                                            numberTuple=(self.max_assignment[color]))
                                            for color in clusterColors if color in self.max_assignment}},

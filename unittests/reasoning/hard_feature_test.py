@@ -2,16 +2,17 @@ import unittest
 
 from tnreason.representation import features as ft
 
-from tnreason import representation
+from tnreason import representation, engine
 
 
 class HardFeatureTest(unittest.TestCase):
     def test_capture_hardConstraint(self):
         hardFeat = ft.HardPartitionFeature(featureColors=["bazant"], shape=[3])
-        trivCanparam = hardFeat.create_trivial_canParam()
+        trivCanparam = hardFeat.find_neutral_canParam()
         self.assertTrue(trivCanparam[1] == 1)
 
-        constraintVec = representation.create_vanishing_core(shape=[4], name="bazantCon", colors=["bazant"])
+        constraintVec = engine.create_from_slice_iterator(shape=[4], colors=["bazant"],
+                                                 sliceIterator=[])
         constraintVec[{"bazant": 2}] = 1
 
         upCan = hardFeat.local_adjustment(environmentMean=constraintVec)

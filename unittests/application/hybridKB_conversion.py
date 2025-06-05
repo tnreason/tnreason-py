@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import application, representation, engine
 
 ## Hybrid Knowledge Base Conversion
@@ -40,13 +41,13 @@ valueCore = engine.get_core("PolynomialCore")(
     values=[(1, {"jezyk": 0}), (1.24, {"a": 1, "b": 0}), (0.36, {"a": 0, "c": 4})
             ], shape=[2, 3, 5, 6], colors=["a", "b", "c", "jezyk"])
 
-trivCore = representation.create_trivial_core(name="Fun",shape=[6,7],colors=["jezyk","krecik"],coreType="PolynomialCore")
+trivCore = tnreason.representation.coordinate_calculus.create_trivial_core(name="Fun", shape=[6, 7], colors=["jezyk", "krecik"], coreType="PolynomialCore")
 
-manTrivCore = representation.create_trivial_core(name="Fun",shape=[6,7],colors=["jezyk","krecik"],coreType="PolynomialCore")
+manTrivCore = tnreason.representation.coordinate_calculus.create_trivial_core(name="Fun", shape=[6, 7], colors=["jezyk", "krecik"], coreType="PolynomialCore")
 manTrivCore[3,4] = 0.134587
 
 coreDict={"core": valueCore,
-          "triv":representation.create_trivial_core(name="Fun",shape=[6,7],colors=["jezyk","krecik"],coreType="PolynomialCore"),
+          "triv": tnreason.representation.coordinate_calculus.create_trivial_core(name="Fun", shape=[6, 7], colors=["jezyk", "krecik"], coreType="PolynomialCore"),
           "manTriv": manTrivCore}
 
 mN = application.MarkovNetwork(coreDict={coreKey : engine.convert(coreDict[coreKey],"NumpyCore") for coreKey in coreDict})

@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import application, representation
 import numpy as np
 
@@ -37,7 +38,7 @@ networkCores = {
     "n_a": representation.create_random_core("n_a", [2, 2], ['n1_actVar_tbo', 'n1_p0_selVar_tbo']),
     "n_b": representation.create_random_core("n_b", [2, 2], ['n1_p0_selVar_tbo', 'n1_p1_selVar_tbo']),
     "n_c":  representation.create_random_core("n_c", [2, 2, 2], ['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo']),
-    "triv" : representation.create_trivial_core("triv", shape=[2, 2, 2, 2, 2, 2], colors=['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo', 'n1_actVar', 'n1_p0_selVar', 'n1_p1_selVar'])
+    "triv" : tnreason.representation.coordinate_calculus.create_trivial_core("triv", shape=[2, 2, 2, 2, 2, 2], colors=['n1_actVar_tbo', 'n1_p0_selVar_tbo', 'n1_p1_selVar_tbo', 'n1_actVar', 'n1_p0_selVar', 'n1_p1_selVar'])
 }
 fitter = als.ALS(networkCores=networkCores, importanceColors=['n1_actVar', 'n1_p0_selVar', 'n1_p1_selVar'],
         targetList=[(positiveCores,1),(negativeCores,-1)])

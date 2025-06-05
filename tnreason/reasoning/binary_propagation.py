@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import engine, representation
 
 import numpy as np
@@ -27,7 +28,7 @@ class BinaryContractionPropagator:
             raise ValueError("A query color is not appearing in the subnetworks!")
 
         self.answerCores = {key + answerCoreSuffix:
-                                representation.create_trivial_core(
+                                tnreason.representation.coordinate_calculus.create_trivial_core(
                                     name=key+answerCoreSuffix,
                                     shape=[colorShapes[color] for color in queryVariables[key]],
                                     colors=queryVariables[key]) for key in queryVariables}

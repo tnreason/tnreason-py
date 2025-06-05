@@ -15,14 +15,13 @@ from tnreason.representation import suffixes as suf
 
 from tnreason.representation.cnf_to_cores import weightedFormulas_to_sparseCore
 
-from tnreason.representation.creation_handling import create_trivial_core, create_basis_core, create_trivial_cores, \
-    create_boolean_head, \
-    create_activation_vector, create_vanishing_core
+from tnreason.representation.auxiliary_cores import create_boolean_head
 
 from tnreason.representation.script_transform import get_all_atom_colors, get_atom_colors, \
     drop_color_suffixes_from_assignment, create_solution_expression, add_color_suffixes
 
-from tnreason.representation.coordinate_calculus import coordinatewise_transform, create_tensor_encoding
+from tnreason.representation.coordinate_calculus import coordinatewise_transform, create_tensor_encoding, \
+    create_trivial_core, create_basis_core, create_vanishing_core
 
 from tnreason.representation.basis_calculus import create_relational_encoding, create_partitioned_relational_encoding, \
     create_interpretation_vector

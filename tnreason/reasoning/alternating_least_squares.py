@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import engine, representation
 
 import numpy as np
@@ -41,7 +42,7 @@ class ALS:
                                                                          randomEngine="NumpyUniform")
             else:
                 self.trivialKeys.append(updateKey)
-                self.networkCores[updateKey] = representation.create_trivial_core(updateKey, upShape, upColors)
+                self.networkCores[updateKey] = tnreason.representation.coordinate_calculus.create_trivial_core(updateKey, upShape, upColors)
 
     def alternating_optimization(self, updateKeys, sweepNum=10, computeResiduum=False):
         updateKeys = [key for key in updateKeys if key not in self.trivialKeys]

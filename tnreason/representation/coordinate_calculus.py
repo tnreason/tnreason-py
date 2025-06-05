@@ -18,8 +18,36 @@ def coordinatewise_transform(coreList, rDrFunction, outCoreType=None, outName="T
 
 
 def create_tensor_encoding(inshape, incolors, function, coreType=None, name="Encoding"):
+    """
+    Uses a dense sliceIterator, more efficient (when sparsity capturing coreType) in case of trivial, vanishing or basis core below
+    """
     return engine.create_from_slice_iterator(inshape, incolors,
                                              sliceIterator=[
                                                  (function(*idx), {color: idx[i] for i, color in enumerate(incolors)})
                                                  for idx in np.ndindex(*inshape)],
+                                             coreType=coreType, name=name)
+
+
+## Special Tensor Encodings with sparser sliceIterators :
+
+def create_vanishing_core(colors, shape, name, coreType=None):
+    return engine.create_from_slice_iterator(shape=shape, colors=colors,
+                                             sliceIterator=[],
+                                             coreType=coreType, name=name)
+
+
+def create_trivial_core(colors, shape, name, coreType=None):
+    return engine.create_from_slice_iterator(shape=shape, colors=colors,
+                                             sliceIterator=[(1, dict())],
+                                             coreType=coreType, name=name)
+
+
+def create_basis_core(name, shape, colors, numberTuple, coreType=None):
+    if isinstance(numberTuple, tuple) or isinstance(numberTuple, list):
+        numberTuple = tuple([int(number) for number in numberTuple])
+    else:  # Dealing with np.int, Booleans, Floats
+        numberTuple = tuple([int(numberTuple)])
+    return engine.create_from_slice_iterator(shape=shape, colors=colors,
+                                             sliceIterator=[
+                                                 (1, {color: numberTuple[i] for i, color in enumerate(colors)})],
                                              coreType=coreType, name=name)

@@ -34,8 +34,10 @@ class WeightEstimationTest(unittest.TestCase):
         calibrator = application.HybridLearner(hybridKB)
         weights = calibrator.infer_weights_on_data(application.get_empirical_distribution(sampleDf), satInferenceMethod="ForwardContractor")
 
-        self.assertEqual(0, weights["f1"][0]) # Since feature cannot be tuned, check whether it is not changed
-        self.assertEqual(0, weights["f1"][1])
+        # Since hard environment mean, weights are taken by cutoff
+        cutoffWeight = 10 # Needs to coincide with default in features.SingleSoftFeature.local_adjustment!
+        self.assertEqual(cutoffWeight, weights["f1"][0])
+        self.assertEqual(cutoffWeight, weights["f1"][1])
 
     def test_atomic_variables(self):
         expressionsDict = {"f_a": ["a"],

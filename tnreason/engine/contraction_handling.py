@@ -54,7 +54,7 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
             if color not in dimensionDict:
                 dimensionDict[color] = 2
                 print("Color {} handled trivially, not appearing in coreDict or dimDict.".format(color))
-            coreDict[color + "_trivialCore"] = create_trivial_core(color + "_trivialCore",
+            coreDict[color + "_trivialCore"] = create_trivial_core(name=color + "_trivialCore",
                                                                    shape=[dimensionDict[color]],
                                                                    colors=[color], coreType=coreType)
 

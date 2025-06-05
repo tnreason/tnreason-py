@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import reasoning
 from tnreason import representation
 from tnreason import engine
@@ -18,7 +19,7 @@ def get_queens_propagator(n=3):
 def to_random_basis(binaryCore):
     ones = np.where(binaryCore.values==1)[0]
     assert len(ones)>0, ValueError("No possibilities detected.")
-    return representation.create_basis_core(binaryCore.name, binaryCore.values.shape, binaryCore.colors, (np.random.choice(ones)))
+    return tnreason.representation.coordinate_calculus.create_basis_core(binaryCore.name, binaryCore.values.shape, binaryCore.colors, (np.random.choice(ones)))
 
 
 def get_random_assignment(n=3):

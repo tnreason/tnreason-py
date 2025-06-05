@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import engine, representation
 
 from tnreason.reasoning import sampling_base as sh
@@ -21,7 +22,7 @@ class GenericMeanFieldApproximator(engine.EngineUser):
             self.edgeColorDict = edgeColorDict
 
         self.approxCores = {parKey: (1 / np.prod(
-            [self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) * representation.create_trivial_core(parKey, [
+            [self.dimensionDict[color] for color in self.edgeColorDict[parKey]])) * tnreason.representation.coordinate_calculus.create_trivial_core(parKey, [
             self.dimensionDict[color] for color in
             self.edgeColorDict[parKey]], self.edgeColorDict[parKey], coreType=self.coreType) for parKey in
                             self.edgeColorDict}
@@ -71,7 +72,7 @@ class NaiveMeanFieldApproximator(engine.EngineUser):
 
         # Only distinction to Gibbs: MeanCores instead of samples turned into cores
         self.meanCores = {parKey: (1 / np.prod(
-            [self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) * representation.create_trivial_core(
+            [self.dimensionDict[color] for color in self.partitionColorDict[parKey]])) * tnreason.representation.coordinate_calculus.create_trivial_core(
             parKey, [self.dimensionDict[color] for color in
                      self.partitionColorDict[parKey]],
             self.partitionColorDict[parKey],

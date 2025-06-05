@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import representation
 from tnreason import engine
 from tnreason import reasoning
@@ -338,9 +339,9 @@ class HybridKnowledgeBase(DistributionBase):
 
         canParamDict = {
             **{formulaKey: self.weightedFormulas[formulaKey][-1] for formulaKey in self.weightedFormulas},
-            **{formulaKey: representation.create_basis_core(name=formulaKey, shape=[2], colors=[
+            **{formulaKey: tnreason.representation.coordinate_calculus.create_basis_core(name=formulaKey, shape=[2], colors=[
                 representation.get_formula_color(self.facts[formulaKey])], numberTuple=(1)
-                                                            ) for formulaKey in self.facts}
+                                                                                         ) for formulaKey in self.facts}
         }
 
         return representation.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,

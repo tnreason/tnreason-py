@@ -1,3 +1,4 @@
+import tnreason.representation.coordinate_calculus
 from tnreason import representation
 from tnreason import engine
 
@@ -13,7 +14,7 @@ class MPMomentMatcher:
 
         self.atoms = representation.get_all_atom_colors(expressionsDict)
         self.messageCores = {
-            atom + messageCoreSuffix: representation.create_trivial_core(atom + messageCoreSuffix, [2], [atom])
+            atom + messageCoreSuffix: tnreason.representation.coordinate_calculus.create_trivial_core(atom + messageCoreSuffix, [2], [atom])
             for atom in self.atoms}
 
         self.directedCores = dict()

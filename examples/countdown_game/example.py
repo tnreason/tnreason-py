@@ -1,7 +1,7 @@
 """
 Example: Countdown Game https://github.com/Jiayi-Pan/TinyZero?tab=readme-ov-file
 """
-
+import tnreason.representation.coordinate_calculus
 from examples.countdown_game import creation as cr
 from tnreason import engine, representation
 
@@ -12,8 +12,8 @@ weightSuperList = [[-1, 1], [1, -1], [1, 1]]
 targetNumber = 5
 
 selCore = cr.create_sum_selector(["a", "b"], varDimDict, "a+-b", [-10, 20], weightSuperList, "a+-_sVar", "NumpyCore")
-headCore = representation.create_basis_core("", shape=[pmCutOff[1] - pmCutOff[0]], colors=["a+-b"],
-                                    numberTuple=[targetNumber - pmCutOff[0]])
+headCore = tnreason.representation.coordinate_calculus.create_basis_core("", shape=[pmCutOff[1] - pmCutOff[0]], colors=["a+-b"],
+                                                                         numberTuple=[targetNumber - pmCutOff[0]])
 
 """
 Possible Combinations to get 2 are the non vanishing coordinates of the possible combination contraction:

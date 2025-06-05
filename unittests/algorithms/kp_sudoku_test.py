@@ -1,5 +1,6 @@
 import unittest
 
+import tnreason.representation.coordinate_calculus
 from tnreason import reasoning
 from tnreason import representation
 
@@ -109,8 +110,8 @@ def evidence_into_canParams(evidenceDict):
     """
     use, that evidenceKey is a colorKey and a featureKey
     """
-    return {evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2], colors=[evidenceKey],
-                                                          numberTuple=[evidenceDict[evidenceKey]]) for evidenceKey in
+    return {evidenceKey: tnreason.representation.coordinate_calculus.create_basis_core(name=evidenceKey, shape=[2], colors=[evidenceKey],
+                                                                                       numberTuple=[evidenceDict[evidenceKey]]) for evidenceKey in
             evidenceDict}
 
 
