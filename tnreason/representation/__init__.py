@@ -6,7 +6,6 @@ from tnreason.representation import suffixes as suf
 
 from tnreason.representation.cnf_to_cores import weightedFormulas_to_sparseCore
 
-from tnreason.representation.auxiliary_cores import create_boolean_head
 
 from tnreason.representation.coordinate_calculus import coordinatewise_transform, create_tensor_encoding, \
     create_trivial_core, create_basis_core, create_vanishing_core

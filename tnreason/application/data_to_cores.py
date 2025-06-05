@@ -1,6 +1,6 @@
 import tnreason.representation.basis_calculus
 import tnreason.representation.coordinate_calculus
-from tnreason.representation import auxiliary_cores as ch
+
 from tnreason.representation import suffixes as suf
 
 dataCoreSuffix = suf.datIn + suf.comCoreSuf

@@ -1,7 +1,9 @@
-import tnreason.representation.basis_calculus
-from tnreason.representation import auxiliary_cores as ch
+from tnreason import representation
+
 from tnreason.application import connectives as con
 from tnreason.representation import suffixes as suf
+
+import math
 
 ## To be dropped: avoid create_boolean head!
 def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
@@ -14,20 +16,19 @@ def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
     for formulaName in expressionsDict.keys():
         if isinstance(expressionsDict[formulaName][-1], float) or isinstance(expressionsDict[formulaName][-1], int):
             knowledgeCores = {**knowledgeCores,
-                              **ch.create_boolean_head(get_formula_color(expressionsDict[formulaName][:-1]),
-                                                       "expFactor",
-                                                       weight=
-                                                       expressionsDict[formulaName][-1], coreType=coreType,
-                                                       name=formulaName + suf.actCoreSuf),
+                formulaName + suf.actCoreSuf : representation.create_tensor_encoding(inshape=[2], incolors=[get_formula_color(expressionsDict[formulaName][:-1])],
+                                                                                     function= lambda x : math.exp(expressionsDict[formulaName][-1] * x),
+                                                                                     coreType=coreType, name=formulaName + suf.actCoreSuf),
                               **create_formula_computation_cores(expressionsDict[formulaName][:-1],
                                                                  alreadyCreated=
                                                                  list(knowledgeCores.keys()) + alreadyCreated,
                                                                  coreType=coreType)}
         else:
             knowledgeCores = {**knowledgeCores,
-                              **ch.create_boolean_head(get_formula_color(expressionsDict[formulaName]),
-                                                       "truthEvaluation",
-                                                       coreType=coreType, name=formulaName + suf.actCoreSuf),
+                              formulaName + suf.actCoreSuf: representation.create_basis_core(
+                                  name=formulaName + suf.actCoreSuf, shape=[2], colors=[
+                                      get_formula_color(expressionsDict[formulaName])], numberTuple=(1),
+                                  coreType=coreType),
                               **create_formula_computation_cores(expressionsDict[formulaName],
                                                                  alreadyCreated=list(
                                                                      knowledgeCores.keys()) + alreadyCreated,
@@ -91,7 +92,7 @@ def create_connective_core(expression, coreType=None):
         cardinality = len(expression) - 1  # Since the first is the connective
 
     return {get_formula_string(expression) + suf.comCoreSuf:
-        tnreason.representation.basis_calculus.create_relational_encoding(
+        representation.create_relational_encoding(
             inshape=[2 for _ in range(1, cardinality + 1)], outshape=[2],
             incolors=[get_formula_color(expression[i]) for i in
                       range(1, cardinality + 1)],
@@ -100,26 +101,22 @@ def create_connective_core(expression, coreType=None):
             coreType=coreType,
             name=get_formula_string(expression) + suf.comCoreSuf)}
 
-## To be dropped into features
-#def create_formula_head(expression, headType, weight=None, name=None, coreType=None):
-#    """
-#    Created the head core to an expression activating it, which is the boolean head to the formula color
-#    """
-#    return ch.create_boolean_head(color=get_formula_color(expression), headType=headType, weight=weight, name=name,
-#                                  coreType=coreType)
-
 
 def create_evidence_cores(evidenceDict, coreType=None):
     coreDict = dict()
     for color in evidenceDict:
         if evidenceDict[color]:
-            coreDict.update(ch.create_boolean_head(color, headType="truthEvaluation",
-                                                   name=color + suf.eviCoreIn + suf.actCoreSuf,
-                                                   coreType=coreType))
+            coreDict[color + suf.eviCoreIn + suf.actCoreSuf] = representation.create_basis_core(
+                name=color + suf.eviCoreIn + suf.actCoreSuf,
+                shape=[2],
+                colors=[color],
+                numberTuple=(1), coreType=coreType)
         else:
-            coreDict.update(ch.create_boolean_head(color, headType="falseEvaluation",
-                                                   name=color + suf.eviCoreIn + suf.actCoreSuf,
-                                                   coreType=coreType))
+            coreDict[color + suf.eviCoreIn + suf.actCoreSuf] = representation.create_basis_core(
+                name=color + suf.eviCoreIn + suf.actCoreSuf,
+                shape=[2],
+                colors=[color],
+                numberTuple=(0), coreType=coreType)
     return coreDict
 
 
