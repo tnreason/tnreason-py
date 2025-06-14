@@ -3,6 +3,8 @@ import pandas as pd
 
 from tnreason.application.inductive import calculate_satisfactionDict
 
+from tnreason.application import script_transform as st
+
 
 def calculate_satisfaction_on_computationLess(empDistribution, featureDict, comCores=dict(), inferenceMethod=None):
     empCaNet = empDistribution.create_caNetwork()
@@ -27,14 +29,14 @@ empDist = application.get_empirical_distribution(sampleDf, atomColumns=vat_list 
 hybridKB = application.load_kb_from_yaml("assets/coarse_model.yaml")
 
 categoricalConstraints = {"account": account_list, "tax": vat_list, }
-catComCores = representation.create_categorical_cores({
-    catColor: representation.add_color_suffixes(categoricalConstraints[catColor]) for catColor in
+catComCores = application.create_categorical_cores({
+    catColor: st.add_color_suffixes(categoricalConstraints[catColor]) for catColor in
     categoricalConstraints})
 
 mnFeatures = {"accountTaxHard": representation.HardPartitionFeature(featureColors=["account", "tax"],
-                                                               affectedComputationCores=list(catComCores.keys()),
-                                                               interpretationDict={"account": account_list,
-                                                                                   "tax": vat_list}),
+                                                                    affectedComputationCores=list(catComCores.keys()),
+                                                                    shape=[len(account_list), len(vat_list)]
+                                                                    ),
               # "accountTaxSoft": representation.SoftPartitionFeature(featureColors=["account", "tax"],
               #                                                 affectedComputationCores=list(catComCores.keys()),
               #                                                 interpretationDict={"account": account_list,
