@@ -47,9 +47,9 @@ class InferenceBase(engine.EngineUser):
             reducedCanParamDict = canParamDict
 
         return representation.ComputationActivationNetwork(featureDict=reducedFeatureDict,
-                                               computationCoreDict=reducedComputationCoreDict,
-                                               baseMeasureCoreDict=self.caNetwork.baseMeasureCoreDict,
-                                               canParamDict=reducedCanParamDict)
+                                                           computationCoreDict=reducedComputationCoreDict,
+                                                           baseMeasureCoreDict=self.caNetwork.baseMeasureCoreDict,
+                                                           canParamDict=reducedCanParamDict)
 
 
 class ForwardContractor(InferenceBase):
@@ -153,7 +153,7 @@ class ExpectationPropagator(InferenceBase):
         }
 
         if startMessageSchedule is None:
-            self.messageQueue = SortedList() # FIFO -> Stack
+            self.messageQueue = SortedList()  # FIFO -> Stack
         else:
             self.messageQueue = SortedList(startMessageSchedule)
 
@@ -226,11 +226,15 @@ class ExpectationPropagator(InferenceBase):
             caNetwork=self.get_caNetwork(self.clusterFeatures[receiveCluster]),
             meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.clusterFeatures[receiveCluster]},
         )
-        backwardInferer.alternating_updates(featureKeys={featureKey for featureKey in self.clusterFeatures[receiveCluster] if self.caNetwork.featureDict[featureKey].featureType != "PassiveFeature"})
+        backwardInferer.alternating_updates(
+            featureKeys={featureKey for featureKey in self.clusterFeatures[receiveCluster] if
+                         self.caNetwork.featureDict[featureKey].featureType != "PassiveFeature"},
+            sweepNum=1)
 
         messageCanParamDict = backwardInferer.caNetwork.canParamDict
         for featureKey in self.clusterFeatures[receiveCluster]:
-            if type(self.caNetwork.featureDict[featureKey]) in [representation.SoftPartitionFeature, representation.SingleSoftFeature]:
+            if type(self.caNetwork.featureDict[featureKey]) in [representation.SoftPartitionFeature,
+                                                                representation.SingleSoftFeature]:
                 """
                 Soft features canParams are communicated by differences to rest messages
                 """

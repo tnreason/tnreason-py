@@ -22,7 +22,7 @@ def calculate_satisfactionDict(empDistribution, expressionDict, inferenceMethod=
 
     empCaNet.include_features(
         featureDict={expressionKey: representation.SoftPartitionFeature(
-            featureColors=[ftc.get_formula_color(expressionDict[expressionKey])],
+            featureColors=[ftc.get_formula_headColor(expressionDict[expressionKey])],
             affectedComputationCores=ftc.create_formula_computation_cores(expressionDict[expressionKey]).keys())
             for expressionKey in expressionDict},
         computationCores=expressionComputationCores

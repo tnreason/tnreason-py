@@ -16,7 +16,7 @@ networkCores = {
 }
 
 targetCores = {
-    **als.copy_cores(ftc.create_formulas_cores({"f1": ["imp", "a1", "a2"]}), "_tar", ["a1" + aSuf, "a2" + aSuf]),
+    **als.copy_cores(ftc.create_cores_to_expressionsDict({"f1": ["imp", "a1", "a2"]}), "_tar", ["a1" + aSuf, "a2" + aSuf]),
 }
 
 optimizer = als.ALS(

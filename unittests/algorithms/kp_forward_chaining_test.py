@@ -19,8 +19,8 @@ class FCTest(unittest.TestCase):
         }
 
         propagator = reasoning.ConstraintPropagator(
-            {**ftc.create_formulas_cores(rules),
-             **ftc.create_atom_evidence_cores(preEvidence)},
+            {**ftc.create_cores_to_expressionsDict(rules),
+             **ftc.create_formula_evidence_cores(preEvidence)},
             verbose=False
         )
         propagator.propagate_cores()
@@ -34,8 +34,8 @@ class FCTest(unittest.TestCase):
         }
 
         propagator = reasoning.ConstraintPropagator(
-            {**ftc.create_formulas_cores(rules),
-             **ftc.create_atom_evidence_cores(preEvidence)},
+            {**ftc.create_cores_to_expressionsDict(rules),
+             **ftc.create_formula_evidence_cores(preEvidence)},
             verbose=False
         )
         propagator.propagate_cores()
@@ -48,7 +48,7 @@ class FCTest(unittest.TestCase):
         self.assertTrue(len(activationCone) == 1)
 
     def test_activationCone_pureImp(self):
-        propagator = reasoning.ConstraintPropagator(ftc.create_formulas_cores(rules), verbose=False)
+        propagator = reasoning.ConstraintPropagator(ftc.create_cores_to_expressionsDict(rules), verbose=False)
         propagator.propagate_cores()
         activationCone = propagator.find_variable_cone(["a1" + aSuf, "a2" + aSuf])
 
@@ -58,7 +58,7 @@ class FCTest(unittest.TestCase):
         self.assertTrue("a2" + aSuf + domainCoreSuffix in activationCone)
 
     def test_activationCone_andFact(self):
-        propagator = reasoning.ConstraintPropagator(ftc.create_formulas_cores({"r1": ["and", "a1", "a2"]}),
+        propagator = reasoning.ConstraintPropagator(ftc.create_cores_to_expressionsDict({"r1": ["and", "a1", "a2"]}),
                                                     verbose=False)
         propagator.propagate_cores()
         activationCone = propagator.find_variable_cone(["a1" + aSuf, "a2" + aSuf])

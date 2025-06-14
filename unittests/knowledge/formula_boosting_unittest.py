@@ -1,7 +1,6 @@
 import unittest
 
 from tnreason import application
-from tnreason import representation
 
 import pandas as pd
 

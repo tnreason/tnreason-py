@@ -38,7 +38,7 @@ class GenericMeanFieldApproximator(engine.EngineUser):
             coreType=self.coreType,
             contractionMethod=self.contractionMethod
         )
-        ## Normate coordinatewise
+        ## normalize coordinatewise
         denominator = engine.contract(restApproxCores, openColors=self.edgeColorDict[approxCoreKey])
         update = engine.get_core(self.coreType)(values=None, colors=self.edgeColorDict[approxCoreKey],
                                                 shape=[self.dimensionDict[color] for color in

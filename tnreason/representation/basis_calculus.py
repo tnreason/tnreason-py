@@ -1,7 +1,6 @@
 import numpy as np
 
 from tnreason import engine
-from tnreason.representation import suffixes as suf
 
 interpretationCorePre = "_i"
 
@@ -19,7 +18,7 @@ def atomic_image_enumeration(function, domainIterator):
 
 
 ## Unused so far, since typically the statesFunction is encoded in decomposed form
-def encode_statesFunction(statesFunction, inshape, incolors, outcolor, coreType=None, functionName="Encoding",
+def encode_statesFunction(statesFunction, inshape, incolors, outcolor, coreType=None, coreName="Encoding",
                           imageList=None):
     """
     Atomic encoding of the head!
@@ -32,8 +31,8 @@ def encode_statesFunction(statesFunction, inshape, incolors, outcolor, coreType=
     return create_relational_encoding(inshape=inshape, outshape=[len(imageList)], incolors=incolors,
                                       outcolors=[outcolor], indicesToIndicesFunction=statesToIndexFunction,
                                       coreType=coreType,
-                                      name=functionName + suf.comCoreSuf), \
-        create_interpretation_vector(outcolor, coreType=coreType, name=outcolor + "_i" + suf.actCoreSuf)
+                                      name=coreName), \
+        create_interpretation_vector(outcolor, coreType=coreType, name=outcolor + "_i")
 
 
 def create_relational_encoding(inshape, outshape, incolors, outcolors, indicesToIndicesFunction, coreType=None,

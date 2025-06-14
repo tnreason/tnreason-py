@@ -5,38 +5,44 @@ from tnreason.representation import suffixes as suf
 
 import math
 
-## To be dropped: avoid create_boolean head!
-def create_formulas_cores(expressionsDict, alreadyCreated=[], coreType=None):
+
+# Fast creation of a tensor network to a dictionary of facts and weightedFormulas
+# Used only in tests, canonical way: Define a CANetwork and create its cores
+def create_cores_to_expressionsDict(expressionsDict, alreadyCreated=[], coreType=None):
     """
     Creates a tensor network of connective and head cores
         * expressionsDict (script language): Dictionary of nested listed representing expressions
         * alreadyCreated: List of keys to computation cores to be omitted
     """
-    knowledgeCores = {}
+    allCores = {}
     for formulaName in expressionsDict.keys():
         if isinstance(expressionsDict[formulaName][-1], float) or isinstance(expressionsDict[formulaName][-1], int):
-            knowledgeCores = {**knowledgeCores,
-                formulaName + suf.actCoreSuf : representation.create_tensor_encoding(inshape=[2], incolors=[get_formula_color(expressionsDict[formulaName][:-1])],
-                                                                                     function= lambda x : math.exp(expressionsDict[formulaName][-1] * x),
-                                                                                     coreType=coreType, name=formulaName + suf.actCoreSuf),
-                              **create_formula_computation_cores(expressionsDict[formulaName][:-1],
-                                                                 alreadyCreated=
-                                                                 list(knowledgeCores.keys()) + alreadyCreated,
-                                                                 coreType=coreType)}
+            allCores.update(
+                {formulaName + suf.actCoreSuf: representation.create_tensor_encoding(inshape=[2], incolors=[
+                    get_formula_headColor(expressionsDict[formulaName][:-1])],
+                                                                                     function=lambda x: math.exp(
+                                                                                         expressionsDict[
+                                                                                             formulaName][
+                                                                                             -1] * x),
+                                                                                     coreType=coreType,
+                                                                                     name=formulaName + suf.actCoreSuf),
+                 **create_formula_computation_cores(expressionsDict[formulaName][:-1],
+                                                    alreadyCreated=
+                                                    list(allCores.keys()) + alreadyCreated,
+                                                    coreType=coreType)})
         else:
-            knowledgeCores = {**knowledgeCores,
-                              formulaName + suf.actCoreSuf: representation.create_basis_core(
-                                  name=formulaName + suf.actCoreSuf, shape=[2], colors=[
-                                      get_formula_color(expressionsDict[formulaName])], numberTuple=(1),
-                                  coreType=coreType),
-                              **create_formula_computation_cores(expressionsDict[formulaName],
-                                                                 alreadyCreated=list(
-                                                                     knowledgeCores.keys()) + alreadyCreated,
-                                                                 coreType=coreType)}
-    return knowledgeCores
+            allCores.update({formulaName + suf.actCoreSuf: representation.create_basis_core(
+                name=formulaName + suf.actCoreSuf, shape=[2], colors=[
+                    get_formula_headColor(expressionsDict[formulaName])], numberTuple=(1),
+                coreType=coreType),
+                **create_formula_computation_cores(expressionsDict[formulaName],
+                                                   alreadyCreated=list(
+                                                       allCores.keys()) + alreadyCreated,
+                                                   coreType=coreType)})
+    return allCores
 
 
-def create_expressionDict_computation_cores(expressionDict, coreType=None):
+def create_computation_cores_to_expressionDict(expressionDict, coreType=None):
     """
     Creates the connective cores to an expression, omitting the elsewhere created cores
         * expressionDict: Dictionary of nested lists specifying formulas, possible with a canonical parameter in the end (dropped by drop_canParam())
@@ -51,6 +57,9 @@ def create_expressionDict_computation_cores(expressionDict, coreType=None):
 
 
 def drop_canParam(expression):
+    """
+    Reduces weightedFormula to the structure of a fact, by dropping the last position if it is a weight
+    """
     if isinstance(expression[-1], float) or isinstance(expression[-1], int):
         return expression[:-1]
     else:
@@ -91,44 +100,41 @@ def create_connective_core(expression, coreType=None):
     else:
         cardinality = len(expression) - 1  # Since the first is the connective
 
-    return {get_formula_string(expression) + suf.comCoreSuf:
+    return {get_formula_headCoreName(expression):
         representation.create_relational_encoding(
             inshape=[2 for _ in range(1, cardinality + 1)], outshape=[2],
-            incolors=[get_formula_color(expression[i]) for i in
+            incolors=[get_formula_headColor(expression[i]) for i in
                       range(1, cardinality + 1)],
-            outcolors=[get_formula_color(expression)],
+            outcolors=[get_formula_headColor(expression)],
             indicesToIndicesFunction=con.get_connectives(expression[0]),
             coreType=coreType,
-            name=get_formula_string(expression) + suf.comCoreSuf)}
+            name=get_formula_headCoreName(expression))}
 
 
-def create_evidence_cores(evidenceDict, coreType=None):
-    coreDict = dict()
-    for color in evidenceDict:
-        if evidenceDict[color]:
-            coreDict[color + suf.eviCoreIn + suf.actCoreSuf] = representation.create_basis_core(
-                name=color + suf.eviCoreIn + suf.actCoreSuf,
-                shape=[2],
-                colors=[color],
-                numberTuple=(1), coreType=coreType)
-        else:
-            coreDict[color + suf.eviCoreIn + suf.actCoreSuf] = representation.create_basis_core(
-                name=color + suf.eviCoreIn + suf.actCoreSuf,
-                shape=[2],
-                colors=[color],
-                numberTuple=(0), coreType=coreType)
-    return coreDict
+def create_evidence_cores(colorEvidenceDict, coreType=None):
+    """
+    Creates 0/1 basis cores to binary variables, according to the value in the dictionary
+    """
+    return {color + suf.eviCoreIn + suf.actCoreSuf: representation.create_basis_core(
+        name=color + suf.eviCoreIn + suf.actCoreSuf, shape=[2], colors=[color],
+        numberTuple=(int(colorEvidenceDict[color])), coreType=coreType)
+        for color in colorEvidenceDict}
 
 
-def create_atom_evidence_cores(evidenceDict, coreType=None):
+def create_formula_evidence_cores(evidenceFormulaDict, coreType=None):
     """
     Turns positive and negative evidence about atoms into literal formulas and encodes them as facts
     """
-    return create_evidence_cores({get_formula_color(atomKey): evidenceDict[atomKey] for atomKey in evidenceDict},
-                                 coreType=coreType)
+    return create_evidence_cores(
+        {get_formula_headColor(formula): evidenceFormulaDict[formula] for formula in evidenceFormulaDict},
+        coreType=coreType)
 
 
-def get_formula_color(expression):
+def get_formula_headCoreName(expression):
+    return get_formula_string(expression) + suf.comCoreSuf
+
+
+def get_formula_headColor(expression):
     """
     Identifies a color with an expression by adding a suffix to distinguish distributed and computed variables
         * expression (script language) possibly with canParam on last position

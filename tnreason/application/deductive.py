@@ -31,12 +31,12 @@ class InferenceProvider(engine.EngineUser):
             return contingentString
 
     def ask(self, queryFormula, evidenceDict={}):
-        queryColor = ftc.get_formula_color(queryFormula)
+        queryColor = ftc.get_formula_headColor(queryFormula)
 
         contracted = engine.contract(
             coreDict={
                 **self.distribution.create_cores(),
-                **ftc.create_atom_evidence_cores(evidenceDict),
+                **ftc.create_formula_evidence_cores(evidenceDict),
                 **ftc.create_formula_computation_cores(queryFormula)
             },
             contractionMethod=self.contractionMethod, openColors=[queryColor])
@@ -46,11 +46,11 @@ class InferenceProvider(engine.EngineUser):
         """
         While colorList is a list of colors, evidenceDict entries will get atom suffix!
         """
-        return engine.normate(coreDict={**self.distribution.create_cores(),
-                                        **ftc.create_atom_evidence_cores(evidenceDict)},
-                              inColors=[], outColors=st.add_color_suffixes(variableList),
-                              contractionMethod=self.contractionMethod
-                              )
+        return engine.normalize(coreDict={**self.distribution.create_cores(),
+                                          **ftc.create_formula_evidence_cores(evidenceDict)},
+                                inColors=[], outColors=st.add_color_suffixes(variableList),
+                                contractionMethod=self.contractionMethod
+                                )
 
     def exact_map_query(self, variableList, evidenceDict={}):
         """

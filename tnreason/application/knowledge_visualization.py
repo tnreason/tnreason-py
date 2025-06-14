@@ -28,7 +28,7 @@ def visualize_with_differing_evidence(expressionsDict={},
 
 
 def get_edges_and_positions(expression):
-    expressionString = ftc.get_formula_color(expression)
+    expressionString = ftc.get_formula_headColor(expression)
 
     if isinstance(expression, str):
         return [], {expressionString: 0}, [expressionString]
@@ -41,10 +41,10 @@ def get_edges_and_positions(expression):
                 positions = {**positions, **subPositions}
                 subExpressions = subExpressions + subSubExpressions
 
-                edges.append([ftc.get_formula_color(expression), ftc.get_formula_color(subExpression)])
+                edges.append([ftc.get_formula_headColor(expression), ftc.get_formula_headColor(subExpression)])
 
-        positions[ftc.get_formula_color(expression)] = 1 + max(
-            [positions[ftc.get_formula_color(subExpression)] for subExpression in expression if
+        positions[ftc.get_formula_headColor(expression)] = 1 + max(
+            [positions[ftc.get_formula_headColor(subExpression)] for subExpression in expression if
              is_subexpression(subExpression)])
 
         return edges, positions, subExpressions

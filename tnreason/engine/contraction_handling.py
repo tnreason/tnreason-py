@@ -89,7 +89,7 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         raise ValueError("Contractor Type {} not known.".format(contractionMethod))
 
 
-def normate(coreDict, outColors, inColors, dimensionDict={}, contractionMethod=None, coreType=None):
+def normalize(coreDict, outColors, inColors, dimensionDict={}, contractionMethod=None, coreType=None):
     contracted = contract(coreDict, openColors=outColors + inColors, dimensionDict=dimensionDict,
                           contractionMethod=contractionMethod, coreType=coreType)
     sliceNorms = contract({"rawCon": contracted.clone()}, openColors=inColors, dimensionDict=dimensionDict,
@@ -101,7 +101,7 @@ def normate(coreDict, outColors, inColors, dimensionDict={}, contractionMethod=N
     # Need to clone in order to avoid cross reference manipulation!
     for x in np.ndindex(tuple(sliceNorms.shape)):
         if sliceNorms[x] == 0:
-            print("Slice {} cannot be normated!".format(x))
+            print("Slice {} cannot be normalized!".format(x))
         else:
             contracted.slice_multiply(1 / sliceNorms[x], {color: x[i] for i, color in enumerate(inColors)})
     return contracted

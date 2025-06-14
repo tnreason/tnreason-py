@@ -181,12 +181,12 @@ class HybridKnowledgeBase(DistributionBase):
         outString = "Hybrid Knowledge Base consistent of"
         if self.weightedFormulas:
             outString = outString + "\n######## probabilistic formulas:\n" + "\n".join(
-                [ftc.get_formula_color(expression[:-1]) + " with weight " + str(expression[-1]) for
+                [ftc.get_formula_headColor(expression[:-1]) + " with weight " + str(expression[-1]) for
                  expression in
                  self.weightedFormulas.values()])
         if self.facts:
             outString = outString + "\n######## logical formulas:\n" + "\n".join(
-                [ftc.get_formula_color(expression) for expression in self.facts.values()])
+                [ftc.get_formula_headColor(expression) for expression in self.facts.values()])
         if self.categoricalConstraints:
             outString = outString + "\n######## categorical variables:\n" + "\n".join(
                 [key + " selecting one of " + " ".join(self.categoricalConstraints[key]) for key in
@@ -245,30 +245,30 @@ class HybridKnowledgeBase(DistributionBase):
         self.find_atoms()
 
     def create_caNetwork(self, hardOnly=False):
+        ## Hard Features
         featureDict = {formulaKey: representation.HardPartitionFeature(
-            featureColors=[ftc.get_formula_color(self.facts[formulaKey])],
+            featureColors=[ftc.get_formula_headColor(self.facts[formulaKey])],
             affectedComputationCores=list(
                 ftc.create_formula_computation_cores(self.facts[formulaKey]).keys()),
         ) for formulaKey in self.facts}
-        computationCoreDict = ftc.create_expressionDict_computation_cores(self.facts, coreType=self.coreType)
+        computationCoreDict = ftc.create_computation_cores_to_expressionDict(self.facts, coreType=self.coreType)
 
+        ## Soft Features
         if not hardOnly:
             featureDict.update(
                 {formulaKey: representation.SingleSoftFeature(
-                    featureColor=ftc.get_formula_color(self.weightedFormulas[formulaKey][:-1]),
+                    featureColor=ftc.get_formula_headColor(self.weightedFormulas[formulaKey][:-1]),
                     affectedComputationCores=list(
                         ftc.create_formula_computation_cores(self.weightedFormulas[formulaKey][:-1]).keys()),
                     # Faster to have a function getting the coreKeys without instantiating the network!
                 ) for formulaKey in self.weightedFormulas}
             )
             computationCoreDict.update(
-                ftc.create_expressionDict_computation_cores(self.weightedFormulas, coreType=self.coreType))
+                ftc.create_computation_cores_to_expressionDict(self.weightedFormulas, coreType=self.coreType))
 
         baseMeasureCoreDict = {
-            **ftc.create_atom_evidence_cores(self.evidence, coreType=self.coreType),
-            **ctc.create_categorical_cores({
-                catColor: st.add_color_suffixes(self.categoricalConstraints[catColor]) for catColor in
-                self.categoricalConstraints}, coreType=self.coreType),
+            **ftc.create_formula_evidence_cores(self.evidence, coreType=self.coreType),
+            **ctc.create_categorical_cores(self.categoricalConstraints, coreType=self.coreType, addColorSuffixes=True),
             **ctc.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
                                                       self.dimDict, coreType=self.coreType),
             **self.backCores
@@ -277,8 +277,8 @@ class HybridKnowledgeBase(DistributionBase):
         canParamDict = {
             **{formulaKey: self.weightedFormulas[formulaKey][-1] for formulaKey in self.weightedFormulas},
             **{formulaKey: representation.create_basis_core(name=formulaKey, shape=[2], colors=[
-                ftc.get_formula_color(self.facts[formulaKey])], numberTuple=(1)
-                                                                                         ) for formulaKey in self.facts}
+                ftc.get_formula_headColor(self.facts[formulaKey])], numberTuple=(1)
+                                                            ) for formulaKey in self.facts}
         }
 
         return representation.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,

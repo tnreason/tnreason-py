@@ -5,7 +5,6 @@ from tnreason.application.deductive import InferenceProvider
 
 from tnreason.application.distributions import HybridKnowledgeBase, get_empirical_distribution, MarkovNetwork, ProposalDistribution
 from tnreason.application.grafting import Grafter
-from tnreason.application.batch_evaluation import KnowledgePropagator
 
 from tnreason.application.knowledge_visualization import visualize
 

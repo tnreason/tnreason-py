@@ -2,7 +2,7 @@ from tnreason import engine
 
 
 def estimate_bn(dataCores, parentsDict, contractionMethod, coreType):
-    return {colorKey + "_estCore": engine.normate(dataCores, outColors=[colorKey], inColors=parentsDict[colorKey],
+    return {colorKey + "_estCore": engine.normalize(dataCores, outColors=[colorKey], inColors=parentsDict[colorKey],
                                                   contractionMethod=contractionMethod, coreType=coreType) for colorKey in
             parentsDict}
 

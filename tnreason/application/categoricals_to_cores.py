@@ -2,14 +2,17 @@ from tnreason.representation import basis_calculus as bc
 from tnreason.representation import suffixes as suf
 
 
-def create_categorical_cores(categoricalsDict, coreType=None):
+def create_categorical_cores(categoricalsDict, coreType=None, addColorSuffixes=False):
     """
     Creates a tensor network representing the constraints of
         * categoricalsDict (in colors): Dictionary of atom color lists to each categorical variable color
     """
+    if addColorSuffixes:
+        categoricalsDict = {catName + suf.comVarSuf: [atomName + suf.disVarSuf for atomName in categoricalsDict[catName]] for catName in categoricalsDict}
+
     catCores = {}
     for catName in categoricalsDict.keys():
-        catCores = {**catCores, **create_constraintCoresDict(categoricalsDict[catName], catName, coreType=coreType)}
+        catCores.update(create_constraintCoresDict(categoricalsDict[catName], catName, coreType=coreType))
     return catCores
 
 
