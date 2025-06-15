@@ -10,7 +10,8 @@ aliases = {
 }
 
 
-def get_selection_augmented_boolean_computation_core(functionNames, inColors, outColor, selectionColor, coreType, name):
+def get_selection_augmented_boolean_computation_core(functionNames, inColors, outColor, selectionColor, coreType=None,
+                                                     name="SelEncoding"):
     return engine.create_from_slice_iterator(shape=[2 for _ in range(len(inColors) + 1)],
                                              colors=[outColor] + inColors,
                                              sliceIterator=get_selection_augmented_iterator(functionNames, inColors,
@@ -26,7 +27,7 @@ def get_selection_augmented_iterator(functionNames, inColors, outColor, selectio
             get_boolean_relational_value_iterator(functionName, inColors, outColor)]
 
 
-def get_boolean_computation_core(functionName, inColors, outColor, coreType, name):
+def get_boolean_computation_core(functionName, inColors, outColor, coreType=None, name="ComEncoding"):
     return engine.create_from_slice_iterator(shape=[2 for _ in range(len(inColors) + 1)],
                                              colors=[outColor] + inColors,
                                              sliceIterator=get_boolean_relational_value_iterator(functionName, inColors,
@@ -83,33 +84,16 @@ def get_boolean_relational_value_iterator(functionName, inColors, outColor):
             return get_boolean_relational_value_iterator("pas" + str(len(inColors) - 1), inColors=inColors,
                                                          outColor=outColor)
 
-    ## Then a Wolfram number
+    ## Then understood as a Wolfram number
     try:
         int(functionName)
     except:
         raise ValueError("Function {} is not a Wolfram number".format(functionName))
 
-    binDigits = bin(int(functionName))[2:]
+    binDigits = bin(int(functionName))[2:] # Since have a prefix 0b for binary variables
     order = len(inColors)
     if len(binDigits) != 2 ** order:
-        binDigits = "0" * (2 ** order - len(binDigits)) + binDigits
+        binDigits = "0" * (2 ** order - len(binDigits)) + binDigits # Fill length of digits to 2 ** order
     return [(1, {outColor: int(binDigits[2 ** order - 1 - int("".join(map(str, indices)), 2)]),
                  **{inColor: indices[i] for i, inColor in enumerate(inColors)}}) for indices in
             np.ndindex(*[2 for _ in range(order)])]
-
-
-if __name__ == "__main__":
-
-    print(get_boolean_relational_value_iterator("123", inColors=["asf", "blub", "fun"], outColor="h"))
-
-    print([el for el in
-           get_boolean_relational_value_iterator(functionName="nand", inColors=["asf", "blub", "fun"], outColor="h")])
-
-    from tnreason import engine
-
-    core = engine.get_core()(colors=["asf", "blub", "fun", "h"])
-    for el in get_boolean_relational_value_iterator("pas2", ["asf", "blub", "fun"], "h"):
-        core[el[1]] = el[0]
-        print(el)
-
-    print(get_boolean_relational_value_iterator("not", ["a", "b"], "hat"))

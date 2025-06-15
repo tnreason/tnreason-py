@@ -26,9 +26,6 @@ class ComputedFeature:
 class PassiveFeature(ComputedFeature):
     featureType = "PassiveFeature"
 
-    #    def __init__(self, **feat):
-    #        super().__init__(featureColors=featureColors, affectedComputationCores=affectedComputationCores, shape=[])
-
     def create_activation_cores(self, **kwargs):
         return dict()
 

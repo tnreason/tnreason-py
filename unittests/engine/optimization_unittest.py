@@ -20,7 +20,7 @@ class GurobiTest(unittest.TestCase):
         self.assertEqual(model.getVarByName("c1_1").X, 1)
 
     def test_implication(self):
-        from tnreason.representation import cnf_to_cores as ctc
+        from tnreason.examples.cnf_representation import cnf_to_cores as ctc
 
         polyCore = ctc.weightedFormulas_to_sparseCore({
             "w1": ["imp", "a", "b", 0.678],
@@ -34,7 +34,7 @@ class GurobiTest(unittest.TestCase):
         self.assertEqual(model.getVarByName("b").X, 1)
 
     def test_argmax(self):
-        from tnreason.representation import cnf_to_cores as ctc
+        from tnreason.examples.cnf_representation import cnf_to_cores as ctc
 
         polyCore = ctc.weightedFormulas_to_sparseCore({
             "w1": ["imp", "a", "b", 0.678],

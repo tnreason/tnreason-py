@@ -33,7 +33,7 @@ def simulated_annealing_solution(model):
     return best_sample
 
 if __name__ == "__main__":
-    from tnreason.representation import cnf_to_cores as ctc
+    from tnreason.examples.cnf_representation import cnf_to_cores as ctc
     from experiments.binary_optimization import workload_to_pyqubo as wtp
 
     knowledgeBase1 = {

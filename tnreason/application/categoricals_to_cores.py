@@ -1,6 +1,8 @@
 from tnreason.representation import basis_calculus as bc
 from tnreason.representation import suffixes as suf
 
+from tnreason import engine
+
 
 def create_categorical_cores(categoricalsDict, coreType=None, addColorSuffixes=False):
     """
@@ -8,17 +10,15 @@ def create_categorical_cores(categoricalsDict, coreType=None, addColorSuffixes=F
         * categoricalsDict (in colors): Dictionary of atom color lists to each categorical variable color
     """
     if addColorSuffixes:
-        categoricalsDict = {catName + suf.comVarSuf: [atomName + suf.disVarSuf for atomName in categoricalsDict[catName]] for catName in categoricalsDict}
+        categoricalsDict = {
+            catName + suf.comVarSuf: [atomName + suf.disVarSuf for atomName in categoricalsDict[catName]] for catName in
+            categoricalsDict}
 
-    catCores = {}
-    for catName in categoricalsDict.keys():
-        catCores.update(create_constraintCoresDict(categoricalsDict[catName], catName, coreType=coreType))
-    return catCores
-
+    return {k: v for catName in categoricalsDict for k, v in
+            create_constraintCoresDict(categoricalsDict[catName], catName, coreType=coreType).items()}
 
 def create_constraintCoresDict(atomColors, catColor, coreType=None):
-    return {
-        catColor + "_" + atomColor + suf.atoCoreSuf:
+    return {catColor + "_" + atomColor + suf.atoCoreSuf:
             create_single_atomization(catColor, len(atomColors), i, atomColor, coreType=coreType)[
                 catColor + "_" + atomColor + suf.atoCoreSuf] for i, atomColor in enumerate(atomColors)}
 
@@ -31,13 +31,13 @@ def create_single_atomization(catColor, catDim, position, atomColor=None, coreTy
     assert position < catDim, "Position out of range of the variable {}!".format(catColor)
     if atomColor is None:
         atomColor = catColor + "=" + str(position)
-    atomizer = lambda catPos: [catPos == position]
-    return {catColor + "_" + atomColor + suf.atoCoreSuf:
-                bc.create_relational_encoding_from_lambda(inshape=[catDim], outshape=[2], incolors=[catColor],
-                                                          outcolors=[atomColor],
-                                                          indicesToIndicesFunction=atomizer, coreType=coreType,
-                                                          name=catColor + "_" + atomColor + suf.atoCoreSuf
-                                                          )}
+    return {catColor + "_" + atomColor + suf.atoCoreSuf: engine.create_from_slice_iterator(
+        shape=[2, catDim], colors=[atomColor, catColor],
+        sliceIterator=[(1, {atomColor: 0}),
+                       (-1, {atomColor: 0, catColor: position}),
+                       (1, {atomColor: 1, catColor: position})],
+        coreType=coreType, name=catColor + "_" + atomColor + suf.atoCoreSuf
+    )}
 
 
 def create_atomization_cores(atomizationSpecs, catDimDict, coreType=None):

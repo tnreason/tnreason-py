@@ -51,7 +51,8 @@ if __name__ == "__main__":
     result = factorize_product(expression_dict)
     print(result)
 
-    from tnreason.representation import cnf_to_cores as ctc
+    from tnreason.examples.cnf_representation import cnf_to_cores as ctc
+
     polyCore = ctc.weightedFormulas_to_sparseCore({
         "w1": ["imp", "a", "b", 0.678],
         "w2": ["a", 0.34]

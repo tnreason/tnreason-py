@@ -1,4 +1,4 @@
-from tnreason.representation import cnf_to_cores as ctc
+from tnreason.examples.cnf_representation import cnf_to_cores as ctc
 
 for coreType in ["PolynomialCore", "NumpyCore", "PandasCore"]:
     clauseCore = ctc.clause_to_core({"c": 0, "b": 1}, coreType=coreType)

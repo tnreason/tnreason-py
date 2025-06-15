@@ -35,12 +35,6 @@ def encode_statesFunction(statesFunction, inshape, incolors, outcolor, coreType=
         create_interpretation_vector(outcolor, coreType=coreType, name=outcolor + "_i")
 
 
-# def create_relational_encoding_from_iterator(inshape, outshape, incolors, outcolors, valueIterator, coreType=None,
-#                                              name="Encoding"):
-#     return engine.create_from_slice_iterator(outshape + inshape, outcolors + incolors, sliceIterator=valueIterator,
-#                                              coreType=coreType, name=name)
-
-
 def create_relational_encoding_from_lambda(inshape, outshape, incolors, outcolors, indicesToIndicesFunction,
                                            coreType=None,
                                            name="Encoding"):

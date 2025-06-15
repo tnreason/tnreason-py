@@ -1,7 +1,4 @@
-from tnreason import representation
-
-import tnreason.representation.basis_calculus
-import tnreason.representation.coordinate_calculus
+from tnreason import representation, engine
 
 from tnreason.representation import suffixes as suf
 
@@ -47,8 +44,8 @@ def create_architecture(neuronNameDict, headNeuronNames=[], coreType=None):
                              }, coreType=coreType)}
     for headNeuronName in headNeuronNames:
         architectureCores[headNeuronName + suf.actCoreSuf] = representation.create_basis_core(
-                                 name=headNeuronName + heaPre + suf.comVarSuf,
-                                 shape=[2], colors=[headNeuronName + heaPre + suf.comVarSuf], numberTuple=(1))
+            name=headNeuronName + heaPre + suf.comVarSuf,
+            shape=[2], colors=[headNeuronName + heaPre + suf.comVarSuf], numberTuple=(1))
 
     return architectureCores
 
@@ -81,26 +78,46 @@ def create_variable_selectors(candidateKey, variables,
     Resulting colors in each core: [selection variable, candidate variable, neuron argument variable]
     """
     if isinstance(variables, str):
+        # Case of "catVariable=[dim]", where the atomization variables of a categorical are selected
         catName, dimBracket = variables.split("=")
         dim = int(dimBracket.split("[")[1][:-1])
 
-        selFunc = lambda s, c: [c == s]  # Whether selection variable coincides with control variable
-        return {
-            candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_relational_encoding_from_lambda(
-                inshape=[dim, dim], outshape=[2], incolors=[candidateKey + suf.selVarSuf, catName],
-                outcolors=[candidateKey],
-                indicesToIndicesFunction=selFunc, coreType=coreType,
-                name=candidateKey + "_" + variables + suf.vselCoreSuf)}
-    cSelectorDict = {}
-    for i, variableKey in enumerate(variables):
-        coreFunc = lambda c, a, o: (not (c == i)) or (a == o)
-        cSelectorDict[
-            candidateKey + "_" + variableKey + suf.vselCoreSuf] = tnreason.representation.coordinate_calculus.create_tensor_encoding(
-            inshape=[len(variables), 2, 2], incolors=[candidateKey + suf.selVarSuf, variableKey, candidateKey],
-            function=coreFunc, coreType=coreType,
-            name=candidateKey + "_" + variableKey + suf.vselCoreSuf
-        )
-    return cSelectorDict
+        return {candidateKey + "_" + variables + suf.vselCoreSuf: engine.create_from_slice_iterator(
+            shape=[2, dim, dim], colors=[candidateKey, catName, candidateKey + suf.selVarSuf],
+            sliceIterator=[(1, {candidateKey: 0})] + [
+                (-1, {candidateKey: 0, catName: i, candidateKey + suf.selVarSuf: i}) for i in range(dim)] + [
+                              (1, {candidateKey: 1, catName: i, candidateKey + suf.selVarSuf: i}) for i in range(dim)],
+            coreType=coreType, name=candidateKey + "_" + variables + suf.vselCoreSuf
+        )}
+
+        # selFunc = lambda s, c: [c == s]  # Whether selection variable coincides with control variable
+        # return {
+        #     candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_relational_encoding_from_lambda(
+        #         inshape=[dim, dim], outshape=[2], incolors=[candidateKey + suf.selVarSuf, catName],
+        #         outcolors=[candidateKey],
+        #         indicesToIndicesFunction=selFunc, coreType=coreType,
+        #         name=candidateKey + "_" + variables + suf.vselCoreSuf)}
+
+    return {candidateKey + "_" + variableKey + suf.vselCoreSuf: engine.create_from_slice_iterator(
+        shape=[2, 2, len(variables)],
+        colors=[candidateKey, variableKey, candidateKey + suf.selVarSuf],
+        sliceIterator=[(1, {}),
+                       (-1, {candidateKey: 1, variableKey: 0, candidateKey + suf.selVarSuf: i}),
+                       (-1, {candidateKey: 0, variableKey: 1, candidateKey + suf.selVarSuf: i})],
+        coreType=coreType,
+        name=candidateKey + "_" + variableKey + suf.vselCoreSuf
+    ) for i, variableKey in enumerate(variables)}
+
+    # cSelectorDict = {}
+    # for i, variableKey in enumerate(variables):
+    # coreFunc = lambda c, a, o: (not (c == i)) or (a == o)
+    # cSelectorDict[
+    #    candidateKey + "_" + variableKey + suf.vselCoreSuf] = tnreason.representation.coordinate_calculus.create_tensor_encoding(
+    #    inshape=[len(variables), 2, 2], incolors=[candidateKey + suf.selVarSuf, variableKey, candidateKey],
+    #    function=coreFunc, coreType=coreType,
+    #    name=candidateKey + "_" + variableKey + suf.vselCoreSuf
+    # )
+    # return cSelectorDict
 
 
 def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreType=None):
@@ -112,7 +129,7 @@ def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreT
                                                                            outColor=neuronName + heaPre + suf.comVarSuf,
                                                                            selectionColor=neuronName + funPre + suf.comVarSuf,
                                                                            coreType=coreType,
-                                                                           name = neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
+                                                                           name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
 
 
 ## Auxiliary functions for application identifying the atoms and the dimension of selection variables
