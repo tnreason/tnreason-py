@@ -16,13 +16,13 @@ class NumpyCore(cb.TensorCore):
     coreType = "NumpyCore"
 
     def __init__(self, values=None, colors=None, name="NoName", shape=None):
+        super().__init__(colors, name, shape)
+
         if values is None:  # Empty initialization based on shape
-            self.values = np.zeros(shape=shape).astype(float)
+            self.values = np.zeros(shape=self.shape).astype(float)
         else:  # Initialization based on values
             self.values = np.array(values)
-            shape = self.values.shape
-
-        super().__init__(colors, name, shape)
+            self.shape = self.values.shape
 
         self.index = 0
 

@@ -1,6 +1,5 @@
 from tnreason import representation
 
-from tnreason.application import connectives as con
 from tnreason.representation import suffixes as suf
 
 import math
@@ -81,35 +80,17 @@ def create_formula_computation_cores(expression, alreadyCreated=[], coreType=Non
         assert isinstance(expression[0], str)
         return dict()
     else:
-        formulaCores = create_connective_core(expression, coreType=coreType)
+        # Create Head Computation Core to the expression
+        formulaCores = {get_formula_headCoreName(expression): representation.get_boolean_computation_core(
+            functionName=expression[0],
+            inColors=[get_formula_headColor(subExpression) for subExpression in expression[1:]],
+            outColor=get_formula_headColor(expression),
+            coreType=coreType, name=get_formula_headCoreName(expression)
+        )}
         for subExpression in expression[1:]:
             formulaCores.update(
                 create_formula_computation_cores(subExpression, alreadyCreated=alreadyCreated, coreType=coreType))
         return formulaCores
-
-
-def create_connective_core(expression, coreType=None):
-    """
-    Creates the connective core at the head of the expression by loading the truth table
-        * expression (script language)
-    """
-    if isinstance(expression, str):
-        return dict()
-    if isinstance(expression[-1], float) or isinstance(expression[-1], int):
-        cardinality = len(expression) - 2  # Since the first is the connective and the last is the canonical parameter
-    else:
-        cardinality = len(expression) - 1  # Since the first is the connective
-
-    return {get_formula_headCoreName(expression):
-        representation.create_relational_encoding(
-            inshape=[2 for _ in range(1, cardinality + 1)], outshape=[2],
-            incolors=[get_formula_headColor(expression[i]) for i in
-                      range(1, cardinality + 1)],
-            outcolors=[get_formula_headColor(expression)],
-            indicesToIndicesFunction=con.get_connectives(expression[0]),
-            coreType=coreType,
-            name=get_formula_headCoreName(expression))}
-
 
 def create_evidence_cores(colorEvidenceDict, coreType=None):
     """

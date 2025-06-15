@@ -7,7 +7,11 @@ class TensorCore:
     def __init__(self, colors, name, shape):
         self.colors = colors
         self.name = name
-        self.shape = shape
+
+        if shape is None:
+            self.shape = [2 for _ in self.colors]
+        else:
+            self.shape = shape
 
         if len(self.colors) != len(self.shape):
             raise ValueError("Number of Colors does not match the Value Shape in Core {}!".format(name))

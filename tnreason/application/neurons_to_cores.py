@@ -3,7 +3,6 @@ from tnreason import representation
 import tnreason.representation.basis_calculus
 import tnreason.representation.coordinate_calculus
 
-from tnreason.application import connectives as con
 from tnreason.representation import suffixes as suf
 
 # Core and Color Refiners 
@@ -87,7 +86,7 @@ def create_variable_selectors(candidateKey, variables,
 
         selFunc = lambda s, c: [c == s]  # Whether selection variable coincides with control variable
         return {
-            candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_relational_encoding(
+            candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_relational_encoding_from_lambda(
                 inshape=[dim, dim], outshape=[2], incolors=[candidateKey + suf.selVarSuf, catName],
                 outcolors=[candidateKey],
                 indicesToIndicesFunction=selFunc, coreType=coreType,
@@ -108,34 +107,12 @@ def create_connective_selectors(neuronName, candidateKeys, connectiveList, coreT
     """
     Creates the connective selection core, using the candidateKeys as color and arity specification
     """
-    if len(candidateKeys) == 1:
-        return tnreason.representation.basis_calculus.create_relational_encoding(inshape=[len(connectiveList), 2],
-                                                                                 outshape=[2],
-                                                                                 incolors=[
-                                                                                     neuronName + funPre + suf.comVarSuf,
-                                                                                     *candidateKeys],
-                                                                                 outcolors=[
-                                                                                     neuronName + heaPre + suf.comVarSuf],
-                                                                                 indicesToIndicesFunction=con.get_unary_connective_selector(
-                                                                                     connectiveList),
-                                                                                 coreType=coreType,
-                                                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
-    elif len(candidateKeys) == 2:
-        return tnreason.representation.basis_calculus.create_relational_encoding(inshape=[len(connectiveList), 2, 2],
-                                                                                 outshape=[2],
-                                                                                 incolors=[
-                                                                                     neuronName + funPre + suf.comVarSuf,
-                                                                                     *candidateKeys],
-                                                                                 outcolors=[
-                                                                                     neuronName + heaPre + suf.comVarSuf],
-                                                                                 indicesToIndicesFunction=con.get_binary_connective_selector(
-                                                                                     connectiveList),
-                                                                                 coreType=coreType,
-                                                                                 name=neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
-    else:
-        raise ValueError(
-            "Number {} of candidates wrong in Neuron {} with connectives {}!".format(len(candidateKeys), neuronName,
-                                                                                     connectiveList))
+    return representation.get_selection_augmented_boolean_computation_core(functionNames=connectiveList,
+                                                                           inColors=list(candidateKeys),
+                                                                           outColor=neuronName + heaPre + suf.comVarSuf,
+                                                                           selectionColor=neuronName + funPre + suf.comVarSuf,
+                                                                           coreType=coreType,
+                                                                           name = neuronName + funPre + suf.selCoreIn + suf.comCoreSuf)
 
 
 ## Auxiliary functions for application identifying the atoms and the dimension of selection variables

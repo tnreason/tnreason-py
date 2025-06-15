@@ -25,7 +25,7 @@ if __name__ == "__main__":
     atomList = ["a","b","c"]
     maxSize = 2
 
-    relCor = tnreason.representation.basis_calculus.create_relational_encoding(
+    relCor = tnreason.representation.basis_calculus.create_relational_encoding_from_lambda(
         inshape=[len(testClause)],
         outshape=[len(atomList)+1 for i in range(maxSize)] + [2 for i in range(maxSize)],
         incolors=["l"],

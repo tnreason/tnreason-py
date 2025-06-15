@@ -2,6 +2,7 @@ import numpy as np
 
 def get_binary_inputs(order=2):
     """
+    NOW in mainline: representation.functions
     Gives a list of all coordinates of the order, starting with [1, 1, ..., 1] ending with [0, 0, ..., 0]
     """
     binary_combinations = []
@@ -15,10 +16,8 @@ def encode_nary_connective(lamFunc, order=2):
     return int("".join([str(lamFunc(*args)[0]) for args in get_binary_inputs(order)]), 2)
 
 if __name__ == "__main__":
-    from tnreason.application import connectives as con
-
-    assert encode_nary_connective(con.get_connectives("and"), 2) == 8
-    assert encode_nary_connective(con.get_connectives("eq"), 2) == 9
+    assert encode_nary_connective(lambda a, b: [int(a and b)], 2) == 8 # Wolfram number of logical and
+    assert encode_nary_connective(lambda a, b: [int(a == b)], 2) == 9 # Wolfram number of logical biconditional
 
     from experiments.connective_goedelization import connective_coding as cen
 
