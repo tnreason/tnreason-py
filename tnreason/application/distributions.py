@@ -22,16 +22,16 @@ mnHardFeatureSuffix = "_mHard"
 
 class DistributionBase(engine.EngineUser):
     """
-    Distributions have methods:
-        * create_cores(): returning the factor cores -> customized!
+    Distributions are creators of representation.ComputationActivationNetworks with additional features.
+    Most important methods are:
+        * create_caNetwork(): instantiates the corresponding ComputationActivationNetwork
         * get_partition_function(allAtoms): returning the partition function given the atomic variables of interest
-        *
     """
 
     def __init__(self, partitionFunction=None, distributedVariables=None, **engineSpec):
         super().__init__(**engineSpec)
         self.partitionFunction = partitionFunction
-        self.distributedVariables = distributedVariables or dict()
+        self.distributedVariables = distributedVariables or []
 
     def create_cores(self):
         return self.create_caNetwork(hardOnly=False).create_cores()
@@ -43,20 +43,20 @@ class DistributionBase(engine.EngineUser):
         return math.prod(
             [addDimDict[color] for color in addDimDict if color not in self.dimensionDict]) * self.partitionFunction
 
+    def get_energy_dict(self, cutoffWeight=100):
+        """
+        Returns the energy dict (customized)
+        """
+        return self.create_caNetwork(hardOnly=False).create_energyDict(cutoffWeight=cutoffWeight)
+
     def is_normable(self):
         """
         For HybridKnowledgeBase: Decides whether the Knowledge Base is satisfiable, i.e. whether a model exists
         For CSP: Decides whether the CSP has a solution, i.e. whether a model exists
         Suffices to create the hard features, since only those restrict the support of the network (whereas the partition function needs all features)
         """
-        return engine.contract(coreDict=self.create_caNetwork(hardOnly=True).create_cores(),
+        return engine.contract(coreDict=self.create_cores(),
                                openColors=[])[:] > 0
-
-    def get_energy_dict(self, cutoffWeight=100):
-        """
-        Returns the energy dict (customized)
-        """
-        return self.create_caNetwork(hardOnly=False).create_energyDict(cutoffWeight=cutoffWeight)
 
     def as_core(self):
         """
@@ -77,9 +77,6 @@ class ProposalDistribution(DistributionBase):
     def create_cores(self):
         raise ValueError("Cores of Proposal Distribution cannot be instantiated, only its energy can!")
 
-    #def get_energy_dict(self):
-    #    return self.create_caNetwork().create_energyDict()
-
     def create_caNetwork(self, hardOnly=None):
         """
         CANetwork can only produce energy dict!
@@ -93,7 +90,8 @@ class ProposalDistribution(DistributionBase):
                                        {**self.statisticCores, **self.positivePhase.create_cores()}),
                                "neg": (-1 / self.negativePhase.get_partition_function(correctionColorDict),
                                        {**self.statisticCores, **self.negativePhase.create_cores()})}
-                          }
+                          },
+            distributedVariables=self.distributedVariables
         )
 
 
@@ -141,7 +139,8 @@ class MarkovNetwork(DistributionBase):
         return representation.ComputationActivationNetwork(featureDict=featureDict,
                                                            canParamDict=canParamDict,
                                                            coreType=self.coreType,
-                                                           computationCoreDict=dict()
+                                                           computationCoreDict=dict(),
+                                                           distributedVariables=self.distributedVariables
                                                            )
 
 
@@ -299,6 +298,7 @@ class HybridKnowledgeBase(DistributionBase):
         return representation.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,
                                                            computationCoreDict=computationCoreDict,
                                                            baseMeasureCoreDict=baseMeasureCoreDict,
+                                                           distributedVariables=self.distributedVariables,
                                                            coreType=self.coreType)
 
 
@@ -323,8 +323,5 @@ def create_factor_softCore(core, outCoreType, outName):
         coreValue = core[posDict]
         if coreValue not in [0, 1]:  # Those are handled by hard core
             needed = True
-            # try:
             newCore[posDict] = math.log(coreValue)
-        # except ValueError:
-        #     print(coreValue)
     return newCore, needed

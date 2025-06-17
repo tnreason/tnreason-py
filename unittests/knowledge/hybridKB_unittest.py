@@ -25,7 +25,7 @@ class HybridKBTest(unittest.TestCase):
         kb = application.HybridKnowledgeBase(weightedFormulas={"e": ["a1", 2]},
                                              facts={"c1": ["a1"]})
         self.assertEqual("entailed",
-                         application.InferenceProvider(kb).ask_constraint("a1")
+                         application.InferenceProvider(kb).check_entailment("a1")
                          )
 
     def test_ask_constraint_contradicted(self):
@@ -33,7 +33,7 @@ class HybridKBTest(unittest.TestCase):
             weightedFormulas={"e": ["imp", ["eq", "a1", "a2"], ["xor", "a3", "a1"], 2]},
             facts={"c1": ["and", "a1", "a2"]})
         self.assertEqual("contradicting",
-                         application.InferenceProvider(kb).ask_constraint(
+                         application.InferenceProvider(kb).check_entailment(
                              ["not", "a1"])
                          )
 

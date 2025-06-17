@@ -6,6 +6,7 @@ from tnreason.representation import features as ft
 
 class ComputationActivationNetwork(engine.EngineUser):
     def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),
+                 distributedVariables=[],
                  **engineSpec):
         """
         * featureSpecDict: {featureKey : ExpDistFeature for all features}
@@ -29,6 +30,8 @@ class ComputationActivationNetwork(engine.EngineUser):
             for coreKey in self.featureDict[featureKey].affectedComputationCores:
                 if coreKey not in self.computationCoreDict:
                     raise ValueError("Computation core {} not found for feature {}.".format(coreKey, featureKey))
+
+        self.distributedVariables = distributedVariables
 
     def clone(self):
         return ComputationActivationNetwork(

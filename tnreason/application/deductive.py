@@ -36,8 +36,8 @@ class InferenceProvider(engine.EngineUser):
 
         return {featureKey: fInferer.meanParamDict[featureKey] for featureKey in featureDict}
 
-    def ask_constraint(self, constraint):
-        probability = self.ask(constraint, evidenceDict={})
+    def check_entailment(self, queryFormula):
+        probability = self.ask(queryFormula, evidenceDict={})
         if probability > 0.9999:
             return entailedString
         elif probability == 0:
@@ -46,31 +46,30 @@ class InferenceProvider(engine.EngineUser):
             return contingentString
 
     def ask(self, queryFormula, evidenceDict={}):
-        formulaComCores = ftc.create_formula_computation_cores(queryFormula)
-        featureDict = {
-            "queryFeat": representation.HardPartitionFeature(featureColors=[ftc.get_formula_headColor(queryFormula)],
-                                                             affectedComputationCores=list(formulaComCores.keys()))}
-        contracted2 = self.ask_features(featureDict, formulaComCores)["queryFeat"]
+        """
+        Returns the satisfaction rate of a formula
+        """
+        queryComCores = {**ftc.create_formula_computation_cores(queryFormula),
+                         **ftc.create_formula_evidence_cores(evidenceDict)}
+        queryFeatures = {
+            "queryFeat": representation.SoftPartitionFeature(featureColors=[ftc.get_formula_headColor(queryFormula)],
+                                                             affectedComputationCores=list(queryComCores.keys()))}
+        queryEnvironmentMean = self.ask_features(queryFeatures, queryComCores)["queryFeat"]
         queryColor = ftc.get_formula_headColor(queryFormula)
-
-        contracted = engine.contract(
-            coreDict={
-                **self.distribution.create_cores(),
-                **ftc.create_formula_evidence_cores(evidenceDict),
-                **ftc.create_formula_computation_cores(queryFormula)
-            },
-            contractionMethod=self.contractionMethod, openColors=[queryColor])
-        return contracted[{queryColor: 1}] / (contracted[{queryColor: 0}] + contracted[{queryColor: 1}])
+        return queryEnvironmentMean[{queryColor: 1}] / (
+                queryEnvironmentMean[{queryColor: 0}] + queryEnvironmentMean[{queryColor: 1}])
 
     def query(self, variableList, evidenceDict={}):
         """
-        While colorList is a list of colors, evidenceDict entries will get atom suffix!
+        Returns the marginal distribution of the variableList conditioned on the evidenceDict
         """
-        return engine.normalize(coreDict={**self.distribution.create_cores(),
-                                          **ftc.create_formula_evidence_cores(evidenceDict)},
-                                inColors=[], outColors=st.add_color_suffixes(variableList),
-                                contractionMethod=self.contractionMethod
-                                )
+        queryComCores = ftc.create_formula_evidence_cores(evidenceDict)
+        queryFeatures = {
+            "queryFeat": representation.SoftPartitionFeature(featureColors=st.add_color_suffixes(variableList),
+                                                             affectedComputationCores=list(queryComCores.keys()))}
+        queryEnvironmentMean = self.ask_features(queryFeatures, queryComCores)["queryFeat"]
+        return 1 / engine.contract(coreDict={"queryEnvironment": queryEnvironmentMean}, openColors=[])[
+                   :] * queryEnvironmentMean
 
     def exact_map_query(self, variableList, evidenceDict={}):
         """
