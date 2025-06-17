@@ -48,7 +48,7 @@ class HybridLearner:
         """
         startKB a application.HybridKnowledgeBase instance representing the current application to be extended.
         """
-        self.knowledgeBase = startKB
+        self.knowledgeBase = startKB # To be flexibilized to arbitrary caNetworks
         self.engineSpec = engineSpec
 
     def get_knowledge_base(self):

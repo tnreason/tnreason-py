@@ -22,16 +22,16 @@ fine_architecture = {
               ['TAX_RATE_19'],
               product_list]
 }
-selVariables = representation.find_selection_colors(fine_architecture)
+selVariables = application.find_selection_colors(fine_architecture)
 
 ## Calculate likelihood gradient for grafting
 positive_phase = {**empDist.create_cores(),
-                  **representation.create_architecture(fine_architecture, headNeuronNames=["neur1"])}
+                  **application.create_architecture(fine_architecture, headNeuronNames=["neur1"])}
 positive_contracted = 1 / empDist.get_partition_function() * engine.contract(coreDict=positive_phase,
                                                                              openColors=selVariables)
 
 negative_phase = {**fineModel.create_cores(),
-                  **representation.create_architecture(fine_architecture, headNeuronNames=["neur1"])}
+                  **application.create_architecture(fine_architecture, headNeuronNames=["neur1"])}
 negative_contracted = 1 / fineModel.get_partition_function() * engine.contract(
     coreDict=negative_phase, openColors=selVariables)
 
@@ -43,7 +43,7 @@ threshold = 0.08
 i = 0
 while np.max(likelihood_gradient.values) > threshold:
     selMax = likelihood_gradient.get_argmax()
-    learnedFormulas["fine_"+str(i)] = representation.create_solution_expression(fine_architecture, selMax)["neur1"]
+    learnedFormulas["fine_"+str(i)] = application.create_solution_expression(fine_architecture, selMax)["neur1"]
     i+=1
     likelihood_gradient[selMax] = -1*likelihood_gradient[selMax]
 

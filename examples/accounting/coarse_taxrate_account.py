@@ -16,15 +16,15 @@ coarse_architecture = {
                account_list
     ]
                }
-selVariables = representation.find_selection_colors(coarse_architecture)
+selVariables = application.find_selection_colors(coarse_architecture)
 
 ## Calculate likelihood gradient for grafting
 positive_phase = {**empDist.create_cores(),
-                  **representation.create_architecture(coarse_architecture, headNeuronNames=["neur1"])}
+                  **application.create_architecture(coarse_architecture, headNeuronNames=["neur1"])}
 positive_contracted = 1/empDist.get_partition_function() * engine.contract(coreDict=positive_phase, openColors=selVariables)
 
 negative_phase = {**currentModel.create_cores(),
-                  **representation.create_architecture(coarse_architecture, headNeuronNames=["neur1"])}
+                  **application.create_architecture(coarse_architecture, headNeuronNames=["neur1"])}
 negative_contracted = 1/currentModel.get_partition_function() * engine.contract(coreDict=negative_phase, openColors=selVariables)
 
 likelihood_gradient = positive_contracted + -1*negative_contracted
@@ -35,7 +35,7 @@ threshold = 0.1
 i = 0
 while np.max(likelihood_gradient.values) > threshold: ## To be integrated in HybridLearner: Use the grafting method
     selMax = likelihood_gradient.get_argmax()
-    learnedFormulas["coarse_"+str(i)] = representation.create_solution_expression(coarse_architecture, selMax)["neur1"]
+    learnedFormulas["coarse_"+str(i)] = application.create_solution_expression(coarse_architecture, selMax)["neur1"]
     i+=1
     likelihood_gradient[selMax] = -1*likelihood_gradient[selMax]
 
@@ -46,5 +46,5 @@ currentModel.include(application.HybridKnowledgeBase(weightedFormulas={
 }))
 
 hybridLearner = application.HybridLearner(currentModel)
-hybridLearner.infer_weights_on_data(empDist, satInferenceMethod="ForwardContractor")
-hybridLearner.knowledgeBase.to_yaml("assets/coarse_model.yaml")
+hybridLearner.infer_weights_on_data(empDist, satInferenceMethod="ForwardContractor") # ! Inferer does not include the hard parititon feature
+hybridLearner.knowledgeBase.to_yaml("assets/fine_model.yaml")

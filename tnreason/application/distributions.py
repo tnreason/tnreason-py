@@ -77,15 +77,13 @@ class ProposalDistribution(DistributionBase):
     def create_cores(self):
         raise ValueError("Cores of Proposal Distribution cannot be instantiated, only its energy can!")
 
-    def get_energy_dict(self):
-        return self.create_caNetwork().create_energyDict()
-        # correctionColorDict = {color: self.dimensionDict[color] for color in self.distributedVariables}
-        # return {"pos": (1 / self.positivePhase.get_partition_function(correctionColorDict),
-        #                 {**self.statisticCores, **self.positivePhase.create_cores()}),
-        #         "neg": (-1 / self.negativePhase.get_partition_function(correctionColorDict),
-        #                 {**self.statisticCores, **self.negativePhase.create_cores()})}
+    #def get_energy_dict(self):
+    #    return self.create_caNetwork().create_energyDict()
 
     def create_caNetwork(self, hardOnly=None):
+        """
+        CANetwork can only produce energy dict!
+        """
         correctionColorDict = {color: self.dimensionDict[color] for color in self.distributedVariables}
         return representation.ComputationActivationNetwork(
             featureDict={"energyDictProposal" : representation.EnergyDictFeature(featureColors=self.distributedVariables,
@@ -142,7 +140,8 @@ class MarkovNetwork(DistributionBase):
                     canParamDict[coreKey + mnSoftFeatureSuffix] = canParamCore
         return representation.ComputationActivationNetwork(featureDict=featureDict,
                                                            canParamDict=canParamDict,
-                                                           coreType=self.coreType
+                                                           coreType=self.coreType,
+                                                           computationCoreDict=dict()
                                                            )
 
 

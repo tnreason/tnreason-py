@@ -12,8 +12,8 @@ aliases = {
 
 def get_selection_augmented_boolean_computation_core(functionNames, inColors, outColor, selectionColor, coreType=None,
                                                      name="SelEncoding"):
-    return engine.create_from_slice_iterator(shape=[2 for _ in range(len(inColors) + 1)],
-                                             colors=[outColor] + inColors,
+    return engine.create_from_slice_iterator(shape=[2 for _ in range(len(inColors) + 1)] + [len(functionNames)],
+                                             colors=[outColor] + inColors + [selectionColor],
                                              sliceIterator=get_selection_augmented_iterator(functionNames, inColors,
                                                                                             outColor, selectionColor),
                                              coreType=coreType, name=name)

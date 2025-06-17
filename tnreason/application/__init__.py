@@ -15,6 +15,10 @@ from tnreason.application.categoricals_to_cores import create_categorical_cores,
 
 from tnreason.application.formulas_to_cores import create_cores_to_expressionsDict
 
+from tnreason.application.neurons_to_cores import find_selection_colors, create_architecture
+
+from tnreason.application.script_transform import create_solution_expression
+
 def load_kb_from_yaml(loadPath):
     kb = HybridKnowledgeBase()
     kb.from_yaml(loadPath)

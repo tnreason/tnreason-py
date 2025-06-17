@@ -3,6 +3,7 @@ from tnreason import engine
 from tnreason.representation import basis_calculus as bc
 from tnreason.representation import features as ft
 
+
 class ComputationActivationNetwork(engine.EngineUser):
     def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),
                  **engineSpec):
@@ -55,7 +56,8 @@ class ComputationActivationNetwork(engine.EngineUser):
         for featureKey in self.featureDict:  # Different treatment of weights and activation vectors for energy terms, specific to each feature
             affectedComCores = {coreKey: self.computationCoreDict[coreKey] for coreKey in
                                 self.featureDict[featureKey].affectedComputationCores}
-            if isinstance(self.featureDict[featureKey], ft.SingleSoftFeature): # Then contract with interpretation core and multiply with float canonical parameter
+            if isinstance(self.featureDict[featureKey],
+                          ft.SingleSoftFeature):  # Then contract with interpretation core and multiply with float canonical parameter
                 energyDict[featureKey] = (self.canParamDict[featureKey],
                                           {**affectedComCores,
                                               "intCore_" + featureKey: bc.create_interpretation_vector(
@@ -84,3 +86,7 @@ class ComputationActivationNetwork(engine.EngineUser):
         self.canParamDict.update({featureKey: self.featureDict[featureKey].find_neutral_canParam()
                                   for featureKey in featureDict if featureKey not in self.canParamDict})
         self.computationCoreDict.update(computationCores)
+
+    def include(self, otherCANet):
+        self.include_features(featureDict=otherCANet.featureDict, canParamDict=otherCANet.canParamDict,
+                              computationCores=otherCANet.computationCoreDict)
