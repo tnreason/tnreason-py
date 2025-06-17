@@ -33,7 +33,6 @@ class DistributionBase(engine.EngineUser):
         self.partitionFunction = partitionFunction
         self.distributedVariables = distributedVariables or dict()
 
-
     def create_cores(self):
         return self.create_caNetwork(hardOnly=False).create_cores()
 
@@ -54,11 +53,18 @@ class DistributionBase(engine.EngineUser):
                                openColors=[])[:] > 0
 
     def get_energy_dict(self, cutoffWeight=100):
+        """
+        Returns the energy dict (customized)
+        """
         return self.create_caNetwork(hardOnly=False).create_energyDict(cutoffWeight=cutoffWeight)
 
     def as_core(self):
+        """
+        Represents the distribution as a single core
+        """
         return engine.contract(self.create_cores(), openColors=self.distributedVariables,
                                contractionMethod=self.contractionMethod)
+
 
 class ProposalDistribution(DistributionBase):
 
@@ -72,14 +78,25 @@ class ProposalDistribution(DistributionBase):
         raise ValueError("Cores of Proposal Distribution cannot be instantiated, only its energy can!")
 
     def get_energy_dict(self):
-        """
-        Different from rest: canetwork not instantiatable
-        """
+        return self.create_caNetwork().create_energyDict()
+        # correctionColorDict = {color: self.dimensionDict[color] for color in self.distributedVariables}
+        # return {"pos": (1 / self.positivePhase.get_partition_function(correctionColorDict),
+        #                 {**self.statisticCores, **self.positivePhase.create_cores()}),
+        #         "neg": (-1 / self.negativePhase.get_partition_function(correctionColorDict),
+        #                 {**self.statisticCores, **self.negativePhase.create_cores()})}
+
+    def create_caNetwork(self, hardOnly=None):
         correctionColorDict = {color: self.dimensionDict[color] for color in self.distributedVariables}
-        return {"pos": (1 / self.positivePhase.get_partition_function(correctionColorDict),
-                        {**self.statisticCores, **self.positivePhase.create_cores()}),
-                "neg": (-1 / self.negativePhase.get_partition_function(correctionColorDict),
-                        {**self.statisticCores, **self.negativePhase.create_cores()})}
+        return representation.ComputationActivationNetwork(
+            featureDict={"energyDictProposal" : representation.EnergyDictFeature(featureColors=self.distributedVariables,
+                                                         affectedComputationCores=[])},
+            canParamDict={"energyDictProposal" :
+                              {"pos": (1 / self.positivePhase.get_partition_function(correctionColorDict),
+                                       {**self.statisticCores, **self.positivePhase.create_cores()}),
+                               "neg": (-1 / self.negativePhase.get_partition_function(correctionColorDict),
+                                       {**self.statisticCores, **self.negativePhase.create_cores()})}
+                          }
+        )
 
 
 class MarkovNetwork(DistributionBase):
@@ -94,8 +111,7 @@ class MarkovNetwork(DistributionBase):
         self.dimDict = engine.get_dimDict(coreDict)
 
     def create_cores(self, hardOnly=False):
-        return self.create_caNetwork(hardOnly=hardOnly).create_cores()  # better: can filter the hard cores for entailment propagation! but there are errors in unittests to be corrected!
-        #return self.coreDict
+        return self.create_caNetwork(hardOnly=hardOnly).create_cores()
 
     def create_caNetwork(self, hardOnly=False):
         """
@@ -125,9 +141,9 @@ class MarkovNetwork(DistributionBase):
                     )
                     canParamDict[coreKey + mnSoftFeatureSuffix] = canParamCore
         return representation.ComputationActivationNetwork(featureDict=featureDict,
-                                                      canParamDict=canParamDict,
-                                                      coreType=self.coreType
-                                                      )
+                                                           canParamDict=canParamDict,
+                                                           coreType=self.coreType
+                                                           )
 
 
 def get_empirical_distribution(sampleDf, atomColumns=None, interpretation="atomic", dimensionsDict=None):
@@ -146,8 +162,8 @@ def get_empirical_distribution(sampleDf, atomColumns=None, interpretation="atomi
     if "value" not in sampleDf.columns:
         sampleDf["value"] = 1
     return MarkovNetwork(dtc.create_data_cores(sampleDf, atomKeys=atomColumns,
-                                                          interpretation=interpretation,
-                                                          dimensionsDict=dimensionsDict),
+                                               interpretation=interpretation,
+                                               dimensionsDict=dimensionsDict),
                          distributedVariables=[atomKey if atomKey.endswith(
                              representation.suf.disVarSuf) else atomKey + representation.suf.disVarSuf for atomKey in
                                                atomColumns],
@@ -270,7 +286,7 @@ class HybridKnowledgeBase(DistributionBase):
             **ftc.create_formula_evidence_cores(self.evidence, coreType=self.coreType),
             **ctc.create_categorical_cores(self.categoricalConstraints, coreType=self.coreType, addColorSuffixes=True),
             **ctc.create_atomization_cores([atom for atom in self.distributedVariables if "=" in atom],
-                                                      self.dimDict, coreType=self.coreType),
+                                           self.dimDict, coreType=self.coreType),
             **self.backCores
         }
 
@@ -282,9 +298,9 @@ class HybridKnowledgeBase(DistributionBase):
         }
 
         return representation.ComputationActivationNetwork(featureDict=featureDict, canParamDict=canParamDict,
-                                                      computationCoreDict=computationCoreDict,
-                                                      baseMeasureCoreDict=baseMeasureCoreDict,
-                                                      coreType=self.coreType)
+                                                           computationCoreDict=computationCoreDict,
+                                                           baseMeasureCoreDict=baseMeasureCoreDict,
+                                                           coreType=self.coreType)
 
 
 ## For Markov Networks: Find Hard and Soft Features to each core

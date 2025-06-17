@@ -57,7 +57,7 @@ class HybridLearner:
     def initialize_proposalDistribution(self, architecture, headNeuron, empiricalDistribution, alternationMethod=None):
         """
         Empirical Distribution: Positive Phase of Learning
-        AlternationMethod: When empirical distribution a dataset, can
+        AlternationMethod: When empirical distribution a dataset, can alternate the data to get a negative phase
         """
         if alternationMethod in reasoning.energySamplingMethods:
             sampler = reasoning.get_energy_based_sampler(self.knowledgeBase.get_energy_dict(),
@@ -78,6 +78,7 @@ class HybridLearner:
         else:
             raise ValueError("Alternation Method {} not understood!".format(alternationMethod))
 
+        ## Check whether alternation has happended, otherwise use knowledgeBase as negative phase
         if sampler is not None:
             negativePhase = dist.MarkovNetwork({"negPhase": sampler.to_core()}, coreType=self.engineSpec["coreType"],
                                                contractionMethod=self.engineSpec["contractionMethod"])
