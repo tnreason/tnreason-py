@@ -30,6 +30,14 @@ class ComputationActivationNetwork(engine.EngineUser):
                 if coreKey not in self.computationCoreDict:
                     raise ValueError("Computation core {} not found for feature {}.".format(coreKey, featureKey))
 
+    def clone(self):
+        return ComputationActivationNetwork(
+            featureDict=self.featureDict,
+            computationCoreDict=self.computationCoreDict,
+            baseMeasureCoreDict=self.baseMeasureCoreDict,
+            canParamDict=self.canParamDict
+        )
+
     def create_activation_cores(self, featureKeys=None):
         if featureKeys is None:
             featureKeys = list(self.featureDict.keys())

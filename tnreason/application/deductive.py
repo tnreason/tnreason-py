@@ -1,5 +1,6 @@
 from tnreason import engine
 from tnreason import reasoning
+from tnreason import representation
 
 from tnreason.application import script_transform as st
 from tnreason.application import formulas_to_cores as ftc
@@ -16,10 +17,24 @@ class InferenceProvider(engine.EngineUser):
 
     def __init__(self, distribution, **engineSpec):
         """
-        * distribution: Needs to support create_cores() and get_partition_function()
+        * distribution: Needs to support create_cores(), get_partition_function()
         """
         super().__init__(**engineSpec)
         self.distribution = distribution
+
+    def ask_features(self, featureDict, computationCoreDict=dict(),
+                     forwardInferenceSpec={"inferenceMethod": "ForwardContractor"}):
+        if isinstance(self.distribution, representation.ComputationActivationNetwork):
+            caNetwork = self.distribution.clone()
+        else:
+            caNetwork = self.distribution.create_caNetwork()
+        caNetwork.include_features(featureDict=featureDict,
+                                   computationCores=computationCoreDict)
+
+        fInferer = reasoning.get_inferer(forwardInferenceSpec["inferenceMethod"])(caNetwork=caNetwork)
+        fInferer.infer_meanParams(featureDict.keys())
+
+        return {featureKey: fInferer.meanParamDict[featureKey] for featureKey in featureDict}
 
     def ask_constraint(self, constraint):
         probability = self.ask(constraint, evidenceDict={})
@@ -31,6 +46,11 @@ class InferenceProvider(engine.EngineUser):
             return contingentString
 
     def ask(self, queryFormula, evidenceDict={}):
+        formulaComCores = ftc.create_formula_computation_cores(queryFormula)
+        featureDict = {
+            "queryFeat": representation.HardPartitionFeature(featureColors=[ftc.get_formula_headColor(queryFormula)],
+                                                             affectedComputationCores=list(formulaComCores.keys()))}
+        contracted2 = self.ask_features(featureDict, formulaComCores)["queryFeat"]
         queryColor = ftc.get_formula_headColor(queryFormula)
 
         contracted = engine.contract(

@@ -26,4 +26,6 @@ from reasoning.hard_feature_test import HardFeatureTest
 
 from experiments.variable_elimination.ep_along_clusterTree import VariableEliminationTest
 
+from accounting_demonstration.basic_inference import ToyAccountingTest
+
 unittest.main()
