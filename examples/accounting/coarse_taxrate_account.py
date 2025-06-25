@@ -47,4 +47,4 @@ currentModel.include(application.HybridKnowledgeBase(weightedFormulas={
 
 hybridLearner = application.HybridLearner(currentModel)
 hybridLearner.infer_weights_on_data(empDist, satInferenceMethod="ForwardContractor") # ! Inferer does not include the hard parititon feature
-hybridLearner.knowledgeBase.to_yaml("assets/fine_model.yaml")
+hybridLearner.knowledgeBase.to_yaml("assets/coarse_model.yaml")
