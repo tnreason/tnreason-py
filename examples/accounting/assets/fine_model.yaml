@@ -3,6 +3,12 @@ categoricalConstraints:
   - ACCOUNT_Account_3300
   - ACCOUNT_Account_3400
   - ACCOUNT_Account_4605
+  product:
+  - PRODUCT_CLASS_SEA-CP_01
+  - PRODUCT_CLASS_SEA-CP_02
+  - PRODUCT_CLASS_SEA-CP_03
+  - PRODUCT_CLASS_SEA-CP_04
+  - PRODUCT_CLASS_SEA-CP_05
   tax:
   - TAX_RATE_19
   - TAX_RATE_7
@@ -12,6 +18,12 @@ facts:
   - imp
   - TAX_RATE_7
   - ACCOUNT_Account_3300
+  fine_2:
+  - imp
+  - - and
+    - TAX_RATE_19
+    - PRODUCT_CLASS_SEA-CP_05
+  - ACCOUNT_Account_4605
 weightedFormulas:
   coarse_1:
   - imp

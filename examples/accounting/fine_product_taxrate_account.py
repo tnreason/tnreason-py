@@ -47,8 +47,13 @@ while np.max(likelihood_gradient.values) > threshold:
     i+=1
     likelihood_gradient[selMax] = -1*likelihood_gradient[selMax]
 
+
+innerFormulas = {key:formula[1] for key, formula in learnedFormulas.items()}
+satisfactionDict = application.inductive.calculate_satisfactionDict(empDist, innerFormulas)
+learnedFormulas_accepted = {key:formula for key,formula in learnedFormulas.items() if satisfactionDict[key]>0}
+
 fineModel.include(application.HybridKnowledgeBase(weightedFormulas={
-    **{key: learnedFormulas[key]+[0] for key in learnedFormulas}
+    **{key: learnedFormulas[key]+[0] for key in learnedFormulas_accepted}
 }))
 
 
