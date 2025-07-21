@@ -27,6 +27,6 @@ from reasoning.hard_feature_test import HardFeatureTest
 from experiments.variable_elimination.ep_along_clusterTree import VariableEliminationTest
 
 from accounting_demonstration.basic_inference import ToyAccountingTest
-from accounting_demonstration.bp_bayesian import ToyAccountingBPTest
+from accounting_demonstration.businessPartner_normation import ToyAccountingBPTest
 
 unittest.main()
