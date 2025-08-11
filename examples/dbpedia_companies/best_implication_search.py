@@ -1,4 +1,4 @@
-from examples.dpbedia_companies import query_strings as qs
+from examples.dbpedia_companies import query_strings as qs
 from tnreason.representation import workload_to_sparqlwrapper as wts
 from tnreason import engine, representation
 

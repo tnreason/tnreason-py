@@ -1,29 +1,66 @@
-# tnreason
+<table>
+<tr>
+<td style="width: 80%;">
 
-<img src="images/icon.png" alt="Library Icon" align="right" width="120" />
+<h1 style="font-weight: normal;">
+  <strong>tnreason:</strong> <strong>T</strong>ensor <strong>N</strong>etworks for efficient and explainable <strong>Reason</strong>ing
+</h1>
 
-A package for efficient and explainable reasoning based on Tensor Network algorithms.
+The tensor network approach towards efficient and explainable artificial intelligence.
 
 ## Installation
+
+The latest version of `tnreason` can be installed from the Python Package Index (PyPI) using pip:
 
 ```bash
 pip install tnreason
 ```
 
+</td> 
+<td  style="width: 20%;" align="center"> 
+<img src="images/icon.png" alt="Library Icon" width="120" /> 
+</td>
+</tr> 
+</table>
+
 ## Application Examples
 
-- Hybrid Logic and Probabilistic Reasoning [Accounting Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/accounting)
+- **Hybrid Logic and Probabilistic Reasoning:**
+  The tensor network formalism generalizes logical and probabilistic reasoning.
+  It therefore enables the combination of hard logical constraints in probabilistic models, which is a form of hybrid
+  reasoning.
+  For a demonstration on hard and soft accounting rules see the [Accounting Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/accounting).
 
-- Statistical models of Knowledge Graphs [DBpedia Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/dbpedia_companies)
+- **Statistical models of Knowledge Graphs:**
+  Tensor networks are furthermore useful in storing Knowledge Graphs, and more general of worlds in first-order logic.
+  Based on the sample extraction formalism described in Chapter 11 of
+  the [report](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation/blob/master/tnreason_report.pdf)
+  hybrid logic networks can be trained on data extracted from a knowledge base.
+  For a demonstration of this method on the DPpedia Knowlege Graph
+  see the [DBpedia Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/dbpedia_companies).
 
-- Solution of Constraint Satisfaction Problems [Sudoku Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/sudoku)
+- **Solution of Constraint Satisfaction Problems (CSP):**
+  Local constraints can be captured by boolean tensors and CSPs consider contractions of these boolean tensors.
+  Efficient message passing algorithms can be exploited in the solution of these problems.
+  A particular well-known example of a CSP is the game of Sudoku,
+  see the [Sudoku Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/sudoku).
 
 ## Architecture
 
-<img src="images/architecture.png" alt="Library Icon" align="right" width="120" />
+<p align="left">
+  <a href="images/architecture.png">
+    <img src="images/architecture.png" alt="Library Icon" width="240" />
+  </a>
+</p>
+
+For references to the implemented concepts see Appendix A in
+the [report](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation/blob/master/tnreason_report.pdf).
 
 ## References
 
-Demonstrations can be found here in the [Colab tutorials](https://drive.google.com/drive/folders/1JeHH8haomh3fhtXY1KQYvF6iKZRDRCqG?usp=share_link).
+Tutorials can be found here in
+the [colab demonstrations](https://drive.google.com/drive/folders/1JeHH8haomh3fhtXY1KQYvF6iKZRDRCqG?usp=share_link).
 
-A mathematical documentation can be found at the [research notes repository](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation).
+A mathematical report can be found at
+the [documentation repository](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation).
+
