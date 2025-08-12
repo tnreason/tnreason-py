@@ -87,6 +87,7 @@ def get_featureDict_computationCoresDict_clusterDict(num):
         **{categoricalKey: representation.HardPartitionFeature(featureColors=[categoricalKey],
                                                                affectedComputationCores=[], shape=[num ** 2])
            for categoricalKey in constraints},
+        ## Use empty features instead, to avoid multiple activation cores
         **{categoricalKey + "_" + atomKey: representation.HardPartitionFeature(featureColors=[categoricalKey, atomKey],
                                                                                shape=[num ** 2, 2],
                                                                                affectedComputationCores=[
@@ -220,6 +221,7 @@ class SudokuTest(unittest.TestCase):
         self.assertTrue(solution_array[1, 3] == 4)
         self.assertTrue(solution_array[3, 0] == 3)
 
+        ## Direct Solution with ConstraintPropagator:
         # structureCores = representation.create_categorical_cores(get_sudoku_constraints(num=num))
         # preEvidence = {
         #     "a_0_1_0_0_1": 1,

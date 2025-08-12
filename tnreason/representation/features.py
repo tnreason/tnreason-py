@@ -30,6 +30,63 @@ class PassiveFeature(ComputedFeature):
         return dict()
 
 
+class SingleHybridFeature(ComputedFeature):
+    featureType = "SingleHybridFeature"
+    """
+    Scalar canonical parameter, if boolean then hard and if float or int then soft
+    """
+
+    def __init__(self, featureColor, interpretedImage=[0, 1], **featSpec):
+        super().__init__(featureColors=[featureColor], **featSpec)
+        self.interpretationVector = representation.create_interpretation_vector(
+            color=featureColor,
+            interImage=interpretedImage)
+        self.interpretedImage = interpretedImage
+
+    def find_neutral_canParam(self, coreType=None):
+        return 0
+
+    def create_activation_cores(self, canParam, coreType=None):
+        if isinstance(canParam, bool):  ## Hard activation
+            return {self.name + canCorePre + representation.suf.actCoreSuf: representation.create_basis_core(
+                name=self.name + canCorePre + representation.suf.actCoreSuf,
+                shape=self.shape, colors=self.featureColors, numberTuple=(int(canParam),),
+                coreType=coreType
+            )}
+        elif isinstance(canParam, float) or isinstance(canParam, int):  ## Soft activation
+            return {self.name + canCorePre + representation.suf.actCoreSuf: representation.coordinatewise_transform(
+                [self.interpretationVector], rDrFunction=lambda x: math.exp(canParam * x), outCoreType=coreType,
+                outName=self.name + canCorePre + representation.suf.actCoreSuf
+            )}
+        else:
+            raise ValueError("Canonical parameter must be a float, int or bool, but is {}".format(type(canParam)))
+
+    def compute_meanParam(self, environmentMean):
+        return engine.contract({"envMean": environmentMean,
+                                "intCore": self.interpretationVector
+                                }, openColors=[])[:]
+
+    def local_adjustment(self, environmentMean, meanParam, oldCanParam=None, cutoffWeight=10):
+        """
+        Adjusts the activation vector based on the indicator mean tensor.
+        environmentMean: mean parameter, when canonical parameter
+        """
+        if self.interpretedImage == [0, 1]:
+            assert meanParam <= 1 and meanParam >= 0
+            if meanParam in [0, 1]:
+                return bool(meanParam)
+            if environmentMean[0] == 0:
+                assert meanParam != 0
+                return True
+            if environmentMean[1] == 0:
+                assert meanParam != 1
+                return False
+            return oldCanParam + np.log(meanParam / (1 - meanParam) * (environmentMean[0] / environmentMean[1]))
+        else:
+            return newton_canonical_optimization(environmentMean, meanParam,
+                                                 interpretationVector=self.interpretationVector)
+
+
 class SingleSoftFeature(ComputedFeature):
     featureType = "SingleSoftFeature"
     """
@@ -192,6 +249,7 @@ class EnergyDictFeature(ComputedFeature):
     def create_activation_cores(self, canParam, coreType=None):
         raise ValueError("Energy Dict Feature cannot create activation cores efficiently!")
 
+
 class TNFeature(ComputedFeature):
     """
     Those with tensor networks as activation core.
@@ -216,7 +274,6 @@ class TNFeature(ComputedFeature):
             rDrFunction=lambda old, soll, ist: old + np.log(soll / ist),
             outCoreType=coreType, outName=self.name + canCorePre + representation.suf.actCoreSuf
         )
-
 
 
 # def calculate_single_canonical(indicatorMeanVector, meanParameter, imageInterpretation=[0, 1]):

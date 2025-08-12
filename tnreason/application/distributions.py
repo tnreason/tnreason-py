@@ -167,6 +167,28 @@ def get_empirical_distribution(sampleDf, atomColumns=None, interpretation="atomi
                                                atomColumns],
                          partitionFunction=sampleDf["value"].sum())
 
+class HybridLogicNetwork(DistributionBase):
+    def __init__(self, formulaDict={}, canParamDict={}, **distributionSpec):
+        super().__init__(**distributionSpec)
+        self.formulaDict = formulaDict
+        self.canParamDict = canParamDict
+
+    def create_caNetwork(self):
+        featureDict = {formulaKey : representation.SingleHybridFeature(
+            featureColor = ftc.get_formula_headColor(self.formulaDict[formulaKey]),
+            affectedComputationCores=list(
+                ftc.create_formula_computation_cores(self.formulaDict[formulaKey]).keys()),
+        ) for formulaKey in self.formulaDict}
+
+        computationCoreDict = ftc.create_computation_cores_to_expressionDict(self.formulaDict, coreType=self.coreType)
+
+        return representation.ComputationActivationNetwork(featureDict=featureDict,
+                                                           canParamDict=self.canParamDict,
+                                                           computationCoreDict=computationCoreDict,
+                                                           #baseMeasureCoreDict={},
+                                                           #distributedVariables=self.distributedVariables,
+                                                           coreType=self.coreType)
+
 
 class HybridKnowledgeBase(DistributionBase):
     """
@@ -177,9 +199,9 @@ class HybridKnowledgeBase(DistributionBase):
     def __init__(self, weightedFormulas={}, facts={}, categoricalConstraints={}, evidence={}, backCores={},
                  **distributionSpec):
         super().__init__(**distributionSpec)
-
-        self.weightedFormulas = {key: weightedFormulas[key][:-1] + [float(weightedFormulas[key][-1])] for key in
-                                 weightedFormulas}
+        self.weightedFormulas = weightedFormulas
+        #self.weightedFormulas = {key: weightedFormulas[key][:-1] + [float(weightedFormulas[key][-1])] for key in
+        #                         weightedFormulas}
         self.facts = facts
         self.categoricalConstraints = categoricalConstraints
         self.evidence = evidence

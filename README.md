@@ -1,10 +1,10 @@
-<table>
-<tr>
-<td style="width: 80%;">
-
 <h1 style="font-weight: normal;">
   <strong>tnreason:</strong> <strong>T</strong>ensor <strong>N</strong>etworks for efficient and explainable <strong>Reason</strong>ing
 </h1>
+
+<table>
+<tr>
+<td style="width: 60%;">
 
 The tensor network approach towards efficient and explainable artificial intelligence.
 
@@ -17,7 +17,7 @@ pip install tnreason
 ```
 
 </td> 
-<td  style="width: 20%;" align="center"> 
+<td  style="width: 40%;" align="center"> 
 <img src="images/icon.png" alt="Library Icon" width="120" /> 
 </td>
 </tr> 
