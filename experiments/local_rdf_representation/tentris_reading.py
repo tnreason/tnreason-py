@@ -39,7 +39,7 @@ if __name__ == "__main__":
             ?x ?z ?y .
         }
     """
-    querySolution = tentris_evaluate_query(rdfFilePath="/home/examples/local_rdf_representation/example_kg/THWS_demo.ttl",
+    querySolution = tentris_evaluate_query(rdfFilePath="/home/demonstrations/local_rdf_representation/example_kg/THWS_demo.ttl",
                                            queryString=queryString)
 
     entryPositionList, interpretationsDict = tentris_sparql_evaluation_to_entryPositionList(querySolution)

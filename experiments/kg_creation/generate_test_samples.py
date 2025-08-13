@@ -6,5 +6,5 @@ dist = application.HybridKnowledgeBase(weightedFormulas={
 })
 samples = application.InferenceProvider(dist).draw_samples(10, dfOutput=True)
 samples["sample_index"] = samples.index
-samples.to_csv("/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/examples/kg_creation/example.csv")
+samples.to_csv("/Users/alexgoessmann/Documents/ENEXA/tnreason/version1/demonstrations/kg_creation/example.csv")
 

@@ -1,6 +1,6 @@
-import examples.sudoku.visualization
-from examples.sudoku import representation as rep
-from examples.sudoku import visualization as vis
+import demonstrations.sudoku.visualization
+from demonstrations.sudoku import representation as rep
+from demonstrations.sudoku import visualization as vis
 
 import numpy as np
 
@@ -50,7 +50,7 @@ propagator = reasoning.ConstraintPropagator(
 propagator.propagate_cores()
 assignmentDict = propagator.find_assignments()
 
-array = examples.sudoku.visualization.evidence_to_array(assignmentDict, 2)
+array = demonstrations.sudoku.visualization.evidence_to_array(assignmentDict, 2)
 print(array)
 
 vis.visualize_sudoku(array, number=2) # Missing values, should be fully infered! Due to atom color clash?

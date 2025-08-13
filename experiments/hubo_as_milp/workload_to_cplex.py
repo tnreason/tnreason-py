@@ -41,7 +41,7 @@ def core_to_cplex_model(core):
 
 
 if __name__ == "__main__":
-    from tnreason.examples.cnf_representation import cnf_to_cores as ctc
+    from tnreason.demonstrations.cnf_representation import cnf_to_cores as ctc
 
     polyCore = ctc.weightedFormulas_to_sparseCore({
         "w1": ["imp", "a", "b", 0.678],

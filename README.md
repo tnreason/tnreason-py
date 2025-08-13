@@ -23,13 +23,13 @@ pip install tnreason
 </tr> 
 </table>
 
-## Application Examples
+## Application Demonstrations
 
 - **Hybrid Logic and Probabilistic Reasoning:**
   The tensor network formalism generalizes logical and probabilistic reasoning.
   It therefore enables the combination of hard logical constraints in probabilistic models, which is a form of hybrid
   reasoning.
-  For a demonstration on hard and soft accounting rules see the [Accounting Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/accounting).
+  For a demonstration on hard and soft accounting rules see the [Accounting Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/demonstrations/accounting).
 
 - **Statistical models of Knowledge Graphs:**
   Tensor networks are furthermore useful in storing Knowledge Graphs, and more general of worlds in first-order logic.
@@ -37,13 +37,13 @@ pip install tnreason
   the [report](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation/blob/master/tnreason_report.pdf)
   hybrid logic networks can be trained on data extracted from a knowledge base.
   For a demonstration of this method on the DPpedia Knowlege Graph
-  see the [DBpedia Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/dbpedia_companies).
+  see the [DBpedia Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/demonstrations/statistical_models_kg).
 
 - **Solution of Constraint Satisfaction Problems (CSP):**
   Local constraints can be captured by boolean tensors and CSPs consider contractions of these boolean tensors.
   Efficient message passing algorithms can be exploited in the solution of these problems.
   A particular well-known example of a CSP is the game of Sudoku,
-  see the [Sudoku Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/examples/sudoku).
+  see the [Sudoku Example](https://github.com/EnexaProject/enexa-tensor-reasoning/tree/version1/demonstrations/sudoku).
 
 ## Architecture
 
