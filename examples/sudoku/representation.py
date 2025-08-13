@@ -1,5 +1,42 @@
-import numpy as np
+from tnreason import representation, application
 
+"""
+We here provide the main Sudoku constraints by dictionaries of categorical constraints.
+These constraints can be represented by tensor networks using tnreason.representation.create_categorical_cores(constraints).
+"""
+
+def get_assignment_as_CANetwork(num, startAssignment):
+    """
+    Prepares the Sudoku game with a start assignment as a Computation-Activation Network
+    """
+    constraints = get_sudoku_constraints(num)
+
+    atomVariables = ["a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
+                     for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num) for n in
+                     range(num ** 2)]
+
+    return representation.ComputationActivationNetwork(
+        featureDict={
+            **{atomKey: representation.HardPartitionFeature(featureColors=[atomKey], affectedComputationCores={}) for
+               atomKey in atomVariables},  # Atomic Variable Features
+            **{categoricalKey: representation.HardPartitionFeature(featureColors=[categoricalKey],
+                                                                   affectedComputationCores={},
+                                                                   shape=[num ** 2])
+               for categoricalKey in constraints},
+            **{categoricalKey + "_" + atomKey: representation.HardPartitionFeature(
+                featureColors=[categoricalKey, atomKey],
+                shape=[num ** 2, 2],
+                affectedComputationCores=[
+                    categoricalKey + "_" + atomKey + representation.suf.atoCoreSuf])
+               for categoricalKey in constraints for atomKey in constraints[categoricalKey]}
+        },
+        computationCoreDict=application.create_categorical_cores(constraints),
+        canParamDict={evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2],
+                                                                    colors=[evidenceKey],
+                                                                    numberTuple=[
+                                                                                           startAssignment[evidenceKey]])
+                      for evidenceKey in startAssignment}
+    )
 
 def get_sudoku_constraints(num=3):
     return {**get_column_constraints(num),
@@ -49,15 +86,3 @@ def get_position_constraints(num=3):
     ] for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num)}
 
 
-def evidenceDict_to_array(evidenceDict, num):
-    array = np.zeros(shape=(num ** 2, num ** 2))
-    for variableKey in evidenceDict:
-        varDecom = variableKey.split("_")
-        if varDecom[0] == "a" and evidenceDict[variableKey] == 1:
-            # print(variableKey)
-            array[int(varDecom[1]) * num + int(varDecom[2]), int(varDecom[3]) * num + int(varDecom[4])] = int(
-                varDecom[5]) + 1
-        elif varDecom[0] == "pos":
-            array[int(varDecom[1]) * num + int(varDecom[2]), int(varDecom[3]) * num + int(varDecom[4])] \
-                = evidenceDict[variableKey] + 1
-    return array

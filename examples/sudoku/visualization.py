@@ -2,15 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def visualize_sudoku(sudokuArray, number=3):
+def visualize_sudoku(sudokuArray, number=3, label=""):
     fig, ax = plt.subplots(figsize=(6, 6))
 
     # Hide axes
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
 
-    # Create a table
-    table = plt.table(cellText=sudokuArray,
+    table = plt.table(cellText=[[str(cell) if cell != 0 else "" for cell in row] for row in sudokuArray],
                       cellLoc='center',
                       loc='center',
                       cellColours=[['white'] * number ** 2 for _ in range(number ** 2)],
@@ -31,4 +30,19 @@ def visualize_sudoku(sudokuArray, number=3):
         ax.plot([0, number ** 2], [i, i], color='black', lw=lw)
         ax.plot([i, i], [0, number ** 2], color='black', lw=lw)
 
+    plt.title(label, fontsize=15)
     plt.show()
+
+
+def evidence_to_array(evidenceDict, num):
+    array = np.zeros(shape=(num ** 2, num ** 2))
+    for variableKey in evidenceDict:
+        varDecom = variableKey.split("_")
+        if varDecom[0] == "a" and evidenceDict[variableKey] == 1:
+            # print(variableKey)
+            array[int(varDecom[1]) * num + int(varDecom[2]), int(varDecom[3]) * num + int(varDecom[4])] = int(
+                varDecom[5]) + 1
+        elif varDecom[0] == "pos":
+            array[int(varDecom[1]) * num + int(varDecom[2]), int(varDecom[3]) * num + int(varDecom[4])] \
+                = evidenceDict[variableKey] + 1
+    return array
