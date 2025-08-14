@@ -80,7 +80,7 @@ def batch_solution(messageLimit=100000, untilPuzzle=100):
 
 if __name__ == "__main__":
     mLimit = 100000
-    untilP = 10
+    untilP = 100
 
     successes, exeTimes, startAssCounts, solutionAssCounts = batch_solution(messageLimit=mLimit, untilPuzzle=untilP)
     results = pd.DataFrame(data = {
