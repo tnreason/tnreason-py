@@ -9,6 +9,12 @@ Tensor networks provide a storage method for Knowledge Graphs, and more general 
 Based on the sample extraction formalism described in Chapter 11 of the [report](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation/blob/master/tnreason_report.pdf)
 hybrid logic networks can be trained on data extracted from a knowledge base.
 
+## Approach
+
+We need a
+- `importanceQuery` marking object tuples which form a sample
+- `extractionQueries` extracting assignments to atomic variables for each sample
+
 ## Examples
 
 We demonstrate this method on the DBpedia Knowledge Graph, which is a large-scale knowledge base extracted from Wikipedia.
