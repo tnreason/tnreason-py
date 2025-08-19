@@ -26,4 +26,5 @@ Toy Example:
 
 
 ## Further instances
-[bradhilton/temporal-clue](https://github.com/bradhilton/temporal-clue/tree/main/puzzles)
+
+In the instances subfolder are generated cases from [bradhilton/temporal-clue](https://github.com/bradhilton/temporal-clue/tree/main/puzzles).
