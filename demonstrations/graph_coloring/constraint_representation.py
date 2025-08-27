@@ -2,19 +2,21 @@ from tnreason import engine, representation, reasoning
 
 import numpy as np
 
+
 def generate_CANetwork(graph, colorNum, coreType, allowedColorDict={}):
     return representation.ComputationActivationNetwork(
         computationCoreDict={
             nodeColor0 + "_" + nodeColor1: get_color_constraint_core(nodeColor0, nodeColor1, colorNum, coreType)
             for nodeColor0, nodeColor1 in graph.edges},
         featureDict={
-            **{nodeColor: representation.HardPartitionFeature(featureColors=[nodeColor], shape=[colorNum]) for nodeColor in graph.nodes},
+            **{nodeColor: representation.HardPartitionFeature(featureColors=[nodeColor], shape=[colorNum]) for nodeColor
+               in graph.nodes},
             **{nodeColor0 + "_" + nodeColor1: representation.HardPartitionFeature(
                 featureColors=[nodeColor0, nodeColor1],
                 shape=[colorNum, colorNum],
                 affectedComputationCores=[
                     nodeColor0 + "_" + nodeColor1])
-               for nodeColor0, nodeColor1 in graph.edges}
+                for nodeColor0, nodeColor1 in graph.edges}
         },
         canParamDict=allowedColorDict,
     )
@@ -31,6 +33,7 @@ def get_edgewise_clusterDict(graph):
                nodeColor0, nodeColor1 in graph.edges},
             **{nodeColor + "_cluster": [nodeColor] for nodeColor in graph.nodes}
             }
+
 
 def extract_known_colors(nodeColors, canParamDict):
     knownColorDict = {}
@@ -59,10 +62,18 @@ if __name__ == "__main__":
     can = generate_CANetwork(G, colorNum, allowedColorDict=colorRestrictions, coreType="NumpyCore")
 
     propagator = reasoning.get_inferer("ExpectationPropagator")(clusterDict=get_edgewise_clusterDict(G),
+                                                                meanParamDict={
+                                                                    nodeColor: engine.create_from_slice_iterator(
+                                                                        shape=[colorNum], colors=[nodeColor],
+                                                                        sliceIterator=[(1, {})]) for nodeColor in
+                                                                    G.nodes
+                                                                },
                                                                 caNetwork=can)
 
-    print("Known colors before propagation: {}".format(extract_known_colors(list(G.nodes), propagator.caNetwork.canParamDict)))
+    print("Known colors before propagation: {}".format(
+        extract_known_colors(list(G.nodes), propagator.caNetwork.canParamDict)))
 
     propagator.propagate_until_convergence(nonTrivialFeatureKeys=list(colorRestrictions.keys()), verbose=True)
 
-    print("Known colors after propagation: {}".format(extract_known_colors(list(G.nodes), propagator.caNetwork.canParamDict)))
+    print("Known colors after propagation: {}".format(
+        extract_known_colors(list(G.nodes), propagator.caNetwork.canParamDict)))
