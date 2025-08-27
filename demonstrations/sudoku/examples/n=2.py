@@ -29,7 +29,7 @@ propagator = reasoning.get_inferer("ExpectationPropagator")(
     clusterDict=sol.get_simple_clusterDict(num=num),
     meanParamDict=dict()
 )
-propagator.propagate_until_convergence(evidenceDict.keys())
+propagator.propagate_until_convergence(evidenceDict.keys(),verbose=True)
 
 ## Investigate the Solution Assignment
 

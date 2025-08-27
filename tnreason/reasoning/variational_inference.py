@@ -159,16 +159,21 @@ class ExpectationPropagator(InferenceBase):
 
         self.messageCount = 0
 
-    def propagate_until_convergence(self, nonTrivialFeatureKeys, maxMessageCount=None, verbose=True):
+    def propagate_until_convergence(self, nonTrivialFeatureKeys, maxMessageCount=None, verbose=False):
         self.add_affected_directions(nonTrivialFeatureKeys)
         while len(self.messageQueue) > 0 and (maxMessageCount is None or self.messageCount < maxMessageCount):
             sendCluster, receiveCluster = self.messageQueue.pop()
             changedMeans = self.compute_canParam_message(sendCluster, receiveCluster)
             self.add_affected_directions([featureKey for featureKey in changedMeans],
                                          exceptionList=[(sendCluster, receiveCluster)])
-        if verbose:
+            if verbose:
+                print("Message {} passed from cluster {} to cluster {}. Changed means: {}".format(
+                    self.messageCount, sendCluster, receiveCluster, changedMeans))
+        if maxMessageCount:
             print("Message passing terminated after {} of allowed {} messages.".format(self.messageCount,
                                                                                        maxMessageCount))
+        else:
+            print("Message passing terminated after {} messages.".format(self.messageCount))
 
     def collapse_hard_feature_message(self, hardFeatureKeys):
         """

@@ -24,10 +24,14 @@ class ComputedFeature:
 
 
 class PassiveFeature(ComputedFeature):
+    """
+    Feature without active part, i.e. trivial activation core.
+    Serves as a selector of computation cores.
+    """
     featureType = "PassiveFeature"
 
     def create_activation_cores(self, **kwargs):
-        return dict()
+        return engine.create_from_slice_iterator(shape=self.shape, colors=self.featureColors, sliceIterator=[(1, {})])
 
 
 class SingleHybridFeature(ComputedFeature):
