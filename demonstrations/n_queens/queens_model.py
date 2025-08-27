@@ -1,6 +1,6 @@
 import tnreason.representation.coordinate_calculus
 from tnreason import reasoning
-from tnreason import representation
+from tnreason import application
 from tnreason import engine
 
 import numpy as np
@@ -14,7 +14,7 @@ def get_queens_constraints(n=3):
         **{"col_"+str(j): ["q_"+str(i)+"_"+str(j) for i in range(n)] for j in range(n)}}
 
 def get_queens_propagator(n=3):
-    return reasoning.ConstraintPropagator(representation.create_categorical_cores(get_queens_constraints(n=n)))
+    return reasoning.ConstraintPropagator(application.create_categorical_cores(get_queens_constraints(n=n)))
 
 def to_random_basis(binaryCore):
     ones = np.where(binaryCore.values==1)[0]
@@ -31,8 +31,8 @@ def get_random_assignment(n=3):
     times = []
     currentTime = time.time()
     for colPos in range(n):
-        propagator.domainCoresDict["col_"+str(colPos)+"_domainCore"] = to_random_basis(propagator.domainCoresDict["col_"+str(colPos)+"_domainCore"])
-        propagator.propagate_cores(coreOrder=["col_"+str(colPos)+"_q_"+str(i)+"_"+str(colPos)+"_catCore" for i in range(n)])
+        propagator.domainCoresDict["col_"+str(colPos)+"_e_aC"] = to_random_basis(propagator.domainCoresDict["col_"+str(colPos)+"_e_aC"])
+        propagator.propagate_cores(coreOrder=["col_"+str(colPos)+"_q_"+str(i)+"_"+str(colPos)+"_atoC" for i in range(n)])
         times.append(time.time()-currentTime)
         currentTime = time.time()
     return propagator.find_assignments(), times
@@ -56,7 +56,7 @@ def draw_positions(queensPositions):
 
 
 def calculate_possibilities(n):
-    return engine.contract(coreDict=representation.create_categorical_cores(get_queens_constraints(n=n)),
+    return engine.contract(coreDict=application.create_categorical_cores(get_queens_constraints(n=n)),
                            openColors=[]).values
 
 
@@ -71,4 +71,4 @@ if __name__ == "__main__":
     plt.xlim(0)
     plt.show()
 
-    print(calculate_possibilities(6))
+    assert calculate_possibilities(3) == 6
