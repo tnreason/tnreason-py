@@ -5,7 +5,9 @@ We here demonstrate the usage of `tnreason` for solving graph coloring problems 
 ## Background
 
 Graph Coloring is an instance of a Constraint Satisfaction Problem, where the constraints are that neighboring nodes in a graph must be assigned different colors.
-When the number of allowed colors exceeds 2, the problem is NP-complete.
+When the number of allowed colors exceeds 2, the problem is NP-complete. For example a graph depicted on the left could be colored as depicted on the right.
+![My Graph](example_graph_plain.png)
+![My Graph](example_graph_colored.png)
 
 ## Approach
 
