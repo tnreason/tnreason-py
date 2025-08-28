@@ -6,8 +6,10 @@ We here demonstrate the usage of `tnreason` for solving graph coloring problems 
 
 Graph Coloring is an instance of a Constraint Satisfaction Problem, where the constraints are that neighboring nodes in a graph must be assigned different colors.
 When the number of allowed colors exceeds 2, the problem is NP-complete. For example a graph depicted on the left could be colored as depicted on the right.
-![My Graph](example_graph_plain.png)
-![My Graph](example_graph_colored.png)
+<p align="center">
+  <img src="example_graph_plain.png" alt="Graph 1" width="45%"/>
+  <img src="example_graph_colored.png" alt="Graph 2" width="45%"/>
+</p>
 
 ## Approach
 
