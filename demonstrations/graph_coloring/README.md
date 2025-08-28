@@ -21,6 +21,10 @@ The CAN is built by loading the "representation" class from tnreason and initial
   - for each edge: "representation.PassiveFeature" gets the feature for the tensors on the edges, that are needed for calculations, but that are not part of the solution.
 - canParamDict: This dictionary holds an entry for every already known color/ the color initialization. All other nodes with unknown colors are automatically initialized with the trivial vector, which only contains ones.
 
+<p align="center">
+  <img src="example_graph.png" alt="Graph 1" width="45%"/>
+</p>
+
 The problem is then understood as a forward inference problem on the Computation-Activation Network.
 
 ## Examples
