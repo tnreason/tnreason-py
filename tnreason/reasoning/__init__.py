@@ -15,3 +15,4 @@ from tnreason.reasoning.sampling_handling import get_core_based_sampler, get_ene
 
 from tnreason.reasoning.variational_inference import ForwardContractor, BackwardAlternator, get_inferer
 
+from tnreason.reasoning.message_passing import ForwardMessagePasser

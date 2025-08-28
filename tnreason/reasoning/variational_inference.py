@@ -88,7 +88,8 @@ class ForwardContractor(InferenceBase):
         if featureKeys is None:
             featureKeys = list(self.caNetwork.featureDict.keys())
         for featureKey in featureKeys:
-            self.infer_meanParam(featureKey)
+            if not "passive" in self.caNetwork.featureDict[featureKey].featureProperties:
+                self.infer_meanParam(featureKey)
 
 
 class BackwardAlternator(InferenceBase):
@@ -130,7 +131,6 @@ class BackwardAlternator(InferenceBase):
                 weightDict[featureKey].append(self.caNetwork.canParamDict[featureKey])
         return weightDict
 
-
 class ExpectationPropagator(InferenceBase):
     method = "ExpectationPropagator"
 
@@ -138,22 +138,24 @@ class ExpectationPropagator(InferenceBase):
     Forward inference by propagation of messages (additive canParams) through the computation activation network.
     """
 
-    def __init__(self, clusterDict=dict(), startMessageSchedule=None, forwardInferenceMethod="ForwardContractor",
+    def __init__(self, clusterDict=dict(), startMessageSchedule=None,
+                 forwardInferenceMethod="ForwardContractor",
                  backwardInferenceMethod="BackwardAlternator", **inferenceSpec):
         super().__init__(**inferenceSpec)
-        self.clusterFeatures = clusterDict  # Dictionary of featureKeys to clusters: send and message clusters!
-        self.clusterParents = {childKey: [parentKey for parentKey in self.clusterFeatures if
-                                          childKey != parentKey and  # childKey is not a parent of itself
-                                          all([featureKey in self.clusterFeatures[parentKey] for featureKey in
-                                               self.clusterFeatures[childKey]])] for childKey in
-                               self.clusterFeatures}  # To each clusterKey the parents
 
         self.forwardInferenceMethod = forwardInferenceMethod
         self.backwardInferenceMethod = backwardInferenceMethod
 
+        self.clusterFeatures = clusterDict  # Dictionary of featureKeys to clusters: send and message clusters!
+        self.clusterParents = {messageCluster: [inferenceCluster for inferenceCluster in self.clusterFeatures if
+                                          messageCluster != inferenceCluster and  # childKey is not a parent of itself
+                                          all([featureKey in self.clusterFeatures[inferenceCluster] for featureKey in
+                                               self.clusterFeatures[messageCluster]])] for messageCluster in
+                               self.clusterFeatures}  # To each clusterKey the parents
+
         self.messageDict = {
-            receiveCluster: {sendCluster: dict() for sendCluster in self.clusterParents[receiveCluster]} for
-            receiveCluster in self.clusterFeatures  # dictionary of received messages
+            messageCluster: {inferenceCluster: dict() for inferenceCluster in self.clusterParents[messageCluster]} for
+            messageCluster in self.clusterFeatures  # dictionary of received messages
         }
 
         if startMessageSchedule is None:
@@ -179,80 +181,80 @@ class ExpectationPropagator(InferenceBase):
         else:
             print("Message passing terminated after {} messages.".format(self.messageCount))
 
-    def collapse_hard_feature_message(self, hardFeatureKeys):
-        """
-        Optional: Smallen the message dictionary by absorbing messages to the canParams
-        """
-        for featureKey in hardFeatureKeys:
-            assert type(self.caNetwork.featureDict[featureKey]) == representation.HardPartitionFeature
-            self.caNetwork.canParamDict[featureKey] = self.caNetwork.featureDict[featureKey].combine_canParams(
-                [self.caNetwork.canParamDict[featureKey]] + [
-                    self.messageDict[childCluster][parentCluster].pop(featureKey) for childCluster in
-                    self.messageDict for parentCluster in self.messageDict[childCluster]
-                    if featureKey in self.clusterFeatures[parentCluster]]
-            )
+    # def collapse_hard_feature_message(self, hardFeatureKeys):
+    #     """
+    #     Optional: Smallen the message dictionary by absorbing messages to the canParams
+    #     """
+    #     for featureKey in hardFeatureKeys:
+    #         assert type(self.caNetwork.featureDict[featureKey]) == representation.HardPartitionFeature
+    #         self.caNetwork.canParamDict[featureKey] = self.caNetwork.featureDict[featureKey].combine_canParams(
+    #             [self.caNetwork.canParamDict[featureKey]] + [
+    #                 self.messageDict[messageCluster][inferenceCluster].pop(featureKey) for messageCluster in
+    #                 self.messageDict for inferenceCluster in self.messageDict[messageCluster]
+    #                 if featureKey in self.clusterFeatures[inferenceCluster]]
+    #         )
 
     def add_affected_directions(self, featureKeys, exceptionList=[]):
-        affectedDirections = [(parentKey, childKey) for childKey in self.clusterParents for parentKey in
-                              self.clusterParents[childKey] if
-                              any([featureKey in self.clusterFeatures[parentKey] for featureKey in featureKeys]) and (
-                                  parentKey, childKey) not in exceptionList]
+        affectedDirections = [(inferenceCluster, messageCluster) for messageCluster in self.clusterParents for inferenceCluster in
+                              self.clusterParents[messageCluster] if
+                              any([featureKey in self.clusterFeatures[inferenceCluster] for featureKey in featureKeys]) and (
+                                  inferenceCluster, messageCluster) not in exceptionList]
         self.messageQueue.update([cpPair for cpPair in affectedDirections if not cpPair in self.messageQueue])
 
-    def compute_canParam_message(self, sendCluster, receiveCluster):
-        assert sendCluster in self.clusterParents[receiveCluster], "Cluster {} is not a parent of cluster {}.".format(
-            sendCluster, receiveCluster)
+    def compute_canParam_message(self, inferenceCluster, messageCluster):
+        assert inferenceCluster in self.clusterParents[messageCluster], "Cluster {} is not a parent of cluster {}.".format(
+            inferenceCluster, messageCluster)
 
-        ## Forward inference in sendKeys: Infer using the effective canParams (those assigned and those communicated)
+        ## Forward inference in sendKeys: Infer using the effective canParams (those assigned and those communicated from other inference clusters)
         forwardInferer = get_inferer(self.forwardInferenceMethod)(
-            caNetwork=self.get_caNetwork(self.clusterFeatures[sendCluster], canParamDict={featureKey:
+            caNetwork=self.get_caNetwork(self.clusterFeatures[inferenceCluster], canParamDict={featureKey:
                 self.caNetwork.featureDict[featureKey].combine_canParams(
                     [self.caNetwork.canParamDict[featureKey]] + [
-                        self.messageDict[childCluster][otherParentCluster][featureKey] for childCluster in
+                        self.messageDict[messageCluster][otherInferenceCluster][featureKey] for messageCluster in
                         self.messageDict
-                        for otherParentCluster in self.messageDict[childCluster]
-                        if sendCluster in self.clusterParents[childCluster]
-                           and featureKey in self.messageDict[childCluster][otherParentCluster]
-                           and otherParentCluster != sendCluster]
+                        for otherInferenceCluster in self.messageDict[messageCluster]
+                        if inferenceCluster in self.clusterParents[messageCluster]
+                           and featureKey in self.messageDict[messageCluster][otherInferenceCluster]
+                           and otherInferenceCluster != inferenceCluster]
                 )
-                for featureKey in self.clusterFeatures[sendCluster]})
+                for featureKey in self.clusterFeatures[inferenceCluster]})
         )
-        forwardInferer.infer_meanParams(self.clusterFeatures[receiveCluster])
+        forwardInferer.infer_meanParams(self.clusterFeatures[messageCluster])
 
-        # ## Find features which meanParam has changed
-        changedMeans = []
-        for featureKey in self.clusterFeatures[receiveCluster]:
+        # ## Find features which meanParam has changed, could also select based on canonical parameters
+        changedFeatures = []
+        for featureKey in self.clusterFeatures[messageCluster]:
             if featureKey in self.meanParamDict:
                 if not self.meanParamDict[featureKey] == forwardInferer.meanParamDict[featureKey]:
                     self.meanParamDict[featureKey] = forwardInferer.meanParamDict[featureKey]
-                    changedMeans.append(featureKey)
+                    changedFeatures.append(featureKey)
             else:
                 self.meanParamDict[featureKey] = forwardInferer.meanParamDict[featureKey]
-                changedMeans.append(featureKey)
+                changedFeatures.append(featureKey)
 
         ## Compute the message to be sent as canParams
         backwardInferer = get_inferer(self.backwardInferenceMethod)(
-            caNetwork=self.get_caNetwork(self.clusterFeatures[receiveCluster]),
-            meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.clusterFeatures[receiveCluster]},
+            caNetwork=self.get_caNetwork(self.clusterFeatures[messageCluster]),
+            meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.clusterFeatures[messageCluster]},
         )
         backwardInferer.alternating_updates(
-            featureKeys={featureKey for featureKey in self.clusterFeatures[receiveCluster] if not
-                         "passive" in self.caNetwork.featureDict[featureKey].featureProperties},
+            featureKeys={featureKey for featureKey in self.clusterFeatures[messageCluster] if not
+            "passive" in self.caNetwork.featureDict[featureKey].featureProperties},
             sweepNum=1)
 
         messageCanParamDict = backwardInferer.caNetwork.canParamDict
-        for featureKey in self.clusterFeatures[receiveCluster]:
+        for featureKey in self.clusterFeatures[messageCluster]:
             if type(self.caNetwork.featureDict[featureKey]) in [representation.SoftPartitionFeature,
                                                                 representation.SingleSoftFeature]:
                 """
                 Soft features canParams are communicated by differences to rest messages
                 """
-                for parentCluster in self.messageDict[receiveCluster]:
-                    if parentCluster != sendCluster and featureKey in self.messageDict[receiveCluster][parentCluster]:
+                for parentCluster in self.messageDict[messageCluster]:
+                    if parentCluster != inferenceCluster and featureKey in self.messageDict[messageCluster][parentCluster]:
                         # Then this is a message from receiveCluster to parentCluster
-                        messageCanParamDict[featureKey] += -1 * self.messageDict[receiveCluster][parentCluster][
+                        messageCanParamDict[featureKey] += -1 * self.messageDict[messageCluster][parentCluster][
                             featureKey]
-                self.messageDict[receiveCluster][sendCluster][featureKey] = messageCanParamDict[featureKey]
+                self.messageDict[messageCluster][inferenceCluster][featureKey] = messageCanParamDict[featureKey]
             elif type(self.caNetwork.featureDict[featureKey]) in [representation.HardPartitionFeature]:
                 """
                 Hard feature canParams used to directly modify the canonical parameters
@@ -263,4 +265,4 @@ class ExpectationPropagator(InferenceBase):
                 )
 
         self.messageCount += 1
-        return changedMeans
+        return changedFeatures

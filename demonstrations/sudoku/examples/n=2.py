@@ -1,7 +1,7 @@
 from tnreason import reasoning
 
 from demonstrations.sudoku import sudoku_constraints as rep
-from demonstrations.sudoku import solution as sol
+from demonstrations.sudoku import sudoku_forward_mp as sol
 from demonstrations.sudoku import visualization as vis
 
 num = 2
@@ -24,11 +24,7 @@ caNetwork = rep.get_assignment_as_CANetwork(num=num, startAssignment=evidenceDic
 
 ## Reasoning ##
 
-propagator = reasoning.get_inferer("ExpectationPropagator")(
-    caNetwork=caNetwork,
-    clusterDict=sol.get_simple_clusterDict(num=num),
-    meanParamDict=dict()
-)
+propagator = sol.get_forward_mp_inferer(num, evidenceDict)
 propagator.propagate_until_convergence(evidenceDict.keys(),verbose=True)
 
 ## Investigate the Solution Assignment

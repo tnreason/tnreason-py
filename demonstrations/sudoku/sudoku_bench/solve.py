@@ -1,13 +1,10 @@
-from tnreason import reasoning
-
 from demonstrations.sudoku import sudoku_constraints as rep
-from demonstrations.sudoku import solution as sol
+from demonstrations.sudoku import sudoku_forward_mp as sol
 from demonstrations.sudoku import visualization as vis
 
 num = 3
 
 import pandas as pd
-import numpy as np
 
 import time
 
@@ -27,11 +24,13 @@ def solve_with_messageLimit(puzzleNum, messageLimit, visualization=False, verbos
 
     ## Reasoning ##
 
-    propagator = reasoning.get_inferer("ExpectationPropagator")(
-        caNetwork=caNetwork,
-        clusterDict=sol.get_simple_clusterDict(num=num),
-        meanParamDict=dict()
-    )
+    ## Old: Solution with ExpectationPropagator
+    # propagator = reasoning.get_inferer("ExpectationPropagator")(
+    #     caNetwork=caNetwork,
+    #     clusterDict=sol.get_simple_clusterDict(num=num),
+    #     meanParamDict=dict()
+    # )
+    propagator = sol.get_forward_mp_inferer(num, evidenceDict)
     startTime = time.time()
     propagator.propagate_until_convergence(evidenceDict.keys(), maxMessageCount=messageLimit, verbose=False)
     execTime = time.time() - startTime
@@ -80,7 +79,7 @@ def batch_solution(messageLimit=100000, untilPuzzle=100):
 
 if __name__ == "__main__":
     mLimit = 100000
-    untilP = 100
+    untilP = 1
 
     successes, exeTimes, startAssCounts, solutionAssCounts = batch_solution(messageLimit=mLimit, untilPuzzle=untilP)
     results = pd.DataFrame(data = {
@@ -89,6 +88,6 @@ if __name__ == "__main__":
         "Start Assignments": startAssCounts,
         "Found Assignments": solutionAssCounts
     })
-
+    print(results)
     output_path = 'results/result_nikoli100_simpleMP_mLimit{}.csv'.format(mLimit)  # Specify your desired file path
-    results.to_csv(output_path, index=False)
+    #results.to_csv(output_path, index=False)

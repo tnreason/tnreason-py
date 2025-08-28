@@ -206,7 +206,7 @@ class SoftPartitionFeature(ComputedFeature):
 
 
 class HardPartitionFeature(ComputedFeature):
-    featureProperties = []
+    featureProperties = ["hard"]
     """
     Activation cores are boolean tensors -> Interpretation as boolean base measure of the family
     ! canParam interpreted as activation vector, without coordinatewise exponentiation (i.e. canParam is the limit of normed soft activation cores)
@@ -256,7 +256,8 @@ class HardPartitionFeature(ComputedFeature):
             openColors=self.featureColors
         )
 
-
+    def activation_sum(self, canParam):
+        return engine.contract({"can": canParam}, openColors=[])[:]
 class EnergyDictFeature(ComputedFeature):
     """
     Dummy Feature with no active part.

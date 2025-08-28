@@ -35,7 +35,7 @@ def check_result(knownColorDict, nodeSet0, nodeSet1):
 
 
 if __name__ == "__main__":
-    from demonstrations.graph_coloring import constraint_representation as rep
+    from demonstrations.graph_coloring import graph_constraints as rep
     from tnreason import engine, reasoning, representation
 
     nodeSet0Size = 50
