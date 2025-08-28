@@ -60,9 +60,13 @@ class ForwardContractor(InferenceBase):
     """
 
     def infer_meanParam(self, featureKey):
-        self.meanParamDict[featureKey] = self.caNetwork.featureDict[featureKey].compute_meanParam(
-            self.compute_environmentMean(featureKey, normalize=True))
-        return self.meanParamDict[featureKey]
+        if "passive" in self.caNetwork.featureDict[featureKey].featureProperties:
+            self.meanParamDict[featureKey] = None
+            return None
+        else:
+            self.meanParamDict[featureKey] = self.caNetwork.featureDict[featureKey].compute_meanParam(
+                self.compute_environmentMean(featureKey, normalize=True))
+            return self.meanParamDict[featureKey]
 
     def compute_environmentMean(self, featureKey, normalize=False):
         """
@@ -167,7 +171,7 @@ class ExpectationPropagator(InferenceBase):
             self.add_affected_directions([featureKey for featureKey in changedMeans],
                                          exceptionList=[(sendCluster, receiveCluster)])
             if verbose:
-                print("Message {} passed from cluster {} to cluster {}. Changed means: {}".format(
+                print("Message {} passed from cluster {} to cluster {}. Changed feature means: {}".format(
                     self.messageCount, sendCluster, receiveCluster, changedMeans))
         if maxMessageCount:
             print("Message passing terminated after {} of allowed {} messages.".format(self.messageCount,
@@ -232,8 +236,8 @@ class ExpectationPropagator(InferenceBase):
             meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.clusterFeatures[receiveCluster]},
         )
         backwardInferer.alternating_updates(
-            featureKeys={featureKey for featureKey in self.clusterFeatures[receiveCluster] if
-                         self.caNetwork.featureDict[featureKey].featureType != "PassiveFeature"},
+            featureKeys={featureKey for featureKey in self.clusterFeatures[receiveCluster] if not
+                         "passive" in self.caNetwork.featureDict[featureKey].featureProperties},
             sweepNum=1)
 
         messageCanParamDict = backwardInferer.caNetwork.canParamDict

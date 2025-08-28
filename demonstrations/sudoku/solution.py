@@ -1,4 +1,4 @@
-from demonstrations.sudoku import representation as rep
+from demonstrations.sudoku import sudoku_constraints as rep
 
 def get_simple_clusterDict(num):
     """

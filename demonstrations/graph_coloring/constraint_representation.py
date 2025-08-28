@@ -11,9 +11,9 @@ def generate_CANetwork(graph, colorNum, coreType, allowedColorDict={}):
         featureDict={
             **{nodeColor: representation.HardPartitionFeature(featureColors=[nodeColor], shape=[colorNum]) for nodeColor
                in graph.nodes},
-            **{nodeColor0 + "_" + nodeColor1: representation.HardPartitionFeature(
-                featureColors=[nodeColor0, nodeColor1],
-                shape=[colorNum, colorNum],
+            **{nodeColor0 + "_" + nodeColor1: representation.PassiveFeature(
+                featureColors=[],
+                shape=[],
                 affectedComputationCores=[
                     nodeColor0 + "_" + nodeColor1])
                 for nodeColor0, nodeColor1 in graph.edges}

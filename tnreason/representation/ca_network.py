@@ -25,7 +25,7 @@ class ComputationActivationNetwork(engine.EngineUser):
         self.canParamDict = canParamDict
 
         for featureKey in self.featureDict:
-            if featureKey not in self.canParamDict and type(self.featureDict[featureKey]) != ft.PassiveFeature:
+            if featureKey not in self.canParamDict: # and type(self.featureDict[featureKey]) != ft.PassiveFeature:
                 self.canParamDict[featureKey] = self.featureDict[featureKey].find_neutral_canParam()
             for coreKey in self.featureDict[featureKey].affectedComputationCores:
                 if coreKey not in self.computationCoreDict:
@@ -46,9 +46,10 @@ class ComputationActivationNetwork(engine.EngineUser):
             featureKeys = list(self.featureDict.keys())
         activationCores = dict()
         for featureKey in featureKeys:
-            activationCores.update(self.featureDict[featureKey].create_activation_cores(
-                canParam=self.canParamDict[featureKey], coreType=self.coreType
-            ))
+            if not "passive" in self.featureDict[featureKey].featureProperties:
+                activationCores.update(self.featureDict[featureKey].create_activation_cores(
+                    canParam=self.canParamDict[featureKey], coreType=self.coreType
+                ))
         return activationCores
 
     def create_cores(self):

@@ -23,18 +23,15 @@ def get_assignment_as_CANetwork(num, startAssignment):
                                                                    affectedComputationCores={},
                                                                    shape=[num ** 2])
                for categoricalKey in constraints},
-            **{categoricalKey + "_" + atomKey: representation.HardPartitionFeature(
-                featureColors=[categoricalKey, atomKey],
-                shape=[num ** 2, 2],
-                affectedComputationCores=[
+            **{categoricalKey + "_" + atomKey: representation.PassiveFeature(
+                featureColors=[], shape=[], affectedComputationCores=[
                     categoricalKey + "_" + atomKey + representation.suf.atoCoreSuf])
                for categoricalKey in constraints for atomKey in constraints[categoricalKey]}
         },
         computationCoreDict=application.create_categorical_cores(constraints),
         canParamDict={evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2],
                                                                     colors=[evidenceKey],
-                                                                    numberTuple=[
-                                                                                           startAssignment[evidenceKey]])
+                                                                    numberTuple=[startAssignment[evidenceKey]])
                       for evidenceKey in startAssignment}
     )
 

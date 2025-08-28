@@ -26,16 +26,30 @@ class ComputedFeature:
 class PassiveFeature(ComputedFeature):
     """
     Feature without active part, i.e. trivial activation core.
+    Canonical Parameter and mean parameter are always None
     Serves as a selector of computation cores.
     """
-    featureType = "PassiveFeature"
+    featureProperties = ["passive"]
 
     def create_activation_cores(self, **kwargs):
+        # Avoid that usage in application, since not necessary in contractions
         return engine.create_from_slice_iterator(shape=self.shape, colors=self.featureColors, sliceIterator=[(1, {})])
+
+    def combine_canParams(self, canParamList):
+        return None
+
+    def find_neutral_canParam(self, coreType=None):
+        return None
+
+    def local_adjustment(self, **kwargs):
+        return None
+
+    def compute_meanParam(self, **kwargs):
+        return None
 
 
 class SingleHybridFeature(ComputedFeature):
-    featureType = "SingleHybridFeature"
+    featureProperties = []
     """
     Scalar canonical parameter, if boolean then hard and if float or int then soft
     """
@@ -92,7 +106,7 @@ class SingleHybridFeature(ComputedFeature):
 
 
 class SingleSoftFeature(ComputedFeature):
-    featureType = "SingleSoftFeature"
+    featureProperties = []
     """
     One-dimensional (scalar) canonical parameter and mean parameter, which represents the exponentiation of the interpreted image.
     """
@@ -146,7 +160,7 @@ class SingleSoftFeature(ComputedFeature):
 
 
 class SoftPartitionFeature(ComputedFeature):
-    featureType = "SoftPartitionFeature"
+    featureProperties = []
     """
     Feature Colors are head colors of computation cores and the indices are indicating subsets of a partition.
     canParams and meanParams are tensors with the feature colors
@@ -192,7 +206,7 @@ class SoftPartitionFeature(ComputedFeature):
 
 
 class HardPartitionFeature(ComputedFeature):
-    featureType = "HardPartitionFeature"
+    featureProperties = []
     """
     Activation cores are boolean tensors -> Interpretation as boolean base measure of the family
     ! canParam interpreted as activation vector, without coordinatewise exponentiation (i.e. canParam is the limit of normed soft activation cores)
@@ -248,7 +262,7 @@ class EnergyDictFeature(ComputedFeature):
     Dummy Feature with no active part.
     CA Network uses this to directly add the canonical parameter (which is a dict of weighted tensor networks) into the energy dict
     """
-    featureType = "EnergyDictFeature"
+    featureProperties = ["passive"]
 
     def create_activation_cores(self, canParam, coreType=None):
         raise ValueError("Energy Dict Feature cannot create activation cores efficiently!")
@@ -259,6 +273,7 @@ class TNFeature(ComputedFeature):
     Those with tensor networks as activation core.
     MeanParam computation and local adjustment are treated as in SoftPartitionFeature and produce single tensors.
     """
+    featureProperties = []
 
     def create_activation_cores(self, canParam, coreType=None):
         return canParam
