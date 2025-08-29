@@ -51,8 +51,8 @@ if __name__ == "__main__":
     productNum = 10
     budget = 3
 
-    cov = pd.read_csv("./examples/cov_11products.csv", index_col=0).to_numpy()
-    means = pd.read_csv("./examples/means_11products.csv").iloc[0].to_numpy()
+    cov = pd.read_csv("./examples/generated/covariance_matrix.csv", index_col=0).to_numpy()
+    means = pd.read_csv("./examples/generated/mean_vector.csv")["mean"].to_numpy()
 
     energyTN = get_energy_tn(cov, means, productNum, riskAversion=0.1)
     energy = engine.contract({**energyTN, "bmCore": budget_base_measure(productNum, budget, smallerThan=True)},

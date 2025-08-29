@@ -14,7 +14,7 @@ benchmarking/SML-Bench-updates/
 demonstration/fig.png
 demonstration/visualizations/
 
-demonstrations/markowitz_portfolio/examples/*
+demonstrations/markowitz_portfolio/examples/datev_11prod/*
 
 old_dist/
 tnreason.egg-info/
