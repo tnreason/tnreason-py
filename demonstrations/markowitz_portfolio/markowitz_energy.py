@@ -1,7 +1,7 @@
 import pandas as pd
 
 from tnreason import application, reasoning, engine
-<<<<<<< HEAD
+
 import numpy as np
 
 
@@ -11,11 +11,6 @@ def get_energy_tn(covariances, means, productNum, riskAversion=1.0):
     - architecture: Tensor Network decomposition of a Formula Selecting Network for pairwise activation
     - parCore: Represents the covariances and the means
     """
-=======
-
-
-def get_energy_tn(covariances, means, productNum, riskAversion=1.0):
->>>>>>> 056820c (Energy of Markowitz as demonstrations)
     architecture = {
         "headNeuron": [["and"],
                        ["prod" + str(i) for i in range(productNum)],
@@ -33,7 +28,7 @@ def get_energy_tn(covariances, means, productNum, riskAversion=1.0):
     return {"pCore": parCore, **application.create_architecture(architecture, headNeuronNames=["headNeuron"])}
 
 
-<<<<<<< HEAD
+
 def budget_base_measure(productNum, budget, smallerThan=False):
     """
     Prepares boolean tensor with 1 when the budget is exactly used, 0 otherwise
@@ -55,19 +50,13 @@ def budget_base_measure(productNum, budget, smallerThan=False):
 if __name__ == "__main__":
     productNum = 10
     budget = 3
-=======
-if __name__ == "__main__":
->>>>>>> 056820c (Energy of Markowitz as demonstrations)
 
     cov = pd.read_csv("./examples/cov_11products.csv", index_col=0).to_numpy()
     means = pd.read_csv("./examples/means_11products.csv").iloc[0].to_numpy()
 
-<<<<<<< HEAD
     energyTN = get_energy_tn(cov, means, productNum, riskAversion=0.1)
     energy = engine.contract({**energyTN, "bmCore": budget_base_measure(productNum, budget, smallerThan=True)},
                              openColors=["prod" + str(i) + "_dV" for i in range(productNum)])
 
     print("Best configuration: {}".format(np.unravel_index(np.argmin(energy.values), energy.values.shape)))
-=======
-    get_energy_tn(cov, means, 11)
->>>>>>> 056820c (Energy of Markowitz as demonstrations)
+
