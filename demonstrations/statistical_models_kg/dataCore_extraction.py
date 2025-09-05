@@ -1,4 +1,4 @@
-from tnreason.engine.creation_handling import core_to_relational_encoding
+from tnreason.engine.creation_handling import core_to_basis_encoding
 
 from tnreason.representation import suffixes as suf
 
@@ -17,7 +17,7 @@ def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor=suf.d
     :coreType: Type of the resulting data cores
     """
     importanceQueryCore.enumerate_slices(enumerationColor=dataColor)
-    dataCores = {atomKey + dataCoreSuffix: core_to_relational_encoding(
+    dataCores = {atomKey + dataCoreSuffix: core_to_basis_encoding(
         core=engine.contract({"imCore" + queryCoreSuffix: importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
                              openColors=[dataColor], contractionMethod=contractionMethod), headColor=atomKey,
         outCoreType=coreType)[0] for atomKey in atomQueryCoreDict}

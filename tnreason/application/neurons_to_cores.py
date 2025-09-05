@@ -92,7 +92,7 @@ def create_variable_selectors(candidateKey, variables,
 
         # selFunc = lambda s, c: [c == s]  # Whether selection variable coincides with control variable
         # return {
-        #     candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_relational_encoding_from_lambda(
+        #     candidateKey + "_" + variables + suf.vselCoreSuf: tnreason.representation.basis_calculus.create_basis_encoding_from_lambda(
         #         inshape=[dim, dim], outshape=[2], incolors=[candidateKey + suf.selVarSuf, catName],
         #         outcolors=[candidateKey],
         #         indicesToIndicesFunction=selFunc, coreType=coreType,

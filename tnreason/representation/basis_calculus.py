@@ -28,14 +28,14 @@ def encode_statesFunction(statesFunction, inshape, incolors, outcolor, coreType=
     if imageList is None:
         imageList = atomic_image_enumeration(statesFunction, domainIterator=np.ndindex(*inshape))
     statesToIndexFunction = lambda *args: [imageList.index(statesFunction(*args))]
-    return create_relational_encoding_from_lambda(inshape=inshape, outshape=[len(imageList)], incolors=incolors,
+    return create_basis_encoding_from_lambda(inshape=inshape, outshape=[len(imageList)], incolors=incolors,
                                                   outcolors=[outcolor], indicesToIndicesFunction=statesToIndexFunction,
                                                   coreType=coreType,
                                                   name=coreName), \
         create_interpretation_vector(outcolor, coreType=coreType, name=outcolor + "_i")
 
 
-def create_relational_encoding_from_lambda(inshape, outshape, incolors, outcolors, indicesToIndicesFunction,
+def create_basis_encoding_from_lambda(inshape, outshape, incolors, outcolors, indicesToIndicesFunction,
                                            coreType=None,
                                            name="Encoding"):
     """
@@ -52,11 +52,11 @@ def create_relational_encoding_from_lambda(inshape, outshape, incolors, outcolor
 
 
 ## Unused so far: Building the relational encoding of a core itself
-def core_to_relational_encoding(core, headColor, outCoreType=None):
+def core_to_basis_encoding(core, headColor, outCoreType=None):
     imageList = atomic_image_enumeration(
         function=lambda *args: core[{color: args[i] for i, color in enumerate(core.colors)}],
         domainIterator=np.ndindex(*core.shape))
-    return create_relational_encoding_from_lambda(inshape=core.shape, outshape=[len(imageList)], incolors=core.colors,
+    return create_basis_encoding_from_lambda(inshape=core.shape, outshape=[len(imageList)], incolors=core.colors,
                                                   outcolors=[headColor],
                                                   indicesToIndicesFunction=lambda *args: [imageList.index(core[args])],
                                                   coreType=outCoreType), create_interpretation_vector(color=headColor,
@@ -72,7 +72,7 @@ def get_image(core, inShape, imageValues=[float(0), float(1)]):
     return imageValues
 
 
-def create_partitioned_relational_encoding(inshape, outshape, incolors, outcolors, function, coreType=None,
+def create_partitioned_basis_encoding(inshape, outshape, incolors, outcolors, function, coreType=None,
                                            partitionDict=None, nameSuffix="_encodingCore"):
     """
     Creates relational representation of a function as a tensor network, where the output axis are splitted according to the partionDict.
@@ -80,7 +80,7 @@ def create_partitioned_relational_encoding(inshape, outshape, incolors, outcolor
     if partitionDict is None:
         partitionDict = {color: [color] for color in outcolors}
     return {parKey + nameSuffix:
-                create_relational_encoding_from_lambda(inshape=inshape,
+                create_basis_encoding_from_lambda(inshape=inshape,
                                                        outshape=[outshape[outcolors.index(c)] for c in
                                                                  partitionDict[parKey]],
                                                        incolors=incolors,
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     outcolor = 'z'
     core, interpretation_vector = encode_statesFunction(example_function, inshape, incolors, outcolor)
 
-    relCore, intCore = core_to_relational_encoding(core, headColor="fun")
+    relCore, intCore = core_to_basis_encoding(core, headColor="fun")
     assert intCore[{"fun": 0}] in {0, 1} and intCore[{"fun": 1}] in {0, 1}, "Interpretation vector should be binary!"
 
     print("Core:", core)

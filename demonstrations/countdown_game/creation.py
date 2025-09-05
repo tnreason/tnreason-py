@@ -19,7 +19,7 @@ def get_weightSelectingFunction(varColorList, varPmDimDict, pmCutOff, weightSupe
 
 
 def create_sum(varColorList, varPmDimDict, headColor, pmCutOff):
-    return engine.create_relational_encoding(
+    return engine.create_basis_encoding(
         inshape=[varPmDimDict[color][1] - varPmDimDict[color][0] for color in varColorList],
         outshape=[pmCutOff[1] - pmCutOff[0]],
         incolors=varColorList,
@@ -32,7 +32,7 @@ def create_sum_selector(varColorList, varPmDimDict, headColor, pmCutOff, weightS
     """
     Creates sums of selected weights
     """
-    return engine.create_relational_encoding(
+    return engine.create_basis_encoding(
         inshape=[varPmDimDict[color][1] - varPmDimDict[color][0] for color in varColorList] + [len(weightSuperList)],
         outshape=[pmCutOff[1] - pmCutOff[0]],
         incolors=varColorList + [selectionColor],

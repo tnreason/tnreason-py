@@ -17,7 +17,7 @@ def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarS
     if dimensionsDict is None:
         dimensionsDict = {atomKey: 2 for atomKey in atomKeys}
     if interpretation == "categorical":
-        return categorical_to_relational_encoding(sampleDf, atomKeys, dataColor, dimensionsDict=dimensionsDict,
+        return categorical_to_basis_encoding(sampleDf, atomKeys, dataColor, dimensionsDict=dimensionsDict,
                                                   coreType=coreType, partitionDict=partitionDict)
     elif interpretation == "atomic":
         return {atomKey + dataCoreSuffix: atomValues_from_sampleDf(sampleDf, atomKey, dataColor)
@@ -26,7 +26,7 @@ def create_data_cores(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarS
         raise ValueError("Interpretation {} not understood!".format(interpretation))
 
 
-def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarSuf, dimensionsDict=None,
+def categorical_to_basis_encoding(sampleDf, atomKeys=None, dataColor=suf.datIn + suf.selVarSuf, dimensionsDict=None,
                                        coreType=None, partitionDict=None):
     """
     Relational Encoding of samples, which are interpreted as certain states of categorical variables.
@@ -35,7 +35,7 @@ def categorical_to_relational_encoding(sampleDf, atomKeys=None, dataColor=suf.da
         atomKeys = list(sampleDf.columns)
     if dimensionsDict is None:
         dimensionsDict = {atomKey: 2 for atomKey in atomKeys}
-    return tnreason.representation.basis_calculus.create_partitioned_relational_encoding(
+    return tnreason.representation.basis_calculus.create_partitioned_basis_encoding(
         inshape=[sampleDf.values.shape[0]], outshape=[dimensionsDict[atomKey] for atomKey in atomKeys],
         incolors=[dataColor], outcolors=atomKeys,
         function=lambda k: sampleDf[atomKeys].iloc[k].values,

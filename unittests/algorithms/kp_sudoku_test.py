@@ -3,7 +3,7 @@ import unittest
 from tnreason import reasoning
 
 from demonstrations.sudoku import sudoku_constraints as rep
-from demonstrations.sudoku import solution as sol
+from demonstrations.sudoku import sudoku_forward_mp as sol
 from demonstrations.sudoku import visualization as vis
 
 class SudokuTest(unittest.TestCase):

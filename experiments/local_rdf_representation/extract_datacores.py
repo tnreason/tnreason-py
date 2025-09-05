@@ -1,5 +1,5 @@
 from tnreason import engine
-from tnreason.engine.creation_handling import core_to_relational_encoding
+from tnreason.engine.creation_handling import core_to_basis_encoding
 
 
 def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j", categoricalColors=[], coreType=None,
@@ -11,7 +11,7 @@ def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j", 
     :coreType: Type of the resulting data cores
     """
     importanceQueryCore.enumerate_slices(enumerationColor=dataColor)
-    dataCores = {atomKey + "_dataCore": core_to_relational_encoding(
+    dataCores = {atomKey + "_dataCore": core_to_basis_encoding(
         core=engine.contract({"imCore": importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
                              openColors=[dataColor], contractionMethod=contractionMethod), headColor=atomKey,
         outCoreType=coreType)[0] for atomKey in atomQueryCoreDict}

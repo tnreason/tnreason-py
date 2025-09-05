@@ -25,14 +25,14 @@ if __name__ == "__main__":
     atomList = ["a","b","c"]
     maxSize = 2
 
-    relCor = tnreason.representation.basis_calculus.create_relational_encoding_from_lambda(
+    relCor = tnreason.representation.basis_calculus.create_basis_encoding_from_lambda(
         inshape=[len(testClause)],
         outshape=[len(atomList)+1 for i in range(maxSize)] + [2 for i in range(maxSize)],
         incolors=["l"],
         outcolors=["neur"+str(i)+"_p0_selVar" for i in range(maxSize)] + ["neur"+str(i)+"_actVar" for i in range(maxSize)],
         indicesToIndicesFunction=clauses_to_lambda(testClause, atomList, 2))
 
-    relCores = tnreason.representation.basis_calculus.create_partitioned_relational_encoding(
+    relCores = tnreason.representation.basis_calculus.create_partitioned_basis_encoding(
         inshape=[len(testClause)],
         outshape=[len(atomList)+1 for i in range(maxSize)] + [2 for i in range(maxSize)],
         incolors=["l"],
