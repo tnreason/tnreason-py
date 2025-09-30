@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
-
 def visualize_sudoku(sudokuArray, number=3, label=""):
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots(figsize=(6, 6))
 
     # Hide axes

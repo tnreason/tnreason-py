@@ -6,4 +6,4 @@ TNReason: A package for reasoning with Tensor Networks with the subpackages
 * application: Executes deductive and inductive reasoning tasks based on markov logic networks
 """
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"

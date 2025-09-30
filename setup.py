@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name="tnreason",
-    version="1.0.3",
+    version="2.0.0",
     author="Alex Goessmann",
     author_email="alex.goessmann@web.de",
     description="A package for reasoning based on tensor networks",
@@ -25,13 +25,14 @@ setup(
         "SPARQLWrapper",
         "networkx",
         "pyyaml",
-        #"rdflib",
+        "sortedcontainers",
         #"matplotlib",
+        # "rdflib",
         #"pgmpy",
         #"importlib-resources"
     ],
     python_requires=">=3",
     license="AGPL-3.0",
     url="https://github.com/EnexaProject/enexa-tensor-reasoning",
-    keywords="markov logic networks, tensor networks, alternating least squares, gibbs sampling, inductive logic programming"
+    keywords="markov logic networks, tensor networks, explainable AI, gibbs sampling, inductive logic programming, neuro-symbolic AI"
 )

@@ -1,12 +1,16 @@
 <h1 style="font-weight: normal;">
-  <strong>tnreason:</strong> <strong>T</strong>ensor <strong>N</strong>etworks for efficient and explainable <strong>Reason</strong>ing
+  <span style="font-size: 2.2rem; font-weight: bold;">tnreason:</span> 
+  <span style="font-size: 2.2rem; font-weight: bold;">T</span>ensor 
+  <span style="font-size: 2.2rem; font-weight: bold;">N</span>etworks for efficient and explainable 
+  <span style="font-size: 2.2rem; font-weight: bold;">Reason</span>ing
 </h1>
 
 <table>
 <tr>
 <td style="width: 60%;">
 
-The tensor network approach towards efficient and explainable artificial intelligence.
+
+`tnreason` is the implementation of the tensor network approach to efficient and explainable AI, documented in the [report](https://github.com/EnexaProject/enexa-tensor-reasoning-documentation/blob/master/tnreason_report.pdf).
 
 ## Installation
 
