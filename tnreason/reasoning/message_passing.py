@@ -2,6 +2,23 @@ from tnreason.reasoning import variational_inference as vi
 from sortedcontainers import SortedList
 
 
+def standard_clusters_from_computationCoreDict(computationCoreDict):
+    """
+    Returns messageClusters and inferenceClusters from a computationCoreDict, where
+    - messageClusters consist in single variables
+    - inferenceClusters consist in all variables involved in a computationCore
+    Requires the standard featureDict initialization from a computationCoreDict.
+    """
+    variableColors = []
+    for coreKey in computationCoreDict:
+        for i, colorKey in enumerate(computationCoreDict[coreKey].colors):
+            if colorKey not in variableColors:
+                variableColors.append(colorKey)
+    return {colorKey: [colorKey] for colorKey in variableColors}, {
+        "_".join(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
+            "_".join(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict}
+
+
 class ForwardMessagePasser(vi.InferenceBase):
     def __init__(self, startMessageSchedule=None,
                  inferenceClusters=dict(),  # Features being inferred together
@@ -163,6 +180,6 @@ class ForwardMessagePasser(vi.InferenceBase):
 
     def remove_fixed_messages(self):
         self.messageQueue = SortedList([(inferenceCluster, messageCluster) for (inferenceCluster, messageCluster) in
-                             self.messageQueue
-                             if not all(
+                                        self.messageQueue
+                                        if not all(
                 [featureKey in self.fixedFeatures for featureKey in self.messageClusters[messageCluster]])])

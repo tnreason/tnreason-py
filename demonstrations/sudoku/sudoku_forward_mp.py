@@ -2,11 +2,30 @@ from demonstrations.sudoku import sudoku_constraints as rep
 
 from tnreason import reasoning, engine
 
+
 def get_forward_mp_inferer(num, startAssignment):
     constraints = rep.get_sudoku_constraints(num)
     atomVariables = ["a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
                      for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num) for n in
                      range(num ** 2)]
+
+    caNetwork = rep.get_assignment_as_CANetwork(num=num, startAssignment=startAssignment)
+    messageClusters, inferenceClusters = reasoning.standard_clusters_from_computationCoreDict(
+        caNetwork.computationCoreDict)
+
+    # return reasoning.ForwardMessagePasser(
+    #     caNetwork = caNetwork,
+    #     messageClusters=messageClusters,
+    #     inferenceClusters = inferenceClusters,
+    #     meanParamDict={
+    #         **{atomKey: engine.create_from_slice_iterator(
+    #             shape=[2], colors=[atomKey],
+    #             sliceIterator=[(1, {})]) for atomKey in atomVariables}},
+    #     **{categoricalKey: engine.create_from_slice_iterator(
+    #         shape=[num * 2], colors=[categoricalKey],
+    #         sliceIterator=[(1, {})]) for categoricalKey in constraints}
+    # )
+
     return reasoning.ForwardMessagePasser(
         caNetwork=rep.get_assignment_as_CANetwork(num=num, startAssignment=startAssignment),
         messageClusters={
@@ -25,7 +44,7 @@ def get_forward_mp_inferer(num, startAssignment):
         **{categoricalKey: engine.create_from_slice_iterator(
             shape=[num * 2], colors=[categoricalKey],
             sliceIterator=[(1, {})]) for categoricalKey in constraints}
-        )
+    )
 
 
 def get_simple_clusterDict(num):

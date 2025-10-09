@@ -4,7 +4,10 @@ from tnreason.representation import basis_calculus as bc
 from tnreason.representation import features as ft
 
 
-def featureDict_from_computationCoreDict(computationCoreDict):
+def standard_featureDict_from_computationCoreDict(computationCoreDict):
+    """
+    Returns a featureDict for ComputationActivationInitialization,
+    """
     shapeDict = dict()
     variableColors = []
     for coreKey in computationCoreDict:

@@ -12,8 +12,8 @@ from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_ev
 
 df = pd.read_parquet('sample_data/nikoli100.parquet')
 
-def solve_with_messageLimit(puzzleNum, messageLimit, visualization=False, verbose=False):
 
+def solve_with_messageLimit(puzzleNum, messageLimit, visualization=False, verbose=False):
     evidenceDict = initial_board_into_evidence(df["initial_board"][puzzleNum])
     if verbose:
         print("Known atoms before message passing: {}".format(len(evidenceDict)))
@@ -41,6 +41,7 @@ def solve_with_messageLimit(puzzleNum, messageLimit, visualization=False, verbos
 
     return len(solutionEvidence), execTime, len(evidenceDict)
 
+
 def batch_solution(messageLimit=100000, untilPuzzle=100):
     successes = []
     exeTimes = []
@@ -62,15 +63,17 @@ def batch_solution(messageLimit=100000, untilPuzzle=100):
         solutionAssCounts.append(foundLen)
 
         totalTime += exeTime
-    print("### In total: ### \n{} out of {} solved \nAverage time: {} seconds".format(successCount, untilPuzzle, int(totalTime/untilPuzzle)))
+    print("### In total: ### \n{} out of {} solved \nAverage time: {} seconds".format(successCount, untilPuzzle,
+                                                                                      int(totalTime / untilPuzzle)))
     return successes, exeTimes, startAssCounts, solutionAssCounts
+
 
 if __name__ == "__main__":
     mLimit = 100000
     untilP = 1
 
     successes, exeTimes, startAssCounts, solutionAssCounts = batch_solution(messageLimit=mLimit, untilPuzzle=untilP)
-    results = pd.DataFrame(data = {
+    results = pd.DataFrame(data={
         "Success": successes,
         "ExecutionTime": exeTimes,
         "Start Assignments": startAssCounts,
@@ -78,4 +81,4 @@ if __name__ == "__main__":
     })
     print(results)
     output_path = 'results/result_nikoli100_simpleMP_mLimit{}.csv'.format(mLimit)  # Specify your desired file path
-    #results.to_csv(output_path, index=False)
+    # results.to_csv(output_path, index=False)
