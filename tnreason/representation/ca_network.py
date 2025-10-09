@@ -4,6 +4,24 @@ from tnreason.representation import basis_calculus as bc
 from tnreason.representation import features as ft
 
 
+def featureDict_from_computationCoreDict(computationCoreDict):
+    shapeDict = dict()
+    variableColors = []
+    for coreKey in computationCoreDict:
+        for i, colorKey in enumerate(computationCoreDict[coreKey].colors):
+            if colorKey not in variableColors:
+                variableColors.append(colorKey)
+                shapeDict[colorKey] = computationCoreDict[coreKey].shape[i]
+
+    return {**{colorKey: ft.HardPartitionFeature(featureColors=[colorKey], shape=[shapeDict[colorKey]],
+                                                 affectedComputationCores={}) for colorKey in variableColors},
+            **{"_".join(computationCoreDict[coreKey].colors[::-1]): ft.PassiveFeature(
+                featureColors=computationCoreDict[coreKey].colors,
+                shape=computationCoreDict[coreKey].shape, affectedComputationCores={coreKey}) for
+                coreKey in computationCoreDict}  ## Naming convention to match the Sudoku example
+            }
+
+
 class ComputationActivationNetwork(engine.EngineUser):
     def __init__(self, featureDict, computationCoreDict=dict(), baseMeasureCoreDict=dict(), canParamDict=dict(),
                  distributedVariables=[],
@@ -25,7 +43,7 @@ class ComputationActivationNetwork(engine.EngineUser):
         self.canParamDict = canParamDict
 
         for featureKey in self.featureDict:
-            if featureKey not in self.canParamDict: # and type(self.featureDict[featureKey]) != ft.PassiveFeature:
+            if featureKey not in self.canParamDict:  # and type(self.featureDict[featureKey]) != ft.PassiveFeature:
                 self.canParamDict[featureKey] = self.featureDict[featureKey].find_neutral_canParam()
             for coreKey in self.featureDict[featureKey].affectedComputationCores:
                 if coreKey not in self.computationCoreDict:
