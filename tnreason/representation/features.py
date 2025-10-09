@@ -258,6 +258,13 @@ class HardPartitionFeature(ComputedFeature):
 
     def activation_sum(self, canParam):
         return engine.contract({"can": canParam}, openColors=[])[:]
+
+    def guess_assignment(self, canParam):
+        candidateCore = engine.convert(canParam, outCoreType="NumpyCore")
+        guessedIndex = np.unravel_index(np.random.choice(np.flatnonzero(candidateCore.values)), self.shape)
+        return {self.featureColors[i]: guessedIndex[i] for i in range(len(self.featureColors))}
+
+
 class EnergyDictFeature(ComputedFeature):
     """
     Dummy Feature with no active part.

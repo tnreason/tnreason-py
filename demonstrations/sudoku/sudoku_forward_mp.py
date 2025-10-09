@@ -13,30 +13,10 @@ def get_forward_mp_inferer(num, startAssignment):
     messageClusters, inferenceClusters = reasoning.standard_clusters_from_computationCoreDict(
         caNetwork.computationCoreDict)
 
-    # return reasoning.ForwardMessagePasser(
-    #     caNetwork = caNetwork,
-    #     messageClusters=messageClusters,
-    #     inferenceClusters = inferenceClusters,
-    #     meanParamDict={
-    #         **{atomKey: engine.create_from_slice_iterator(
-    #             shape=[2], colors=[atomKey],
-    #             sliceIterator=[(1, {})]) for atomKey in atomVariables}},
-    #     **{categoricalKey: engine.create_from_slice_iterator(
-    #         shape=[num * 2], colors=[categoricalKey],
-    #         sliceIterator=[(1, {})]) for categoricalKey in constraints}
-    # )
-
     return reasoning.ForwardMessagePasser(
-        caNetwork=rep.get_assignment_as_CANetwork(num=num, startAssignment=startAssignment),
-        messageClusters={
-            **{atomKey: [atomKey] for atomKey in atomVariables},
-            **{categoricalKey: [categoricalKey] for categoricalKey in constraints}
-        },
-        inferenceClusters={
-            categoricalKey + "_" + atomKey: [categoricalKey, atomKey,
-                                             categoricalKey + "_" + atomKey]
-            for categoricalKey in constraints for atomKey in constraints[categoricalKey]
-        },
+        caNetwork = caNetwork,
+        messageClusters=messageClusters,
+        inferenceClusters = inferenceClusters,
         meanParamDict={
             **{atomKey: engine.create_from_slice_iterator(
                 shape=[2], colors=[atomKey],
