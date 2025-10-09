@@ -24,7 +24,7 @@ def get_assignment_as_CANetwork(num, startAssignment):
                                                                    shape=[num ** 2])
                for categoricalKey in constraints},
             **{categoricalKey + "_" + atomKey: representation.PassiveFeature(
-                featureColors=[], shape=[], affectedComputationCores=[
+                featureColors=[categoricalKey, atomKey], shape=[num**2, 2], affectedComputationCores=[
                     categoricalKey + "_" + atomKey + representation.suf.atoCoreSuf])
                for categoricalKey in constraints for atomKey in constraints[categoricalKey]}
         },

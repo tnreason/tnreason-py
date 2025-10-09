@@ -18,18 +18,6 @@ def solve_with_messageLimit(puzzleNum, messageLimit, visualization=False, verbos
     if verbose:
         print("Known atoms before message passing: {}".format(len(evidenceDict)))
 
-    ## Representation ##
-
-    caNetwork = rep.get_assignment_as_CANetwork(num=num, startAssignment=evidenceDict)
-
-    ## Reasoning ##
-
-    ## Old: Solution with ExpectationPropagator
-    # propagator = reasoning.get_inferer("ExpectationPropagator")(
-    #     caNetwork=caNetwork,
-    #     clusterDict=sol.get_simple_clusterDict(num=num),
-    #     meanParamDict=dict()
-    # )
     propagator = sol.get_forward_mp_inferer(num, evidenceDict)
     startTime = time.time()
     propagator.propagate_until_convergence(evidenceDict.keys(), maxMessageCount=messageLimit, verbose=False)
