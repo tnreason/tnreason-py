@@ -14,7 +14,7 @@ class Backtracker:
 
         self.startAssignment = assignment
         self.currentAssignment = assignment
-        self.startCanParamDict = propagator.caNetwork.canParamDict # Deep Copy?
+        self.startCanParamDict = propagator.caNetwork.canParamDict  # Deep Copy?
 
         self.failedAssignments = []
         self.plateauAssignments = []
@@ -23,34 +23,47 @@ class Backtracker:
         newKeys = list(self.currentAssignment.keys())
         for iteration in range(maxIterations):
             try:
+                print("Iteration {}: Propagation starts with keys {}.".format(iteration, newKeys))
                 self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=newKeys)
             except:
                 self.failedAssignments.append(self.currentAssignment)
                 self.reinitialize()
-                print("Iteration {}: Reinitializing due to inconsistency.".format(iteration))
+                print("Reinitializing due to inconsistency.".format(iteration))
             else:
-                solutionEvidence = sol.meanParams_to_evidence(self.propagator.meanParamDict)
+                solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
                 self.plateauAssignments.append((self.currentAssignment, solutionEvidence))
                 self.currentAssignment = solutionEvidence
-                print("Iteration {}: Current assignment length {}.".format(iteration, len(self.currentAssignment)))
+                print("Propagation without inconsistency. Current assignment length {}.".format(
+                    len(self.currentAssignment)))
 
             try:
-                newKeys = self.guess_extend_an_assignment()
+                extendAssignment, featureKey = self.guess_extend_an_assignment()
             except:
-                return sol.meanParams_to_evidence(self.propagator.meanParamDict)
+                return meanParams_to_evidence(self.propagator.meanParamDict), iteration
             else:
-                self.currentAssignment = {**self.currentAssignment, **newKeys}
+                self.currentAssignment = {**self.currentAssignment, **extendAssignment}
+                self.propagator.caNetwork.canParamDict.update({
+                    featureKey: representation.create_basis_core(name=featureKey, shape=self.propagator.caNetwork.featureDict[featureKey].shape,
+                                                                 colors=self.propagator.caNetwork.featureDict[featureKey].featureColors,
+                                                                 numberTuple=[extendAssignment[key] for key in
+                                                                              extendAssignment])
+                })
+                newKeys = list(extendAssignment.keys())
+
+        print("Max iterations reached.")
+        return self.currentAssignment, iteration
 
     def reinitialize(self):
+        ### Here the MC Tree Search could be applied
         self.assignment = self.startAssignment
         self.propagator.caNetwork.canParamDict = self.startCanParamDict
 
     def guess_extend_an_assignment(self):
+        ### Here some more advanced heurstics could be applied
         candidates = [featureKey for featureKey in self.propagator.caNetwork.featureDict if
                       "hard" in self.propagator.caNetwork.featureDict[featureKey].featureProperties and engine.contract(
                           {"c": self.propagator.caNetwork.canParamDict[featureKey]}, openColors=[])[:] > 1]
         if len(candidates) == 0:
-            #print("Solution: {}".format(sol.meanParams_to_evidence(self.propagator.meanParamDict)))
             raise ValueError("Could not find any candidates for new assignment, probably since all are assigned.")
 
         featureKey = random.choice(candidates)
@@ -58,15 +71,20 @@ class Backtracker:
             self.propagator.caNetwork.canParamDict[featureKey])
         if {**self.currentAssignment, **guessedAssignment} not in self.failedAssignments:
             print("Guessed assignment {} for feature {}.".format(guessedAssignment, featureKey))
-            return guessedAssignment
+            return guessedAssignment, featureKey
         else:
             self.reinitialize()
-            print("Guessed assignment {} for feature {} known to fail, reinitializing.".format(guessedAssignment, featureKey))
+            print("Guessed assignment {} for feature {} known to fail, reinitializing.".format(guessedAssignment,
+                                                                                               featureKey))
             return self.guess_extend_an_assignment()
 
 
-if __name__ == "__main__":
+def meanParams_to_evidence(meanParamsDict):
+    return {featureKey: 1 for featureKey in meanParamsDict if
+            meanParamsDict[featureKey][{featureKey: 0}] == 0 and featureKey.startswith("a")}
 
+
+if __name__ == "__main__":
     from demonstrations.sudoku import sudoku_forward_mp as sfmp
 
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
@@ -80,4 +98,7 @@ if __name__ == "__main__":
 
     propagator = sfmp.get_forward_mp_inferer(3, evidenceDict)
     backtracker = Backtracker(propagator, evidenceDict)
-    backtracker.search(maxIterations=10)
+    result, iteration = backtracker.search(maxIterations=10000)
+
+    print("### RESULT ###")
+    print(result)
