@@ -144,8 +144,8 @@ def get_forward_mp_inferer(num, startAssignment,extraConstraints):
                      for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num) for n in
                      range(num ** 2)]
     
-    caNet = get_assignment_as_CANetwork(num=num, startAssignment=startAssignment, extraConstraints=extraConstraints)
     testAssignment =  {"a_2_0_0_0_0": 1,"a_2_1_0_1_0": 1,"a_2_2_0_2_0": 1}
+    caNet = get_assignment_as_CANetwork(num=num, startAssignment=testAssignment, extraConstraints=extraConstraints)
     print("check consisteny",check_consistency(caNet, testAssignment))
 
     return reasoning.ForwardMessagePasser(
