@@ -1,9 +1,7 @@
 """
 Assign a new variable, do message passing, check whether consistent (either through vanishing messages appearing or through additional check)
 """
-from tnreason import engine, representation, reasoning
-
-from demonstrations.sudoku import sudoku_forward_mp as sol
+from tnreason import engine, representation
 
 import random
 
@@ -14,7 +12,7 @@ class Backtracker:
 
         self.startAssignment = assignment
         self.currentAssignment = assignment
-        self.startCanParamDict = propagator.caNetwork.canParamDict  # Deep Copy?
+        self.startCanParamDict = propagator.caNetwork.canParamDict  # Deep Copy needed Instead?
 
         self.failedAssignments = []
         self.plateauAssignments = []
@@ -23,12 +21,12 @@ class Backtracker:
         newKeys = list(self.currentAssignment.keys())
         for iteration in range(maxIterations):
             try:
-                print("Iteration {}: Propagation starts with keys {}.".format(iteration, newKeys))
+                print("Iteration {}: Propagation starts with keys {}.".format(iteration + 1, newKeys))
                 self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=newKeys)
             except:
                 self.failedAssignments.append(self.currentAssignment)
                 self.reinitialize()
-                print("Reinitializing due to inconsistency.".format(iteration))
+                print("Reinitializing due to inconsistency.")
             else:
                 solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
                 self.plateauAssignments.append((self.currentAssignment, solutionEvidence))
@@ -39,19 +37,22 @@ class Backtracker:
             try:
                 extendAssignment, featureKey = self.guess_extend_an_assignment()
             except:
-                return meanParams_to_evidence(self.propagator.meanParamDict), iteration
+                return meanParams_to_evidence(self.propagator.meanParamDict), iteration + 1
             else:
                 self.currentAssignment = {**self.currentAssignment, **extendAssignment}
                 self.propagator.caNetwork.canParamDict.update({
-                    featureKey: representation.create_basis_core(name=featureKey, shape=self.propagator.caNetwork.featureDict[featureKey].shape,
-                                                                 colors=self.propagator.caNetwork.featureDict[featureKey].featureColors,
+                    featureKey: representation.create_basis_core(name=featureKey,
+                                                                 shape=self.propagator.caNetwork.featureDict[
+                                                                     featureKey].shape,
+                                                                 colors=self.propagator.caNetwork.featureDict[
+                                                                     featureKey].featureColors,
                                                                  numberTuple=[extendAssignment[key] for key in
                                                                               extendAssignment])
                 })
                 newKeys = list(extendAssignment.keys())
 
         print("Max iterations reached.")
-        return self.currentAssignment, iteration
+        return self.currentAssignment, maxIterations
 
     def reinitialize(self):
         ### Here the MC Tree Search could be applied
