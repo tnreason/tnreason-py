@@ -80,6 +80,7 @@ class ForwardContractor(InferenceBase):
         if normalize:
             norm = engine.contract({"pre": preEnvironmentMean}, openColors=[])[:]
             assert norm > 0, "Inconsistency detected at environment mean to feature {}".format(featureKey)
+            #assert norm > 1e-10, "Numerical instability detected at environment mean to feature {}".format(featureKey)
             return 1 / norm * preEnvironmentMean
         else:
             return preEnvironmentMean

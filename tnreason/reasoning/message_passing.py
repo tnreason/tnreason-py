@@ -25,7 +25,9 @@ class ForwardMessagePasser(vi.InferenceBase):
                  messageClusters=None,  # Features carrying a message together
                  messageArchitecture=None,  # To each message Cluster a list of its inference Clusters
                  forwardInferenceMethod="ForwardContractor",
-                 backwardInferenceMethod="BackwardAlternator", **inferenceSpec):
+                 backwardInferenceMethod="BackwardAlternator",
+                 allowClearning=False,
+                 **inferenceSpec):
         super().__init__(**inferenceSpec)
 
         self.inferenceClusters = inferenceClusters
@@ -65,6 +67,8 @@ class ForwardMessagePasser(vi.InferenceBase):
 
         self.messageCount = 0
         self.fixedFeatures = []
+
+        self.allowCleaning = allowClearning
         self.cleanQueue = False
 
         self.forwardInferenceMethod = forwardInferenceMethod
@@ -128,7 +132,8 @@ class ForwardMessagePasser(vi.InferenceBase):
                     self.caNetwork.canParamDict[featureKey])
                 if checkSum == 1:
                     self.fixedFeatures.append(featureKey)
-                    self.cleanQueue = True
+                    if self.allowCleaning:
+                        self.cleanQueue = True
                 elif checkSum == 0:
                     raise ValueError(
                         "Hard feature {} received a message that eliminates all support.".format(featureKey))
@@ -183,3 +188,4 @@ class ForwardMessagePasser(vi.InferenceBase):
                                         self.messageQueue
                                         if not all(
                 [featureKey in self.fixedFeatures for featureKey in self.messageClusters[messageCluster]])])
+        self.cleanQueue = False

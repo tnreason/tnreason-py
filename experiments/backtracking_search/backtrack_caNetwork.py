@@ -4,15 +4,15 @@ Assign a new variable, do message passing, check whether consistent (either thro
 from tnreason import engine, representation
 
 import random
-
+import copy
 
 class Backtracker:
     def __init__(self, propagator, assignment):
         self.propagator = propagator
 
-        self.startAssignment = assignment
+        self.startAssignment = copy.deepcopy(assignment)
         self.currentAssignment = assignment
-        self.startCanParamDict = propagator.caNetwork.canParamDict  # Deep Copy needed Instead?
+        self.startCanParamDict = copy.deepcopy(propagator.caNetwork.canParamDict)  # Deep Copy needed Instead?
 
         self.failedAssignments = []
         self.plateauAssignments = []
@@ -20,10 +20,16 @@ class Backtracker:
     def search(self, maxIterations=10):
         newKeys = list(self.currentAssignment.keys())
         for iteration in range(maxIterations):
+            ## For debugging
+            #self.propagator.message_count = 0
+            #print("## Current message queue: {}".format(self.propagator.messageQueue))
+            #self.propagator.add_affected_directions(newKeys)
+            #print("## After message queue: {}".format(self.propagator.messageQueue))
             try:
                 print("Iteration {}: Propagation starts with keys {}.".format(iteration + 1, newKeys))
-                self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=newKeys)
-            except:
+                self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=newKeys, verbose=False)
+            except Exception as e:
+                print("Propagation ended with exception: {}".format(e))
                 self.failedAssignments.append(self.currentAssignment)
                 self.reinitialize()
                 print("Reinitializing due to inconsistency.")
@@ -56,8 +62,8 @@ class Backtracker:
 
     def reinitialize(self):
         ### Here the MC Tree Search could be applied
-        self.assignment = self.startAssignment
-        self.propagator.caNetwork.canParamDict = self.startCanParamDict
+        self.assignment = copy.deepcopy(self.startAssignment)
+        self.propagator.caNetwork.canParamDict = copy.deepcopy(self.startCanParamDict)
 
     def guess_extend_an_assignment(self):
         ### Here some more advanced heurstics could be applied
@@ -80,7 +86,7 @@ class Backtracker:
             return self.guess_extend_an_assignment()
 
 
-def meanParams_to_evidence(meanParamsDict):
+def meanParams_to_evidence(meanParamsDict): ## Still on Sudoku! Here counting the atoms known to be true
     return {featureKey: 1 for featureKey in meanParamsDict if
             meanParamsDict[featureKey][{featureKey: 0}] == 0 and featureKey.startswith("a")}
 
