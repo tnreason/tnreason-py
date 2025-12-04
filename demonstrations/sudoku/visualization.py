@@ -31,6 +31,7 @@ def visualize_sudoku(sudokuArray, number=3, label=""):
         ax.plot([i, i], [0, number ** 2], color='black', lw=lw)
 
     plt.title(label, fontsize=15)
+    plt.savefig(f"demonstrations/sudoku/examples/n={number}_sudoku_{label.replace(' ', '_')}.png")
     plt.show()
 
 

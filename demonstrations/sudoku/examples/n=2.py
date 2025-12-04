@@ -16,7 +16,7 @@ evidenceDict = {
     "a_0_0_1_0_2": 1
 }
 start_array = vis.evidence_to_array(evidenceDict, num=num)
-#vis.visualize_sudoku(start_array.astype(int), number=2, label="Start Assignment")
+vis.visualize_sudoku(start_array.astype(int), number=2, label="Start Assignment")
 
 ## Representation ##
 
@@ -38,4 +38,4 @@ assert solution_array[0, 2] == 3
 assert solution_array[0, 3] == 2
 assert solution_array[1, 2] == 4
 
-#vis.visualize_sudoku(solution_array.astype(int), number=2, label="Solution Assignment")
+vis.visualize_sudoku(solution_array.astype(int), number=2, label="Solution Assignment")
