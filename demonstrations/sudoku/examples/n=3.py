@@ -54,7 +54,7 @@ caNetwork = rep.get_assignment_as_CANetwork(num=num, startAssignment=evidenceDic
 #     meanParamDict=dict()
 # )
 propagator = sol.get_forward_mp_inferer(num, evidenceDict)
-propagator.propagate_until_convergence(evidenceDict.keys(), maxMessageCount=300)
+propagator.propagate_until_convergence(evidenceDict.keys(), maxMessageCount=30000)
 
 solution_array = vis.evidence_to_array(sol.meanParams_to_evidence(propagator.meanParamDict), num=num)
 # # Already Known

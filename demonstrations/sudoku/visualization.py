@@ -32,7 +32,7 @@ def visualize_sudoku(sudokuArray, number=3, label=""):
 
     plt.title(label, fontsize=15)
     plt.savefig(f"demonstrations/sudoku/examples/n={number}_sudoku_{label.replace(' ', '_')}.png")
-    plt.show()
+    # plt.show()
 
 
 def evidence_to_array(evidenceDict, num=3):
