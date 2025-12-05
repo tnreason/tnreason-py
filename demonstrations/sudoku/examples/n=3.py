@@ -38,6 +38,7 @@ evidenceDict = {
     "a_2_2_2_1_6": 1,
     "a_2_2_2_2_8": 1
 }
+
 start_array = vis.evidence_to_array(evidenceDict, num=num)
 vis.visualize_sudoku(start_array.astype(int), number=3, label="Start Assignment")
 
@@ -47,11 +48,12 @@ caNetwork = rep.get_assignment_as_CANetwork(num=num, startAssignment=evidenceDic
 
 ## Reasoning ##
 
-propagator = reasoning.get_inferer("ExpectationPropagator")(
-    caNetwork=caNetwork,
-    clusterDict=sol.get_simple_clusterDict(num=num),
-    meanParamDict=dict()
-)
+# propagator = reasoning.get_inferer("ExpectationPropagator")(
+#     caNetwork=caNetwork,
+#     clusterDict=sol.get_simple_clusterDict(num=num),
+#     meanParamDict=dict()
+# )
+propagator = sol.get_forward_mp_inferer(num, evidenceDict)
 propagator.propagate_until_convergence(evidenceDict.keys(), maxMessageCount=300)
 
 solution_array = vis.evidence_to_array(sol.meanParams_to_evidence(propagator.meanParamDict), num=num)

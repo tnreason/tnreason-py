@@ -1,9 +1,28 @@
 from tnreason import representation, application
 
+import json
+import numpy as np
+from tnreason.engine.workload_to_numpy import NumpyCore
 """
 We here provide the main Sudoku constraints by dictionaries of categorical constraints.
 These constraints can be represented by tensor networks using tnreason.representation.create_categorical_cores(constraints).
 """
+from pathlib import Path
+
+def encode_core(obj):
+    if isinstance(obj, NumpyCore):
+        return {
+            "coreType": obj.coreType,
+            "name": obj.name,
+            "colors": list(obj.colors),
+            "shape": [int(s) for s in obj.shape],
+            "values": obj.values.tolist(),
+        }
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, np.generic):  # numpy scalars
+        return obj.item()
+    raise TypeError(f"{type(obj).__name__} not JSON serializable")
 
 
 def get_assignment_as_CANetwork(num, startAssignment):
@@ -15,8 +34,11 @@ def get_assignment_as_CANetwork(num, startAssignment):
     # atomVariables = ["a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
     #                  for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num) for n in
     #                  range(num ** 2)]
+    constraints = get_sudoku_constraints(num)
+    path = Path(f"demonstrations/sudoku/examples/n={num}.txt")
+    path.write_text(json.dumps(constraints, indent=2, sort_keys=True, default=encode_core))
+    comCoreDict = application.create_categorical_cores(constraints)
 
-    comCoreDict = application.create_categorical_cores(get_sudoku_constraints(num))
     caNet=  representation.ComputationActivationNetwork(
         featureDict=representation.standard_featureDict_from_computationCoreDict(comCoreDict),
         computationCoreDict=comCoreDict,
