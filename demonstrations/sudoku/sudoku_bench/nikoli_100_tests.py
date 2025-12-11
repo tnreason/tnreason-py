@@ -78,7 +78,7 @@ def batch_solution_backtracking_mp(maxIterations=1000, untilPuzzle=100, verbose=
 
     successCount = 0
     totalTime = 0
-    for puzzleNum in [1]:#range(untilPuzzle):
+    for puzzleNum in range(untilPuzzle):
 
         evidenceDict = initial_board_into_evidence(df["initial_board"][puzzleNum])
 

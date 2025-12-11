@@ -1,9 +1,9 @@
-from tnreason import engine
+from tnreason.engine import create_random_core, contract
 
 studentTensorNetwork = {
-    "t0": engine.create_random_core(name="t0", colors=["G", "D", "I"], shape=[6, 3, 2]),
-    "t1": engine.create_random_core(name="t1", colors=["L", "G"], shape=[2, 6]),
-    "t2": engine.create_random_core(name="t2", colors=["I", "S"], shape=[2, 10]),
+    "t0": create_random_core(name="t0", colors=["G", "D", "I"], shape=[6, 3, 2]),
+    "t1": create_random_core(name="t1", colors=["L", "G"], shape=[2, 6]),
+    "t2": create_random_core(name="t2", colors=["I", "S"], shape=[2, 10]),
 }
 
 ## Execute the contraction propagation algorithm in the tree-based implementation
@@ -15,8 +15,8 @@ propagator.tree_propagation()
 
 ## Test on the marginals of the variables "L","G" (core "t1")
 
-testContraction = engine.contract(studentTensorNetwork, openColors=["L", "G"])
-propContraction = engine.contract({"mes_t0_t1": propagator.messageDict["t1"]["t0"],
+testContraction = contract(studentTensorNetwork, openColors=["L", "G"])
+propContraction = contract({"mes_t0_t1": propagator.messages["t1"]["t0"],
                                    "t1": studentTensorNetwork["t1"]}, openColors=["L", "G"])
 
 tolerance = 1e-6
