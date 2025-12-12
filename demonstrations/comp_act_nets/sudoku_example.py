@@ -1,27 +1,27 @@
 from tnreason.engine import contract
 from tnreason.engine import create_from_slice_iterator as create
+import numpy as np
 
-
-def create_sudoku_rule_tensor_network(num):
+def create_sudoku_rule_tensor_network(n):
     """
     Creates a tensor network of n^2 \tau^k matrices to each Sudoku constraint
     """
     rulesSpecDict = {
         ## Column Constraints
-        **{f"I_:_:_{c1}_{c2}_{n}": [f"X_{r1}_{r2}_{c1}_{c2}_{n}" for r1 in range(num) for r2 in
-                                    range(num)] for c1 in range(num) for c2 in range(num)
-           for n in range(num ** 2)},
+        **{f"I_:_:_{c0}_{c1}_{i}": [f"X_{r0}_{r1}_{c0}_{c1}_{i}" for r0 in range(n) for r1 in
+                                    range(n)] for c0 in range(n) for c1 in range(n)
+           for i in range(n ** 2)},
         ## Row Constraints
-        **{f"I_{r1}_{r2}_:_:_{n}": [f"X_{r1}_{r2}_{c1}_{c2}_{n}" for c1 in range(num) for c2 in
-                                    range(num)] for r1 in range(num) for r2 in range(num)
-           for n in range(num ** 2)},
+        **{f"I_{r0}_{r1}_:_:_{i}": [f"X_{r0}_{r1}_{c0}_{c1}_{i}" for c0 in range(n) for c1 in
+                                    range(n)] for r0 in range(n) for r1 in range(n)
+           for i in range(n ** 2)},
         ## Squares Constraints
-        **{f"I_{r1}_:_{c1}_:_{n}": [f"X_{r1}_{r2}_{c1}_{c2}_{n}" for r2 in range(num) for c2 in
-                                    range(num)] for r1 in range(num) for c1 in range(num)
-           for n in range(num ** 2)},
+        **{f"I_{r0}_:_{c0}_:_{i}": [f"X_{r0}_{r1}_{c0}_{c1}_{i}" for r1 in range(n) for c1 in
+                                    range(n)] for r0 in range(n) for c0 in range(n)
+           for i in range(n ** 2)},
         ## Position Constraints
-        **{f"I_{r1}_{r2}_{c1}_{c2}_:": [f"X_{r1}_{r2}_{c1}_{c2}_{n}" for n in range(num ** 2)]
-           for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num)}
+        **{f"I_{r0}_{r1}_{c0}_{c1}_:": [f"X_{r0}_{r1}_{c0}_{c1}_{i}" for i in range(n ** 2)]
+           for r0 in range(n) for r1 in range(n) for c0 in range(n) for c1 in range(n)}
     }
     cores = {}
     for decomKey in rulesSpecDict:
@@ -37,45 +37,45 @@ def create_sudoku_rule_tensor_network(num):
     return cores
 
 
-def encode_trivial_extended_evidence(E, num):
-    return {**{f"{r1}_{r2}_{c1}_{c2}_{n}_eC":
-                   create(shape=[2], colors=[f"X_{r1}_{r2}_{c1}_{c2}_{n}"],
-                          sliceIterator=[(1, {f"X_{r1}_{r2}_{c1}_{c2}_{n}": 1})])
-               for r1, r2, c1, c2, n in E},
-            **{f"{r1}_{r2}_{c1}_{c2}_{n}_eC":
-                   create(shape=[2], colors=[f"X_{r1}_{r2}_{c1}_{c2}_{n}"],
+def encode_trivial_extended_evidence(E, n):
+    return {**{f"{r0}_{r1}_{c0}_{c1}_{i}_eC":
+                   create(shape=[2], colors=[f"X_{r0}_{r1}_{c0}_{c1}_{i}"],
+                          sliceIterator=[(1, {f"X_{r0}_{r1}_{c0}_{c1}_{i}": 1})])
+               for r0, r1, c0, c1, i in E},
+            **{f"{r0}_{r1}_{c0}_{c1}_{i}_eC":
+                   create(shape=[2], colors=[f"X_{r0}_{r1}_{c0}_{c1}_{i}"],
                           sliceIterator=[(1, {})])
-               for r1 in range(num) for r2 in range(num) for c1 in range(num)
-               for c2 in range(num) for n in range(num ** 2) if (r1, r2, c1, c2, n) not in E}}
+               for r0 in range(n) for r1 in range(n) for c0 in range(n)
+               for c1 in range(n) for i in range(n ** 2) if (r0, r1, c0, c1, i) not in E}}
 
 
-def extract_resulting_evidence(propagator, num):
+def extract_resulting_evidence(propagator, n):
     return [
-        (r1, r2, c1, c2, n) for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num) for
-        n in range(num ** 2)
+        (r0, r1, c0, c1, i) for r0 in range(n) for r1 in range(n) for c0 in range(n) for c1 in range(n) for
+        i in range(n ** 2)
         if contract({
-            "eC": propagator.cores[f"{r1}_{r2}_{c1}_{c2}_{n}_eC"],
-            **propagator.messages[f"{r1}_{r2}_{c1}_{c2}_{n}_eC"]},
-            openColors=[f"X_{r1}_{r2}_{c1}_{c2}_{n}"])[{f"X_{r1}_{r2}_{c1}_{c2}_{n}": 0}] == 0]
+            "eC": propagator.cores[f"{r0}_{r1}_{c0}_{c1}_{i}_eC"],
+            **propagator.messages[f"{r0}_{r1}_{c0}_{c1}_{i}_eC"]},
+            openColors=[f"X_{r0}_{r1}_{c0}_{c1}_{i}"])[{f"X_{r0}_{r1}_{c0}_{c1}_{i}": 0}] == 0]
 
 
-def tuples_to_array(evidence, num=2):
-    array = np.zeros(shape=(num ** 2, num ** 2))
-    for (r1, r2, c1, c2, n) in evidence:
-        array[r1 * num + r2, c1 * num + c2] = n + 1
+def tuples_to_array(evidence, n=2):
+    array = np.zeros(shape=(n ** 2, n ** 2))
+    for (r0, r1, c0, c1, i) in evidence:
+        array[r0 * n + r1, c0 * n + c1] = i + 1
     return array
 
 
 from demonstrations.comp_act_nets.algorithms import propagation as cp
 
-num = 2
+n = 2
 evidence = [(0, 0, 0, 0, 0), (0, 0, 1, 0, 2), (0, 0, 1, 1, 1),
             (0, 1, 0, 1, 1), (1, 0, 1, 0, 3), (1, 1, 0, 0, 3),
             (1, 1, 0, 1, 2)]
 
 propagator = cp.ContractionPropagation(
-    cores={**create_sudoku_rule_tensor_network(num=num),
-           **encode_trivial_extended_evidence(evidence, num=num)})
-propagator.constraint_propagation([f"{r1}_{r2}_{c1}_{c2}_{n}_eC" for (r1, r2, c1, c2, n) in evidence])
-solutionArray = tuples_to_array(extract_resulting_evidence(propagator, num=2))
+    cores={**create_sudoku_rule_tensor_network(n=n),
+           **encode_trivial_extended_evidence(evidence, n=n)})
+propagator.constraint_propagation([f"{r0}_{r1}_{c0}_{c1}_{i}_eC" for (r0, r1, c0, c1, i) in evidence])
+solutionArray = tuples_to_array(extract_resulting_evidence(propagator, n=2))
 assert np.all(solutionArray == np.array([[1, 4, 3, 2], [3, 2, 1, 4], [2, 1, 4, 3], [4, 3, 2, 1]]))
