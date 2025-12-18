@@ -1,6 +1,7 @@
 from tnreason import engine
 import math
 
+from copy import deepcopy
 
 def get_sum_tn(catDim, catOrder):
     return {"block0": engine.create_from_slice_iterator(
@@ -57,3 +58,29 @@ assert 1 == int(engine.contract(coreDict={**get_sum_tn(catDim, catorder), **enco
                                 openColors=[f"Y_{k}" for k in range(catorder + 1)])[{"Y_2": 1, "Y_1": 0, "Y_0": 1}])
 assert 1 == int(engine.contract(coreDict={**get_sum_tn(catDim, catorder), **encode_numbers("10", "11", catDim)},
                                 openColors=[])[:])
+
+from demonstrations.comp_act_nets.algorithms import propagation as cp
+
+edgeDirections = {
+    **{f"X_{i}_eC": [[], [f"X_{i}"]] for i in range(catorder)},
+    **{f"TX_{i}_eC": [[], [f"TX_{i}"]] for i in range(catorder)},
+    "block0" : [["X_0","TX_0"],["Y_0","Z_0"]],
+    **{f"block_{i}": [[f"X_{i}", f"TX_{i}",f"Z_{i-1}"], [f"Y_{i}",f"Z_{i}"]] for i in range(1,catorder-1)},
+    f"block{catorder-1}": [[f"X_{catorder-1}", f"TX_{catorder-1}",f"Z_{catorder-2}"], [f"Y_{catorder-1}",f"Y_{catorder}"]],
+}
+
+propagator = cp.ContractionPropagation({**get_sum_tn(catDim, catorder), **encode_numbers("01", "01", catDim)})
+propagator.directed_propagation(edgeDirections=deepcopy(edgeDirections))
+
+## Check whether the message arrived at block1 states that the carry bit is 1
+assert propagator.messages["block1"]["block0"][{"Z_0":0}]==0
+assert propagator.messages["block1"]["block0"][{"Z_0":1}]==1
+
+
+propagator = cp.ContractionPropagation({**get_sum_tn(catDim, catorder),
+                                        **encode_numbers("10", "10", catDim)})
+propagator.directed_propagation(edgeDirections=deepcopy(edgeDirections))
+
+## Check whether the message arrived at block1 states that the carry bit is 1
+assert propagator.messages["block1"]["block0"][{"Z_0":0}]==1
+assert propagator.messages["block1"]["block0"][{"Z_0":1}]==0

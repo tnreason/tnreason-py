@@ -41,12 +41,37 @@ class ContractionPropagation:
                              otherSendKey in self.directions])):
                     schedule.append((receive, next))
 
+    def directed_propagation(self, edgeDirections):
+        """
+        Given the direction of edges in a dictionary, sent only in direction
+        """
+        filteredDirections = {
+            send: [
+                receive for receive in self.directions[send]
+                if (common := set(self.cores[send].colors) & set(self.cores[receive].colors))
+                   and common.issubset(set(edgeDirections[send][1]))
+                   and common.issubset(set(edgeDirections[receive][0]))
+            ]
+            for send in self.directions
+        }
+
+        schedule = [(send, receive) for send in filteredDirections for receive in filteredDirections[send] if
+                    len(edgeDirections[send][0]) == 0]
+
+        while len(schedule) > 0:
+            send, receive = schedule.pop()
+            self.messages[receive][send] = self.calculate_message(send, receive)
+            for x in set(edgeDirections[send][1]) & set(edgeDirections[receive][0]):
+                edgeDirections[receive][0].remove(x)
+            if len(edgeDirections[receive][0]) == 0:
+                schedule = schedule + [(receive, next) for next in filteredDirections[receive] if (receive, next) not in schedule]
+
     def constraint_propagation(self, startSendKeys):
         """
         Constraint implementation: Schedule new when message support changed
         """
         schedule = [(send, receive) for send in startSendKeys for receive in
-                    self.directions[send] if receive != send]
+                    self.directions[send]]
         while len(schedule) > 0:
             send, receive = schedule.pop()
             message = (self.messages[receive][send].clone() if send in self.messages[receive]
