@@ -2,6 +2,7 @@ from tnreason.engine import contract
 from tnreason.engine import create_from_slice_iterator as create
 import numpy as np
 
+
 def create_sudoku_rule_tensor_network(n):
     """
     Creates a tensor network of n^2 \tau^k matrices to each Sudoku constraint
@@ -38,6 +39,9 @@ def create_sudoku_rule_tensor_network(n):
 
 
 def encode_trivial_extended_evidence(E, n):
+    """
+    Prepares e_1 basis vectors for known variables and trivial vectors for others
+    """
     return {**{f"{r0}_{r1}_{c0}_{c1}_{i}_eC":
                    create(shape=[2], colors=[f"X_{r0}_{r1}_{c0}_{c1}_{i}"],
                           sliceIterator=[(1, {f"X_{r0}_{r1}_{c0}_{c1}_{i}": 1})])
@@ -50,16 +54,21 @@ def encode_trivial_extended_evidence(E, n):
 
 
 def extract_resulting_evidence(propagator, n):
-    return [
-        (r0, r1, c0, c1, i) for r0 in range(n) for r1 in range(n) for c0 in range(n) for c1 in range(n) for
-        i in range(n ** 2)
-        if contract({
+    """
+    Returns the evidence given a ContractionPropagation instance
+    """
+    return [(r0, r1, c0, c1, i) for r0 in range(n) for r1 in range(n)
+            for c0 in range(n) for c1 in range(n) for i in range(n ** 2)
+            if contract({
             "eC": propagator.cores[f"{r0}_{r1}_{c0}_{c1}_{i}_eC"],
             **propagator.messages[f"{r0}_{r1}_{c0}_{c1}_{i}_eC"]},
             openColors=[f"X_{r0}_{r1}_{c0}_{c1}_{i}"])[{f"X_{r0}_{r1}_{c0}_{c1}_{i}": 0}] == 0]
 
 
 def tuples_to_array(evidence, n=2):
+    """
+    Arranges the variables in an array
+    """
     array = np.zeros(shape=(n ** 2, n ** 2))
     for (r0, r1, c0, c1, i) in evidence:
         array[r0 * n + r1, c0 * n + c1] = i + 1
@@ -72,7 +81,6 @@ n = 2
 evidence = [(0, 0, 0, 0, 0), (0, 0, 1, 0, 2), (0, 0, 1, 1, 1),
             (0, 1, 0, 1, 1), (1, 0, 1, 0, 3), (1, 1, 0, 0, 3),
             (1, 1, 0, 1, 2)]
-
 propagator = cp.ContractionPropagation(
     cores={**create_sudoku_rule_tensor_network(n=n),
            **encode_trivial_extended_evidence(evidence, n=n)})

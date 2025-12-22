@@ -1,7 +1,11 @@
 from tnreason.engine import contract
 from tnreason.engine import create_from_slice_iterator as create
 
+
 class ContractionPropagation:
+    """
+    Summary Class for the Tree Belief, Directed Belief and Constraint Propagation Algorithms
+    """
     def __init__(self, cores):
         self.cores = cores
         self.directions = {send: [receive for receive in cores if
@@ -10,7 +14,10 @@ class ContractionPropagation:
                            for send in cores}
         self.messages = {receive: {} for receive in self.cores}
 
-    def initial_message(self, send, receive):
+    def trivial_message(self, send, receive):
+        """
+        Prepares trivial message from the send to the receive hyperedge
+        """
         commonColors = list(set(self.cores[send].colors) & set(self.cores[receive].colors))
         shape = [self.cores[send].shape[i]
                  for i, c in enumerate(self.cores[send].colors) if c in commonColors]
@@ -27,7 +34,8 @@ class ContractionPropagation:
 
     def tree_propagation(self):
         """
-        Tree implementation: Start with leafs and schedule new if all others received
+        Implementation of the Directed Belief Propagation Algorithm:
+        Messages are sent starting at the leafs and scheduled if all others received at a core
         """
         schedule = [(send, receive) for send in self.cores for receive in
                     self.directions[send] if len(self.directions[send]) == 1]
@@ -43,7 +51,8 @@ class ContractionPropagation:
 
     def directed_propagation(self, edgeDirections):
         """
-        Given the direction of edges in a dictionary, sent only in direction
+        Implementation of the Directed Belief Propagation Algorithm:
+        Messages are sent in direction of the hypergraph
         """
         filteredDirections = {
             send: [
@@ -55,8 +64,8 @@ class ContractionPropagation:
             for send in self.directions
         }
 
-        schedule = [(send, receive) for send in filteredDirections for receive in filteredDirections[send] if
-                    len(edgeDirections[send][0]) == 0]
+        schedule = [(send, receive) for send in filteredDirections
+                    for receive in filteredDirections[send] if len(edgeDirections[send][0]) == 0]
 
         while len(schedule) > 0:
             send, receive = schedule.pop()
@@ -64,18 +73,20 @@ class ContractionPropagation:
             for x in set(edgeDirections[send][1]) & set(edgeDirections[receive][0]):
                 edgeDirections[receive][0].remove(x)
             if len(edgeDirections[receive][0]) == 0:
-                schedule = schedule + [(receive, next) for next in filteredDirections[receive] if (receive, next) not in schedule]
+                schedule = schedule + [(receive, next) for next in filteredDirections[receive]
+                                       if (receive, next) not in schedule]
 
     def constraint_propagation(self, startSendKeys):
         """
-        Constraint implementation: Schedule new when message support changed
+        Implementation of the Constraint Propagation Algorithm:
+        Messages are resent, when the support of a received message has changed
         """
         schedule = [(send, receive) for send in startSendKeys for receive in
                     self.directions[send]]
         while len(schedule) > 0:
             send, receive = schedule.pop()
             message = (self.messages[receive][send].clone() if send in self.messages[receive]
-                       else self.initial_message(send, receive))
+                       else self.trivial_message(send, receive))
             cont = self.calculate_message(send, receive)
 
             messageChanged = False
