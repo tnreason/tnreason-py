@@ -14,12 +14,6 @@ def standard_clusters_from_computationCoreDict(computationCoreDict):
         for i, colorKey in enumerate(computationCoreDict[coreKey].colors):
             if colorKey not in variableColors:
                 variableColors.append(colorKey)
-    print("computationCoreDict", computationCoreDict)
-    print("computationCoreDict", {key: (computationCoreDict[key].colors, computationCoreDict[key].shape) for key in computationCoreDict})
-    exit()
-    print({
-        "_".join(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
-            "_".join(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict})
     return {colorKey: [colorKey] for colorKey in variableColors}, {
         "_".join(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
             "_".join(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict}

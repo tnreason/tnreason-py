@@ -7,6 +7,8 @@ from demonstrations.sudoku import visualization as vis
 import random
 import copy
 
+from demonstrations.sudoku import sudoku_forward_mp as sfmp
+
 class Backtracker:
     def __init__(self, assignment):
         self.num=3
@@ -70,9 +72,6 @@ class Backtracker:
                                                                               extendAssignment])
                 })
                 newKeys = list(extendAssignment.keys())
-            
-            exit()  # <-- for debugging, remove to run full search
-                
 
         print("Max iterations reached.")
         return self.currentAssignment, maxIterations
