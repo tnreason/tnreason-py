@@ -1,0 +1,27 @@
+from tnreason.engine.creation_handling import core_to_basis_encoding
+
+from tnreason.representation import suffixes as suf
+
+from tnreason import engine
+
+queryCoreSuffix = "_qCore"
+dataCoreSuffix = suf.datIn + suf.comCoreSuf
+
+def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor=suf.datIn + suf.selVarSuf,
+                  categoricalColors=[], coreType=None,
+                  contractionMethod="CorewiseContractor"):
+    """
+    :importanceQueryCore: Tensor Core representing the evaluation of the importance query (before slice enumeration!)
+    :atomQueryCoreDict: Dictionary of Tensor Cores representing the evaluation of the atom extraction queries
+    :dataColor: Color of the entry enumeration in the importanceQueryCore, which will be interpreted as the data color
+    :coreType: Type of the resulting data cores
+    """
+    importanceQueryCore.enumerate_slices(enumerationColor=dataColor)
+    dataCores = {atomKey + dataCoreSuffix: core_to_basis_encoding(
+        core=engine.contract({"imCore" + queryCoreSuffix: importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
+                             openColors=[dataColor], contractionMethod=contractionMethod), headColor=atomKey,
+        outCoreType=coreType)[0] for atomKey in atomQueryCoreDict}
+    if not len(categoricalColors) == 0:
+        dataCores["_".join([color for color in categoricalColors]) + dataCoreSuffix] = engine.contract(
+            {"imCore": importanceQueryCore}, openColors=[dataColor] + categoricalColors, contractionMethod=contractionMethod)
+    return dataCores

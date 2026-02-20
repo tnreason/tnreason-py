@@ -1,0 +1,70 @@
+from tnreason import engine
+from tnreason.engine.creation_handling import core_to_basis_encoding
+
+
+def get_dataCores(importanceQueryCore, atomQueryCoreDict=dict(), dataColor="j", categoricalColors=[], coreType=None,
+                  contractionMethod="CorewiseContractor"):
+    """
+    :importanceQueryCore: Tensor Core representing the evaluation of the importance query (before slice enumeration!)
+    :atomQueryCoreDict: Dictionary of Tensor Cores representing the evaluation of the atom extraction queries
+    :dataColor: Color of the entry enumeration in the importanceQueryCore, which will be interpreted as the data color
+    :coreType: Type of the resulting data cores
+    """
+    importanceQueryCore.enumerate_slices(enumerationColor=dataColor)
+    dataCores = {atomKey + "_dataCore": core_to_basis_encoding(
+        core=engine.contract({"imCore": importanceQueryCore, atomKey: atomQueryCoreDict[atomKey]},
+                             openColors=[dataColor], contractionMethod=contractionMethod), headColor=atomKey,
+        outCoreType=coreType)[0] for atomKey in atomQueryCoreDict}
+    if not len(categoricalColors) == 0:
+        dataCores["_".join([color for color in categoricalColors]) + "_dataCore"] = engine.contract(
+            {"imCore": importanceQueryCore}, openColors=[dataColor] + categoricalColors, contractionMethod=contractionMethod)
+    return dataCores
+
+
+def positionList_to_polynomialCore(positionList, variables=[], shape=[]):
+    """
+    Turns outputs of query evaluations (rdflib or tentris_tests) into polynomial cores for further contraction
+    """
+    return engine.get_core("PolynomialCore")(
+        values=[(1, posDict) for posDict in positionList],
+        shape=shape,
+        colors=variables
+    )
+
+
+if __name__ == "__main__":
+    from experiments.local_rdf_representation import rdflib_reading as rr
+    import rdflib
+
+    g = rdflib.Graph()
+    g.parse("./example_kg/THWS_demo.ttl")
+
+    queryString = """
+        SELECT DISTINCT ?x ?z ?y
+        WHERE {
+            ?x ?z ?y .
+        }
+    """
+
+    from tnreason import representation
+
+    result = g.query(queryString)
+    importancePositionList, interpretationDict = rr.rdflib_sparql_evaluation_to_entryPositionList(result)
+
+    termVariableColors = [x + representation.suf.terVarSuf for x in ["x", "z", "y"]]
+    importanceCore = positionList_to_polynomialCore(importancePositionList, variables=termVariableColors,
+                                                    shape=[10, 10, 10])
+
+    atomAString = """
+            SELECT DISTINCT ?x 
+            WHERE {
+                ?x ?z ?y .
+            }
+        """
+    result = g.query(atomAString)
+    atomAPositionList, interpretationDict = rr.rdflib_sparql_evaluation_to_entryPositionList(result, interpretationDict)
+    atomACore = positionList_to_polynomialCore(atomAPositionList, variables=["x"], shape=[10])
+    print(type(atomACore), type(importanceCore))
+    dataCores = get_dataCores(importanceCore, atomQueryCoreDict={"aCore": atomACore}, categoricalColors=["z"],
+                              coreType="PolynomialCore")
+    print(dataCores["z_dataCore"].values)

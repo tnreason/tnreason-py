@@ -1,0 +1,32 @@
+import unittest
+
+from knowledge.distribution_unittest import MNTest
+
+from algorithms.kp_sudoku_test import SudokuTest
+from algorithms.kp_forward_chaining_test import FCTest
+from algorithms.als_matrix_test import AlsMatrixTest
+from algorithms.als_knowledge_test import AlsKnowledgeTest
+
+from engine.logic_contraction_unittest import TensorLogicTest
+from engine.conversion_unittest import IteratorConversionTest
+from engine.normation_unittest import NormationTest
+from engine.optimization_unittest import GurobiTest
+from engine.term_unittest import TermLoadingTest
+from encoding.sparqlwrapper_dppedia_unittest import DBpediaTest  # Takes the longest
+from encoding.cnf_representation_unittest import CNFTest
+
+from application.entropy_maximization_unittest import WeightEstimationTest
+
+from knowledge.hybridKB_unittest import HybridKBTest
+from knowledge.formula_boosting_unittest import FormulaBoostingTest
+from knowledge.learning_test import HybridLearnerTest
+
+from reasoning.forward_backward_test import ForwardBackwardTest
+from reasoning.hard_feature_test import HardFeatureTest
+
+from experiments.variable_elimination.ep_along_clusterTree import VariableEliminationTest
+
+from accounting_demonstration.basic_inference import ToyAccountingTest
+from accounting_demonstration.businessPartner_normation import ToyAccountingBPTest
+
+unittest.main()
