@@ -24,10 +24,18 @@ def get_core(coreType=None):
     else:
         raise ValueError("Core Type {} not supported.".format(coreType))
 
-def create_from_slice_iterator(shape, colors, sliceIterator, coreType=defaultCoreType, name="Iterator"):
+def create_from_slice_iterator(shape, colors, sliceIterator, coreType=defaultCoreType, name="Iterator",verbose=False):
+    if verbose:
+        print("sliceIterator is {}".format(sliceIterator))
     core = get_core(coreType)(values=None, colors=colors, name=name, shape=shape)
+    if verbose:
+        print("Current core values: {}".format(core.values))
     for value, sliceDict in sliceIterator:
+        if verbose:
+            print("Setting core {} at slice {} to value {}".format(name, sliceDict, value))
         core[sliceDict] = value
+        if verbose:
+            print("Current core values: {}".format(core.values))
     return core
 
 def convert(inCore, outCoreType=None):
