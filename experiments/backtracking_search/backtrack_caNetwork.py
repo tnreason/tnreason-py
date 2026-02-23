@@ -111,7 +111,7 @@ class Backtracker:
         Detect hidden singles: if in a square, a number can only be in one row or one column.
         Returns list of tuples: (square_key, number, 'row'/'col', row/col_index)
         """
-        hidden_singles = []
+        locked_candidates = []
         num = self.num
 
         for r1 in range(num):
@@ -131,8 +131,7 @@ class Backtracker:
                     cols = set(pos[1] for pos in possible_positions)
                     if len(rows) == 1 and len(cols) > 1:
                         locked_row = list(rows)[0]
-                        # hidden_singles.append((square_key, n, 'row', locked_row))
-                        hidden_singles.append([square_key,
+                        locked_candidates.append([square_key,
                                                 "row_" + str(n) + "_" + str(r1) + "_" + str(locked_row),
                                                 ]+[
                                                 "a_" + str(r1) + "_" + str(locked_row) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
@@ -143,8 +142,7 @@ class Backtracker:
                     # Check columns
                     if len(cols) == 1 and len(rows) > 1:
                         locked_col = list(cols)[0]
-                        # hidden_singles.append((square_key, n, 'col', locked_col))
-                        hidden_singles.append([square_key,
+                        locked_candidates.append([square_key,
                                                 "col_" + str(n) + "_" + str(c1) + "_" + str(locked_col),
                                                 ]+[
                                                 "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(locked_col) + "_" + str(n)
@@ -152,7 +150,7 @@ class Backtracker:
                                                 ])
                         print(f"Locked candidates detected: {square_key} number {n} locked in col {c1}_{locked_col}")
         
-        return hidden_singles
+        return locked_candidates
 
     def guess_extend_an_assignment(self):
         ### Here some more advanced heurstics could be applied
