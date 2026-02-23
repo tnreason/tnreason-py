@@ -63,54 +63,57 @@ def get_assignment_as_CANetwork(num, startAssignment):
     #               ("pos_" + str(0) + "_" + str(1) + "_" + str(2) + "_" + str(0),"pos_" + str(0) + "_" + str(2) + "_" + str(2) + "_" + str(0)),
     #               ("pos_" + str(1) + "_" + str(0) + "_" + str(2) + "_" + str(1),"pos_" + str(1) + "_" + str(0) + "_" + str(2) + "_" + str(2)),
     #               ]
-    white_dots = [(rc_to_pos_assignment(0,0),rc_to_pos_assignment(1,0)),
-                  (rc_to_pos_assignment(0,1),rc_to_pos_assignment(0,2)),
-                  (rc_to_pos_assignment(0,3),rc_to_pos_assignment(1,3)),
-                  (rc_to_pos_assignment(0,4),rc_to_pos_assignment(1,4)),
-                  (rc_to_pos_assignment(1,6),rc_to_pos_assignment(2,6)),
-                  (rc_to_pos_assignment(3,7),rc_to_pos_assignment(3,8)),
-                  (rc_to_pos_assignment(4,0),rc_to_pos_assignment(4,1)),
-                  (rc_to_pos_assignment(4,7),rc_to_pos_assignment(4,8)),
-                  (rc_to_pos_assignment(5,7),rc_to_pos_assignment(5,8)),
-                  (rc_to_pos_assignment(6,0),rc_to_pos_assignment(6,1)),
-                  (rc_to_pos_assignment(6,0),rc_to_pos_assignment(7,0)),
-                  (rc_to_pos_assignment(6,5),rc_to_pos_assignment(7,5)),
-                  (rc_to_pos_assignment(6,6),rc_to_pos_assignment(6,7)),
-                  (rc_to_pos_assignment(7,2),rc_to_pos_assignment(8,2)),
-                  (rc_to_pos_assignment(7,4),rc_to_pos_assignment(7,5)),
-                  (rc_to_pos_assignment(8,7),rc_to_pos_assignment(8,8))
+    white_dots = [((0,0),(1,0))
+                  ((0,1),(0,2)),
+                  ((0,3),(1,3)),
+                  ((0,4),(1,4)),
+                  ((1,6),(2,6)),
+                  ((3,7),(3,8)),
+                  ((4,0),(4,1)),
+                  ((4,7),(4,8)),
+                  ((5,7),(5,8)),
+                  ((6,0),(6,1)),
+                  ((6,0),(7,0)),
+                  ((6,5),(7,5)),
+                  ((6,6),(6,7)),
+                  ((7,2),(8,2)),
+                  ((7,4),(7,5)),
+                  ((8,7),(8,8))
                   ]
+    white_dots = [(rc_to_pos_assignment(r1,c1),rc_to_pos_assignment(r2,c2)) for ((r1,c1),(r2,c2)) in white_dots]
     comCoreDict_white_dot = {"white_dot_"+str(posVar1)+"_"+str(posVar2): cenc_white_dot_constraint(posVar1, posVar2, sudokuNum=num) for (posVar1, posVar2) in white_dots}
 
-    black_dots = [(rc_to_pos_assignment(1,2),rc_to_pos_assignment(2,2)),
-                  (rc_to_pos_assignment(2,1),rc_to_pos_assignment(3,1)),
-                  (rc_to_pos_assignment(3,6),rc_to_pos_assignment(3,7)),
-                  (rc_to_pos_assignment(7,7),rc_to_pos_assignment(8,7)),
-                  (rc_to_pos_assignment(8,1),rc_to_pos_assignment(8,2))]
+    black_dots = [((1,2),(2,2)),
+                  ((2,1),(3,1)),
+                  ((3,6),(3,7)),
+                  ((7,7),(8,7)),
+                  ((8,1),(8,2))]
+    black_dots = [(rc_to_pos_assignment(r1,c1),rc_to_pos_assignment(r2,c2)) for ((r1,c1),(r2,c2)) in black_dots]
     comCoreDict_black_dot = {"black_dot_"+str(posVar1)+"_"+str(posVar2): cenc_black_dot_constraint(posVar1, posVar2, sudokuNum=num) for (posVar1, posVar2) in black_dots}
 
-    red_line = [(rc_to_pos_assignment(2,1),rc_to_pos_assignment(2,2)),
-                (rc_to_pos_assignment(2,2),rc_to_pos_assignment(2,3)),
-                (rc_to_pos_assignment(2,3),rc_to_pos_assignment(2,4)),
-                (rc_to_pos_assignment(2,4),rc_to_pos_assignment(2,5)),
-                (rc_to_pos_assignment(2,5),rc_to_pos_assignment(3,6)),
-                (rc_to_pos_assignment(3,6),rc_to_pos_assignment(4,7)),
-                (rc_to_pos_assignment(4,7),rc_to_pos_assignment(5,6)),
-                (rc_to_pos_assignment(6,5),rc_to_pos_assignment(6,4)),
-                (rc_to_pos_assignment(6,4),rc_to_pos_assignment(6,3)),
-                (rc_to_pos_assignment(6,3),rc_to_pos_assignment(6,2)),
-                (rc_to_pos_assignment(6,2),rc_to_pos_assignment(6,1)),
+    red_line = [((2,1),(2,2)),
+                ((2,2),(2,3)),
+                ((2,3),(2,4)),
+                ((2,4),(2,5)),
+                ((2,5),(3,6)),
+                ((3,6),(4,7)),
+                ((4,7),(5,6)),
+                ((6,5),(6,4)),
+                ((6,4),(6,3)),
+                ((6,3),(6,2)),
+                ((6,2),(6,1)),
 
-                (rc_to_pos_assignment(2,3),rc_to_pos_assignment(3,3)),
-                (rc_to_pos_assignment(3,3),rc_to_pos_assignment(4,2)),
-                (rc_to_pos_assignment(4,2),rc_to_pos_assignment(5,1)),
-                (rc_to_pos_assignment(5,1),rc_to_pos_assignment(5,0)),
+                ((2,3),(3,3)),
+                ((3,3),(4,2)),
+                ((4,2),(5,1)),
+                ((5,1),(5,0)),
 
-                (rc_to_pos_assignment(3,0),rc_to_pos_assignment(3,1)),
-                (rc_to_pos_assignment(3,1),rc_to_pos_assignment(4,2)),
-                (rc_to_pos_assignment(4,2),rc_to_pos_assignment(5,3)),
-                (rc_to_pos_assignment(5,3),rc_to_pos_assignment(6,3)),
+                ((3,0),(3,1)),
+                ((3,1),(4,2)),
+                ((4,2),(5,3)),
+                ((5,3),(6,3)),
                 ]
+    red_line = [(rc_to_pos_assignment(r1,c1),rc_to_pos_assignment(r2,c2)) for ((r1,c1),(r2,c2)) in red_line]
     comCoreDict_red_line = [red_line_constraint(posVar1, posVar2, sudokuNum=num) for (posVar1, posVar2) in red_line]
     comCoreDict_red_line = dict(ChainMap(*comCoreDict_red_line))
 
