@@ -1,5 +1,13 @@
 from tnreason import engine
 
+def red_line_constraint(posVar1, posVar2, sudokuNum=3):
+    odd_var1 = "oddInd_" + posVar1
+    odd_var2 = "oddInd_" + posVar2
+    odd_indicator_core1 = prepare_odd_indicator_core(posVar1, odd_var1, sudokuNum=sudokuNum)
+    odd_indicator_core2 = prepare_odd_indicator_core(posVar2, odd_var2, sudokuNum=sudokuNum)
+    red_line_core = red_line_constraint_from_odd(odd_var1, odd_var2)
+    return {odd_var1+"_core": odd_indicator_core1, odd_var2+"_core": odd_indicator_core2, "red_line_"+str(posVar1)+"_"+str(posVar2): red_line_core}
+
 ### Directly on the slice iterator: Using engine.engine
 def prepare_odd_indicator_core(posVar, oddVar, sudokuNum=3):
     """
@@ -12,7 +20,7 @@ def prepare_odd_indicator_core(posVar, oddVar, sudokuNum=3):
     )
 
 
-def red_line_constraint(oddInd1, oddInd2):
+def red_line_constraint_from_odd(oddInd1, oddInd2):
     """
     Exactly one of the neighbored positions is odd
     """
