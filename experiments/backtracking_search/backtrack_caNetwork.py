@@ -54,8 +54,8 @@ class Backtracker:
             start_array = vis.evidence_to_array(self.currentAssignment, num=self.num)
             vis.visualize_sudoku(start_array.astype(int), number=self.num, label=f"Assignment {iteration + 1}")
 
-
             self.extend_clusters()
+
             try:
                 extendAssignment, featureKey = self.guess_extend_an_assignment()
             except:
@@ -77,35 +77,36 @@ class Backtracker:
         return self.currentAssignment, maxIterations
 
     def extend_clusters(self):
-        # Detect and add hidden single constraints
-        hidden_info = self.detect_square_to_row_col()
+        # Detect locked candidates_box_line constraints
+        locked_info = self.detect_locked_candidates_box_line()
+        locked_inferenceClusters = {"_".join(vars[::-1]): vars + ["_".join(vars[::-1])] for vars in locked_info}
 
-        new_keys_from_hidden = []
-        for square_key, num, row_or_col, index in hidden_info:
-            try:
-                constraint_key = self.add_hidden_single_constraint(square_key, num, row_or_col, index)
-                new_keys_from_hidden.append(constraint_key)
-            except Exception as e:
-                print(f"Could not add hidden single constraint: {e}")
+        while len(locked_inferenceClusters) > 0:
+            # Check, if we already know those constraints, if yes, remove them from the new constraints to add
+            overlap = locked_inferenceClusters.keys() & self.propagator.inferenceClusters.keys()
+            for key in overlap:
+                del locked_inferenceClusters[key]
+            
+            if len(locked_inferenceClusters) > 0:
+                # Repropagate if we have found new constraints
+                new_inferenceClusters = {**self.propagator.inferenceClusters, **locked_inferenceClusters}
+                self.propagator.update_inferenceClusters(new_inferenceClusters)
+                self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=[color for colors in locked_info for color in colors], verbose=False)
+                
+                # Search for it again, since we might have added new constraints that allow to detect more locked candidates
+                locked_info = self.detect_locked_candidates_box_line()
+                locked_inferenceClusters = {"_".join(vars[::-1]): vars + ["_".join(vars[::-1])] for vars in locked_info}
         
-        # Repropagate if we added new constraints
-        if new_keys_from_hidden:
-            print(f"Repropagating with {len(new_keys_from_hidden)} new hidden single constraints")
-            self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=new_keys_from_hidden, verbose=False)
-            # Update evidence after repropagation
-            solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
-            self.currentAssignment = solutionEvidence
-
-
-
-
+        # Update evidence after repropagation
+        solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
+        self.currentAssignment = solutionEvidence
 
     def reinitialize(self):
         ### Here the MC Tree Search could be applied
         self.assignment = copy.deepcopy(self.startAssignment)
         self.propagator.caNetwork.canParamDict = copy.deepcopy(self.startCanParamDict)
 
-    def detect_square_to_row_col(self):
+    def detect_locked_candidates_box_line(self):
         """
         Detect hidden singles: if in a square, a number can only be in one row or one column.
         Returns list of tuples: (square_key, number, 'row'/'col', row/col_index)
@@ -130,73 +131,30 @@ class Backtracker:
                     cols = set(pos[1] for pos in possible_positions)
                     if len(rows) == 1 and len(cols) > 1:
                         locked_row = list(rows)[0]
-                        hidden_singles.append((square_key, n, 'row', locked_row))
-                        print(f"Hidden single detected: {square_key} number {n} locked in row {r1}_{locked_row}")
+                        # hidden_singles.append((square_key, n, 'row', locked_row))
+                        hidden_singles.append([square_key,
+                                                "row_" + str(n) + "_" + str(r1) + "_" + str(locked_row),
+                                                ]+[
+                                                "a_" + str(r1) + "_" + str(locked_row) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
+                                                    for c2 in list(cols)
+                                                ])
+                        print(f"Locked candidates detected: {square_key} number {n} locked in row {r1}_{locked_row}")
                     
                     # Check columns
                     if len(cols) == 1 and len(rows) > 1:
                         locked_col = list(cols)[0]
-                        hidden_singles.append((square_key, n, 'col', locked_col))
-                        print(f"Hidden single detected: {square_key} number {n} locked in col {c1}_{locked_col}")
+                        # hidden_singles.append((square_key, n, 'col', locked_col))
+                        hidden_singles.append([square_key,
+                                                "col_" + str(n) + "_" + str(c1) + "_" + str(locked_col),
+                                                ]+[
+                                                "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(locked_col) + "_" + str(n)
+                                                    for r2 in list(rows)
+                                                ])
+                        print(f"Locked candidates detected: {square_key} number {n} locked in col {c1}_{locked_col}")
         
         return hidden_singles
-    
-    def add_hidden_single_constraint(self, square_key, number, row_or_col, index):
-        """
-        Add an inference cluster that links a square constraint to a row/column constraint
-        when a number is locked in that row/column within the square.
-        """
-        # Parse square key: square_{n}_{r1}_{c1}
-        parts = square_key.split('_')
-        n = int(parts[1])
-        r1 = int(parts[2])
-        c1 = int(parts[3])
-        
-        if row_or_col == 'row':
-            # Create constraint: locked_row_n_r1_c1_r2
-            constraint_key = f"locked_row_{n}_{r1}_{c1}_{index}"
-            row_constraint = f"row_{n}_{r1}_{index}"
-            
-            # Atoms in this row of the square
-            atom_vars = []
-            for c2 in range(self.num):
-                atom_vars.append(f"a_{r1}_{index}_{c1}_{c2}_{n}")
-            
-            variables = [square_key, row_constraint] + atom_vars
-        else:  # col
-            # Create constraint: locked_col_n_r1_c1_c2
-            constraint_key = f"locked_col_{n}_{r1}_{c1}_{index}"
-            col_constraint = f"col_{n}_{c1}_{index}"
-            
-            # Atoms in this column of the square
-            atom_vars = []
-            for r2 in range(self.num):
-                atom_vars.append(f"a_{r1}_{r2}_{c1}_{index}_{n}")
-            
-            variables = [square_key, col_constraint] + atom_vars
-        
-        # Create categorical cores using the application API
-        # This creates an "exactly one" constraint among all variables
-        categoricalsDict = {constraint_key: variables}
-        new_cores = application.create_categorical_cores(categoricalsDict)
-        
-        # Add the new constraint to the computation core dict
-        self.propagator.caNetwork.computationCoreDict.update(new_cores)
-        
-        # Rebuild inference clusters to include the new constraint
-        from tnreason.reasoning.message_passing import standard_clusters_from_computationCoreDict
-        messageClusters, inferenceClusters = standard_clusters_from_computationCoreDict(
-            self.propagator.caNetwork.computationCoreDict
-        )
-        # self.propagator.inferenceClusters = inferenceClusters
-        # self.propagator.messageClusters = messageClusters
 
-        self.propagator.update_inferenceClusters(inferenceClusters)        
-        
-        print(f"Added constraint: {constraint_key} with variables: {variables}")
-        return constraint_key
-
-    def guess_extend_an_assignment_(self):
+    def guess_extend_an_assignment(self):
         ### Here some more advanced heurstics could be applied
         candidates = [featureKey for featureKey in self.propagator.caNetwork.featureDict if
                       "hard" in self.propagator.caNetwork.featureDict[featureKey].featureProperties and engine.contract(
@@ -216,7 +174,7 @@ class Backtracker:
                                                                                                featureKey))
             return self.guess_extend_an_assignment()
     
-    def guess_extend_an_assignment(self):
+    def guess_extend_an_assignment_(self):
         from demonstrations.sudoku import sudoku_forward_mp as sfmp
         from experiments.backtracking_search.alphasudoku_mcts import MpBackend, AlphaSudokuMCTS
 

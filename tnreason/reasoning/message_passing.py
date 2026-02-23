@@ -15,8 +15,8 @@ def standard_clusters_from_computationCoreDict(computationCoreDict):
             if colorKey not in variableColors:
                 variableColors.append(colorKey)
     return {colorKey: [colorKey] for colorKey in variableColors}, {
-        "_".join(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
-            "_".join(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict}
+            "_".join(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
+                            "_".join(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict}
 
 
 class ForwardMessagePasser(vi.InferenceBase):
