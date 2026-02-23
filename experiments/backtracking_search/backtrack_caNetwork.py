@@ -35,21 +35,8 @@ class Backtracker:
             #self.propagator.add_affected_directions(newKeys)
             #print("## After message queue: {}".format(self.propagator.messageQueue))
 
-
-            try:
-                print("Iteration {}: Propagation starts with keys {}.".format(iteration + 1, newKeys))
-                self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=newKeys, verbose=False)
-            except Exception as e:
-                print("Propagation ended with exception: {}".format(e))
-                self.failedAssignments.append(self.currentAssignment)
-                self.reinitialize()
-                print("Reinitializing due to inconsistency.")
-            else:
-                solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
-                self.plateauAssignments.append((self.currentAssignment, solutionEvidence))
-                self.currentAssignment = solutionEvidence
-                print("Propagation without inconsistency. Current assignment length {}.".format(
-                    len(self.currentAssignment)))
+            print("Iteration {}: Propagation starts with keys {}.".format(iteration + 1, newKeys))
+            self.try_to_propagate(newKeys)
 
             start_array = vis.evidence_to_array(self.currentAssignment, num=self.num)
             vis.visualize_sudoku(start_array.astype(int), number=self.num, label=f"Assignment {iteration + 1}")
@@ -76,6 +63,22 @@ class Backtracker:
         print("Max iterations reached.")
         return self.currentAssignment, maxIterations
 
+    def try_to_propagate(self, newKeys):
+        try:
+            self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=newKeys, verbose=False)
+        except Exception as e:
+            print("Propagation ended with exception: {}".format(e))
+            self.failedAssignments.append(self.currentAssignment)
+            self.reinitialize()
+            print("Reinitializing due to inconsistency.")
+        else:
+            solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
+            self.plateauAssignments.append((self.currentAssignment, solutionEvidence))
+            self.currentAssignment = solutionEvidence
+            print("Propagation without inconsistency. Current assignment length {}.".format(
+                len(self.currentAssignment)))
+
+
     def extend_clusters(self):
         # Detect locked candidates_box_line constraints
         locked_info = self.detect_locked_candidates_box_line()
@@ -86,12 +89,14 @@ class Backtracker:
             overlap = locked_inferenceClusters.keys() & self.propagator.inferenceClusters.keys()
             for key in overlap:
                 del locked_inferenceClusters[key]
-            
+            print(f"Locked candidates to add as new constraints: {locked_inferenceClusters.keys()}")
+
             if len(locked_inferenceClusters) > 0:
                 # Repropagate if we have found new constraints
                 new_inferenceClusters = {**self.propagator.inferenceClusters, **locked_inferenceClusters}
                 self.propagator.update_inferenceClusters(new_inferenceClusters)
-                self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=[color for colors in locked_info for color in colors], verbose=False)
+                self.try_to_propagate(newKeys=[color for colors in locked_info for color in colors])  
+                # self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=[color for colors in locked_info for color in colors], verbose=False)
                 
                 # Search for it again, since we might have added new constraints that allow to detect more locked candidates
                 locked_info = self.detect_locked_candidates_box_line()
