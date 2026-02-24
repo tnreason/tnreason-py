@@ -29,3 +29,20 @@ if __name__ == "__main__":
 
     assert check_consistency(caNet, {"a_0_0_0_0_0": 1})  # True
     assert not check_consistency(caNet, {"a_0_0_0_0_0": 1, "pos_0_0_0_0": 4})  # False
+
+
+    import pandas as pd
+    from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
+    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
+    df = pd.read_parquet(
+        f'{path}nikoli100.parquet')
+    puzzleNum = 1
+    sol = df["solution"][puzzleNum]
+    print("sol", sol)
+    solution = initial_board_into_evidence(sol)
+    assert check_consistency(caNet, solution) 
+
+    sol_false = "1"+sol[1:]
+    print("not sol", sol_false, sol_false == sol)
+    solution = initial_board_into_evidence(sol_false)
+    assert not check_consistency(caNet, solution)  # False

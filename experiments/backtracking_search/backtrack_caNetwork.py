@@ -184,9 +184,9 @@ if __name__ == "__main__":
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
     from demonstrations.sudoku.sudoku_test_result import check_solution_by_contraction
     import pandas as pd
-
+    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
     df = pd.read_parquet(
-        '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/nikoli100.parquet')
+        f'{path}nikoli100.parquet')
         # '/Users/alexgoessmann/Documents/tnreason/implementation/demonstrations/sudoku/sudoku_bench/sample_data/nikoli100.parquet')
     puzzleNum = 1
     evidenceDict = initial_board_into_evidence(df["initial_board"][puzzleNum])
@@ -196,6 +196,7 @@ if __name__ == "__main__":
     print("### RESULT ###")
     print(result)
 
-    ok, z = check_solution_by_contraction(result, num=3)
-    print("Valid by contraction:", ok, "scalar:", z)
+    # Save result
+    with open(f"{path}backtracking_result_{puzzleNum}.txt", "w") as f:
+        f.write(str(result))
     
