@@ -87,37 +87,37 @@ if __name__ == "__main__":
 
     caNet = sc.get_assignment_as_CANetwork(num=3, startAssignment={})
 
+    # Check Sudoku representation as a Computation-Activation Network
     assert check_consistency(caNet, {"a_0_0_0_0_0": 1})  # True
     assert not check_consistency(caNet, {"a_0_0_0_0_0": 1, "pos_0_0_0_0": 4})  # False
 
 
+    # Check if the checker works with known Sudoku solutions and non-solutions
     import pandas as pd
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
-    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
-    df = pd.read_parquet(
-        f'{path}nikoli100.parquet')
     puzzleNum = 1
+    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
+    df = pd.read_parquet(f'{path}nikoli100.parquet')
+    
     sol = df["solution"][puzzleNum]
-    print("sol", sol)
     solution = initial_board_into_evidence(sol)
-    print("solution", solution)
     assert check_consistency(caNet, solution) 
 
     sol_false = str((int(sol[0])+1)%9)+sol[1:]
-    print("not sol", sol_false, sol_false == sol)
     solution_false = initial_board_into_evidence(sol_false)
-    print("not solution", solution_false)
     assert not check_consistency(caNet, solution_false)  # False
 
 
-    # Read result from backtracking search and check consistency by contraction
+    # Check if a result from the backtracking search for the puzzle puzzleNum is consistent with the CANetwork
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
     import json
 
-    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
+    # Load result from backtracking search for the puzzle puzzleNum
     puzzleNum = 1
+    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
     file = f"{path}backtracking_result_{puzzleNum}.json"
     with open(file, "r", encoding="utf-8") as f:
         loaded = json.load(f)
 
+    # Check if all Sudoku constraints are fulfilled
     assert check_consistency(caNet, loaded) # True

@@ -179,19 +179,19 @@ def meanParams_to_evidence(meanParamsDict): ## Still on Sudoku! Here counting th
 
 
 if __name__ == "__main__":
-    from demonstrations.sudoku import sudoku_forward_mp as sfmp
-
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
-    from demonstrations.sudoku.sudoku_test_result import check_solution_by_contraction
+    from check_caNetwork import check_consistency
     import pandas as pd
     import json
-    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
-    df = pd.read_parquet(
-        f'{path}nikoli100.parquet')
-        # '/Users/alexgoessmann/Documents/tnreason/implementation/demonstrations/sudoku/sudoku_bench/sample_data/nikoli100.parquet')
+
+    # Load puzzle
     puzzleNum = 1
+    path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
+    # path = '/Users/alexgoessmann/Documents/tnreason/implementation/demonstrations/sudoku/sudoku_bench/sample_data/')
+    df = pd.read_parquet(f'{path}nikoli100.parquet')
     evidenceDict = initial_board_into_evidence(df["initial_board"][puzzleNum])
 
+    # Solve puzzle with backtracking search
     backtracker = Backtracker(evidenceDict)
     result, iteration = backtracker.search(maxIterations=10000)
     print("### RESULT ###")
@@ -200,4 +200,9 @@ if __name__ == "__main__":
     # Save result
     with open(f"{path}backtracking_result_{puzzleNum}.json", "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
+
+    # Check result by contraction
+    from demonstrations.sudoku.constraints import sudoku_constraints as rep
+    caNetwork = rep.get_assignment_as_CANetwork(num=3, startAssignment=evidenceDict)
+    assert check_consistency(caNetwork, result) 
     

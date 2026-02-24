@@ -1,4 +1,4 @@
-from demonstrations.sudoku import sudoku_constraints as rep
+from demonstrations.sudoku.constraints import sudoku_constraints as rep
 
 from tnreason import reasoning, engine
 
