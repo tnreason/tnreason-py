@@ -24,7 +24,7 @@ def get_forward_mp_inferer(num, startAssignment):
             **{categoricalKey: engine.create_from_slice_iterator(
                 shape=[num ** 2], colors=[categoricalKey],
                 sliceIterator=[(1, {})]) for categoricalKey in constraints}},
-        allowClearning=True  # aggressively drop settled features to help larger boards converge
+        allowClearning=False  # aggressively drop settled features to help larger boards converge
     )
 
 

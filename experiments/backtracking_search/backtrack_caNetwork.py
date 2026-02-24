@@ -1,6 +1,7 @@
 """
 Assign a new variable, do message passing, check whether consistent (either through vanishing messages appearing or through additional check)
 """
+from hashlib import new
 from tnreason import engine, representation, application
 from demonstrations.sudoku import visualization as vis
 
@@ -8,6 +9,7 @@ import random
 import copy
 
 from demonstrations.sudoku import sudoku_forward_mp as sfmp
+import demonstrations.sudoku.inferenceClusters as infClusters
 
 class Backtracker:
     def __init__(self, assignment):
@@ -37,12 +39,13 @@ class Backtracker:
 
             print("Iteration {}: Propagation starts with keys {}.".format(iteration + 1, newKeys))
             self.try_to_propagate(newKeys)
+            self.extend_clusters()
+
 
             start_array = vis.evidence_to_array(self.currentAssignment, num=self.num)
             vis.visualize_sudoku(start_array.astype(int), number=self.num, label=f"Assignment {iteration + 1}")
 
-            self.extend_clusters()
-
+            
             try:
                 extendAssignment, featureKey = self.guess_extend_an_assignment()
             except:
@@ -79,28 +82,27 @@ class Backtracker:
                 len(self.currentAssignment)))
 
 
+
     def extend_clusters(self):
-        # Detect locked candidates_box_line constraints
-        locked_info = self.detect_locked_candidates_box_line()
-        locked_inferenceClusters = {"_".join(vars[::-1]): vars + ["_".join(vars[::-1])] for vars in locked_info}
+        new_info = self.detect_new_rules()
+        new_inferenceClusters = {"_".join(vars[::-1]): vars + ["_".join(vars[::-1])] for vars in new_info}
 
-        while len(locked_inferenceClusters) > 0:
+        while len(new_inferenceClusters) > 0:
             # Check, if we already know those constraints, if yes, remove them from the new constraints to add
-            overlap = locked_inferenceClusters.keys() & self.propagator.inferenceClusters.keys()
+            overlap = new_inferenceClusters.keys() & self.propagator.inferenceClusters.keys()
             for key in overlap:
-                del locked_inferenceClusters[key]
-            print(f"Locked candidates to add as new constraints: {locked_inferenceClusters.keys()}")
+                del new_inferenceClusters[key]
+            print(f"New candidates to add as new constraints: {new_inferenceClusters.keys()}")
 
-            if len(locked_inferenceClusters) > 0:
+            if len(new_inferenceClusters) > 0:
                 # Repropagate if we have found new constraints
-                new_inferenceClusters = {**self.propagator.inferenceClusters, **locked_inferenceClusters}
+                new_inferenceClusters = {**self.propagator.inferenceClusters, **new_inferenceClusters}
                 self.propagator.update_inferenceClusters(new_inferenceClusters)
-                self.try_to_propagate(newKeys=[color for colors in locked_info for color in colors])  
-                # self.propagator.propagate_until_convergence(nonTrivialFeatureKeys=[color for colors in locked_info for color in colors], verbose=False)
+                self.try_to_propagate(newKeys=[color for colors in new_info for color in colors])
                 
                 # Search for it again, since we might have added new constraints that allow to detect more locked candidates
-                locked_info = self.detect_locked_candidates_box_line()
-                locked_inferenceClusters = {"_".join(vars[::-1]): vars + ["_".join(vars[::-1])] for vars in locked_info}
+                new_info = self.detect_new_rules() # Here more types of constraints could be added, e.g. naked pairs, pointing pairs, etc.
+                new_inferenceClusters = {"_".join(vars[::-1]): vars + ["_".join(vars[::-1])] for vars in new_info}
         
         # Update evidence after repropagation
         solutionEvidence = meanParams_to_evidence(self.propagator.meanParamDict)
@@ -111,53 +113,21 @@ class Backtracker:
         self.assignment = copy.deepcopy(self.startAssignment)
         self.propagator.caNetwork.canParamDict = copy.deepcopy(self.startCanParamDict)
 
-    def detect_locked_candidates_box_line(self):
+    def detect_new_rules(self):
         """
-        Detect hidden singles: if in a square, a number can only be in one row or one column.
-        Returns list of tuples: (square_key, number, 'row'/'col', row/col_index)
+        Detect new constraints based on the current mean parameters. For example, locked candidates in Sudoku.
+        Returns list of variable combinations that form new constraints, e.g. for locked candidates: (square_key, number, 'row'/'col', row/col_index)
         """
-        locked_candidates = []
-        num = self.num
+        # Detect locked candidates_box_line constraints
+        locked_square = infClusters.detect_locked_candidates_square(self.propagator, num=self.num)
+        locked_row = infClusters.detect_locked_candidates_row(self.propagator, num=self.num)
+        locked_col = infClusters.detect_locked_candidates_col(self.propagator, num=self.num)
+        hidden_pairs = infClusters.detect_hidden_pairs(self.propagator, num=self.num)
+        naked_pairs = infClusters.detect_naked_pairs(self.propagator, num=self.num)
+        # Here more types of constraints could be added, e.g. naked pairs, pointing pairs, etc.
+        return locked_square+locked_row+locked_col+hidden_pairs+naked_pairs
 
-        for r1 in range(num):
-            for c1 in range(num):
-                for n in range(num**2):
-                    square_key = f"square_{n}_{r1}_{c1}"
-                    # square_constraint = ["a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n) for r2 in range(num) for c2 in range(num)]
-                    square_constraint_inds = [(r2,c2) for r2 in range(num) for c2 in range(num)]
-                    possible_pos_flat = [i for i in range(num**2) if self.propagator.meanParamDict[square_key][{square_key: i}] > 0.5]
-                    possible_positions = [square_constraint_inds[ind] for ind in possible_pos_flat]
-                    
-                    if not possible_positions:
-                        continue
-                    
-                    # Check rows
-                    rows = set(pos[0] for pos in possible_positions)
-                    cols = set(pos[1] for pos in possible_positions)
-                    if len(rows) == 1 and len(cols) > 1:
-                        locked_row = list(rows)[0]
-                        locked_candidates.append([square_key,
-                                                "row_" + str(n) + "_" + str(r1) + "_" + str(locked_row),
-                                                ]+[
-                                                "a_" + str(r1) + "_" + str(locked_row) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
-                                                    for c2 in list(cols)
-                                                ])
-                        print(f"Locked candidates detected: {square_key} number {n} locked in row {r1}_{locked_row}")
-                    
-                    # Check columns
-                    if len(cols) == 1 and len(rows) > 1:
-                        locked_col = list(cols)[0]
-                        locked_candidates.append([square_key,
-                                                "col_" + str(n) + "_" + str(c1) + "_" + str(locked_col),
-                                                ]+[
-                                                "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(locked_col) + "_" + str(n)
-                                                    for r2 in list(rows)
-                                                ])
-                        print(f"Locked candidates detected: {square_key} number {n} locked in col {c1}_{locked_col}")
-        
-        return locked_candidates
-
-    def guess_extend_an_assignment(self):
+    def guess_extend_an_assignment_(self):
         ### Here some more advanced heurstics could be applied
         candidates = [featureKey for featureKey in self.propagator.caNetwork.featureDict if
                       "hard" in self.propagator.caNetwork.featureDict[featureKey].featureProperties and engine.contract(
@@ -177,7 +147,7 @@ class Backtracker:
                                                                                                featureKey))
             return self.guess_extend_an_assignment()
     
-    def guess_extend_an_assignment_(self):
+    def guess_extend_an_assignment(self):
         from demonstrations.sudoku import sudoku_forward_mp as sfmp
         from experiments.backtracking_search.alphasudoku_mcts import MpBackend, AlphaSudokuMCTS
 
@@ -212,7 +182,7 @@ if __name__ == "__main__":
     from demonstrations.sudoku import sudoku_forward_mp as sfmp
 
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
-
+    from demonstrations.sudoku.sudoku_test_result import check_solution_by_contraction
     import pandas as pd
 
     df = pd.read_parquet(
@@ -223,6 +193,9 @@ if __name__ == "__main__":
 
     backtracker = Backtracker(evidenceDict)
     result, iteration = backtracker.search(maxIterations=10000)
-
     print("### RESULT ###")
     print(result)
+
+    ok, z = check_solution_by_contraction(result, num=3)
+    print("Valid by contraction:", ok, "scalar:", z)
+    
