@@ -56,3 +56,15 @@ def cenc_red_line_constraint(oddInd1, oddInd2):
     """
     return representation.create_tensor_encoding(inshape=[2, 2], incolors=[oddInd1, oddInd2],
                                                  function=lambda o1, o2: o1 ^ o2)
+
+if __name__ == "__main__":
+    assert prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 0}] == 1
+    assert prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 1}] == 0
+    assert benc_prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 0}] == 1
+    assert benc_prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 1}] == 0
+
+    assert red_line_constraint_from_odd("o1", "o2")[{"o2": 1, "o1": 0}] == 1
+    assert red_line_constraint_from_odd("o1", "o2")[{"o2": 1, "o1": 1}] == 0
+    assert cenc_red_line_constraint("o1", "o2")[{"o2": 1, "o1": 0}] == 1
+    assert cenc_red_line_constraint("o1", "o2")[{"o2": 1, "o1": 1}] == 0
+    assert red_line_constraint("pos1", "pos2")["red_line_pos1_pos2"][{"oddInd_pos1": 0, "oddInd_pos2": 1}] == 1

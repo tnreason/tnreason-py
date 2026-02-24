@@ -184,6 +184,7 @@ if __name__ == "__main__":
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
     from demonstrations.sudoku.sudoku_test_result import check_solution_by_contraction
     import pandas as pd
+    import json
     path = '/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/'
     df = pd.read_parquet(
         f'{path}nikoli100.parquet')
@@ -197,6 +198,6 @@ if __name__ == "__main__":
     print(result)
 
     # Save result
-    with open(f"{path}backtracking_result_{puzzleNum}.txt", "w") as f:
-        f.write(str(result))
+    with open(f"{path}backtracking_result_{puzzleNum}.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
     

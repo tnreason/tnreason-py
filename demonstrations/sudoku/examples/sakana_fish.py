@@ -139,26 +139,6 @@ def solve_Sakana_Fish_Sudoku(num, startAssignment):
     return propagator.meanParamDict
 
 if __name__ == "__main__":
-    assert prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 0}] == 1
-    assert prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 1}] == 0
-    assert benc_prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 0}] == 1
-    assert benc_prepare_odd_indicator_core("pos", "odd")[{"pos": 3, "odd": 1}] == 0
-
-    assert red_line_constraint_from_odd("o1", "o2")[{"o2": 1, "o1": 0}] == 1
-    assert red_line_constraint_from_odd("o1", "o2")[{"o2": 1, "o1": 1}] == 0
-    assert cenc_red_line_constraint("o1", "o2")[{"o2": 1, "o1": 0}] == 1
-    assert cenc_red_line_constraint("o1", "o2")[{"o2": 1, "o1": 1}] == 0
-    assert red_line_constraint("pos1", "pos2")["red_line_pos1_pos2"][{"oddInd_pos1": 0, "oddInd_pos2": 1}] == 1
-
-    assert white_dot_constraint("p1", "p2")[{"p1": 1, "p2": 0}] == 1
-    assert white_dot_constraint("p1", "p2")[{"p1": 5, "p2": 6}] == 1
-    assert cenc_white_dot_constraint("p1", "p2")[{"p1": 1, "p2": 0}] == 1
-    assert cenc_white_dot_constraint("p1", "p2")[{"p1": 5, "p2": 6}] == 1
-
-    assert black_dot_constraint("p1", "p2")[{"p1": 5, "p2": 6}] == 0
-    assert black_dot_constraint("p1", "p2")[{"p1": 2, "p2": 5}] == 1
-    assert cenc_black_dot_constraint("p1", "p2")[{"p1": 5, "p2": 6}] == 0
-    assert cenc_black_dot_constraint("p1", "p2")[{"p1": 2, "p2": 5}] == 1
     
     get_assignment_as_CANetwork(num=3, startAssignment={})
     solve_Sakana_Fish_Sudoku(num=3, startAssignment={})

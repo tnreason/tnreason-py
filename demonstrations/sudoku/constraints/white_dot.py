@@ -21,3 +21,10 @@ def cenc_white_dot_constraint(posVar1, posVar2, sudokuNum=3):
     """
     return representation.create_tensor_encoding(inshape=[sudokuNum ** 2, sudokuNum ** 2], incolors=[posVar1, posVar2],
                                                  function=lambda val1, val2: abs(val1 - val2) == 1)
+
+if __name__ == "__main__":
+
+    assert white_dot_constraint("p1", "p2")[{"p1": 1, "p2": 0}] == 1
+    assert white_dot_constraint("p1", "p2")[{"p1": 5, "p2": 6}] == 1
+    assert cenc_white_dot_constraint("p1", "p2")[{"p1": 1, "p2": 0}] == 1
+    assert cenc_white_dot_constraint("p1", "p2")[{"p1": 5, "p2": 6}] == 1
