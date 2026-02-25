@@ -63,7 +63,7 @@ def get_assignment_as_CANetwork(num, startAssignment):
     #               ("pos_" + str(0) + "_" + str(1) + "_" + str(2) + "_" + str(0),"pos_" + str(0) + "_" + str(2) + "_" + str(2) + "_" + str(0)),
     #               ("pos_" + str(1) + "_" + str(0) + "_" + str(2) + "_" + str(1),"pos_" + str(1) + "_" + str(0) + "_" + str(2) + "_" + str(2)),
     #               ]
-    white_dots = [((0,0),(1,0))
+    white_dots = [((0,0),(1,0)),
                   ((0,1),(0,2)),
                   ((0,3),(1,3)),
                   ((0,4),(1,4)),
