@@ -14,6 +14,7 @@ For a cell at position (row, col), the knight moves are:
 
 from tnreason import engine
 from tnreason import representation
+from constraints.rc_to_variable_helper import rc_to_pos_assignment
 
 
 def knight_move_constraint(posVar1, posVar2, sudokuNum=3):
@@ -102,11 +103,15 @@ def generate_all_knight_constraints(grid_size=9, sudokuNum=3):
     # For each cell, generate constraints with all its knight move neighbors
     for row in range(grid_size):
         for col in range(grid_size):
-            posVar1 = f"r{row}c{col}"
+            # posVar1 = f"r{row}c{col}"
+            # posVar1 = "pos_" + str(row//sudokuNum) + "_" + str(row%sudokuNum) + "_" + str(col//sudokuNum) + "_" + str(col%sudokuNum)
+            posVar1 = rc_to_pos_assignment(row, col)
             knight_moves = get_knight_moves_for_cell(row, col, grid_size)
             
             for km_row, km_col in knight_moves:
-                posVar2 = f"r{km_row}c{km_col}"
+                # posVar2 = f"r{km_row}c{km_col}"
+                # posVar2 = "pos_" + str(km_row//sudokuNum) + "_" + str(km_row%sudokuNum) + "_" + str(km_col//sudokuNum) + "_" + str(km_col%sudokuNum)
+                posVar2 = rc_to_pos_assignment(km_row, km_col)
                 # Only create constraint once per pair (avoid duplicates)
                 if (row, col) < (km_row, km_col):
                     constraint_name = f"knight_{posVar1}_{posVar2}"

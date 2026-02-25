@@ -17,6 +17,7 @@ from demonstrations.sudoku.constraints import sudoku_constraints as rep
 from demonstrations.sudoku.constraints.white_dot import white_dot_constraint, cenc_white_dot_constraint
 from demonstrations.sudoku.constraints.black_dot import black_dot_constraint, cenc_black_dot_constraint
 from demonstrations.sudoku.constraints.red_line import red_line_constraint_from_odd, red_line_constraint, prepare_odd_indicator_core, benc_prepare_odd_indicator_core, cenc_red_line_constraint
+from demonstrations.sudoku.constraints.rc_to_variable_helper import rc_to_pos_assignment
 
 def get_forward_mp_inferer(num, startAssignment):
     constraints = rep.get_sudoku_constraints(num)
@@ -42,12 +43,6 @@ def get_forward_mp_inferer(num, startAssignment):
         allowClearning=True  # aggressively drop settled features to help larger boards converge
     )
 
-def rc_to_pos_assignment(r,c):
-    r1 = r // 3
-    r2 = r % 3
-    c1 = c // 3
-    c2 = c % 3
-    return "pos_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2)
 
 def get_assignment_as_CANetwork(num, startAssignment):
     """

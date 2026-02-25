@@ -12,6 +12,7 @@ and their reverses.
 
 from tnreason import engine
 from tnreason import representation
+from constraints.rc_to_variable_helper import rc_to_pos_assignment
 
 
 def german_whispers_constraint(posVar1, posVar2, sudokuNum=3):
@@ -79,8 +80,10 @@ def generate_german_whispers_constraints(line_cells, line_name="german_whisper")
         row1, col1 = line_cells[i]
         row2, col2 = line_cells[i + 1]
         
-        posVar1 = f"r{row1}c{col1}"
-        posVar2 = f"r{row2}c{col2}"
+        # posVar1 = f"r{row1}c{col1}"
+        # posVar2 = f"r{row2}c{col2}"
+        posVar1 = rc_to_pos_assignment(row1, col1)
+        posVar2 = rc_to_pos_assignment(row2, col2)
         
         constraint_name = f"{line_name}_adj_{i}"
         constraints[constraint_name] = cenc_german_whispers_constraint(posVar1, posVar2)

@@ -25,6 +25,7 @@ Examples of invalid renban lines:
 from tnreason import engine
 from tnreason import representation
 from itertools import permutations
+from constraints.rc_to_variable_helper import rc_to_pos_assignment
 
 
 def renban_constraint(position_vars, sudokuNum=3):
@@ -119,7 +120,8 @@ def generate_renban_constraints(line_cells, line_name="renban"):
     if len(line_cells) < 2:
         return {}
     
-    position_vars = [f"r{row}c{col}" for row, col in line_cells]
+    # position_vars = [f"r{row}c{col}" for row, col in line_cells]
+    position_vars = [rc_to_pos_assignment(row, col) for row, col in line_cells]
     
     return {line_name: cenc_renban_constraint(position_vars)}
 
