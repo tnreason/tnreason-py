@@ -26,15 +26,15 @@ for path in [parent_dir, project_root, constraints_dir]:
         sys.path.insert(0, path)
 
 # Import new constraints
-from knight_move import (
+from constraints.knight_move import (
     knight_move_constraint, cenc_knight_move_constraint,
     get_knight_moves_for_cell, generate_all_knight_constraints
 )
-from german_whispers import (
+from constraints.german_whispers import (
     german_whispers_constraint, cenc_german_whispers_constraint,
     generate_german_whispers_constraints
 )
-from renban import (
+from constraints.renban import (
     renban_constraint, cenc_renban_constraint,
     generate_renban_constraints
 )
