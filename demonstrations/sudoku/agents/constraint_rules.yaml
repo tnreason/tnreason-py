@@ -1,0 +1,558 @@
+# Sudoku Variant Constraint Rules
+# Extracted from challenge100.csv benchmark dataset
+# 
+# This file contains all constraint types found in the benchmark,
+# organized by category with their natural language descriptions,
+# formal rules, and implementation references.
+
+metadata:
+  source: "challenge100.csv"
+  total_puzzles: 100
+  extraction_date: "2026-02-26"
+  description: "Comprehensive catalog of Sudoku variant constraints"
+
+# =============================================================================
+# CATEGORY: Adjacent Cell Pair Constraints
+# Constraints that apply to pairs of adjacent or related cells
+# =============================================================================
+
+adjacent_pair_constraints:
+  
+  white_dot:
+    id: "AP001"
+    name: "White Dot"
+    aliases: ["Consecutive", "Kropki White"]
+    natural_language: |
+      "Digits separated by a white dot are consecutive."
+      "Two cells connected by a white dot contain consecutive digits."
+    formal_rule:
+      description: "For two cells with values v1 and v2: |v1 - v2| = 1"
+      formula: "abs(v1 - v2) == 1"
+    valid_examples:
+      - [1, 2]
+      - [2, 3]
+      - [8, 9]
+    invalid_examples:
+      - [1, 3]
+      - [5, 7]
+      - [5, 5]
+    implementation: "demonstrations/sudoku/constraints/white_dot.py"
+    frequency: "common"
+
+  black_dot:
+    id: "AP002"
+    name: "Black Dot"
+    aliases: ["Kropki Black", "Double"]
+    natural_language: |
+      "Digits separated by a black dot are in a 1:2 ratio."
+      "One digit is double the other."
+    formal_rule:
+      description: "For two cells with values v1 and v2: v1 = 2*v2 OR v2 = 2*v1"
+      formula: "(v1 == 2*v2) or (v2 == 2*v1)"
+    valid_examples:
+      - [1, 2]
+      - [2, 4]
+      - [3, 6]
+      - [4, 8]
+    invalid_examples:
+      - [1, 3]
+      - [5, 6]
+      - [5, 5]
+    implementation: "demonstrations/sudoku/constraints/black_dot.py"
+    frequency: "common"
+
+  v_marker:
+    id: "AP003"
+    name: "V Marker"
+    aliases: ["V", "Sum-5"]
+    natural_language: |
+      "Digits separated by a V sum to 5."
+      "Cells connected by a V contain digits that add up to 5."
+    formal_rule:
+      description: "For two cells with values v1 and v2: v1 + v2 = 5"
+      formula: "v1 + v2 == 5"
+    valid_examples:
+      - [1, 4]
+      - [2, 3]
+      - [3, 2]
+      - [4, 1]
+    invalid_examples:
+      - [1, 1]
+      - [5, 5]
+      - [1, 9]
+    implementation: "demonstrations/sudoku/agents/constraints/vx_marker.py"
+    frequency: "common"
+    notes: "Not all possible Vs may be given in some puzzles"
+
+  x_marker:
+    id: "AP004"
+    name: "X Marker"
+    aliases: ["X", "Sum-10"]
+    natural_language: |
+      "Digits separated by an X sum to 10."
+      "Cells connected by an X contain digits that add up to 10."
+    formal_rule:
+      description: "For two cells with values v1 and v2: v1 + v2 = 10"
+      formula: "v1 + v2 == 10"
+    valid_examples:
+      - [1, 9]
+      - [2, 8]
+      - [3, 7]
+      - [4, 6]
+      - [5, 5]
+      - [6, 4]
+      - [7, 3]
+      - [8, 2]
+      - [9, 1]
+    invalid_examples:
+      - [1, 1]
+      - [5, 6]
+      - [1, 4]
+    implementation: "demonstrations/sudoku/agents/constraints/vx_marker.py"
+    frequency: "common"
+    notes: "Not all possible Xs may be given in some puzzles"
+
+  red_line:
+    id: "AP005"
+    name: "Red Line"
+    aliases: ["Odd-Even Line", "Parity Line"]
+    natural_language: |
+      "Two cells adjacent along a red line must contain one even digit and one odd digit."
+    formal_rule:
+      description: "For two cells with values v1 and v2: one is odd, one is even"
+      formula: "(v1 % 2) != (v2 % 2)"
+    valid_examples:
+      - [1, 2]
+      - [2, 5]
+      - [4, 9]
+    invalid_examples:
+      - [1, 3]
+      - [2, 4]
+      - [5, 5]
+    implementation: "demonstrations/sudoku/constraints/red_line.py"
+    frequency: "uncommon"
+
+  german_whispers:
+    id: "AP006"
+    name: "German Whispers"
+    aliases: ["Green Line", "Whispers"]
+    natural_language: |
+      "Adjacent digits along a green line must differ by at least 5."
+      "Three adjacent digits on a German whisper line must have a difference of at least 5."
+    formal_rule:
+      description: "For two adjacent cells with values v1 and v2: |v1 - v2| >= 5"
+      formula: "abs(v1 - v2) >= 5"
+    valid_examples:
+      - [1, 6]
+      - [1, 9]
+      - [2, 7]
+      - [3, 8]
+      - [4, 9]
+    invalid_examples:
+      - [1, 5]
+      - [4, 8]
+      - [5, 6]
+    implementation: "demonstrations/sudoku/agents/constraints/german_whispers.py"
+    frequency: "common"
+
+# =============================================================================
+# CATEGORY: Line Constraints
+# Constraints that apply to sequences of cells forming a line
+# =============================================================================
+
+line_constraints:
+
+  thermometer:
+    id: "LC001"
+    name: "Thermometer"
+    aliases: ["Strict Thermometer", "Gray Thermometer"]
+    natural_language: |
+      "Digits along thermometers must increase from the bulb end to the tip."
+      "Digits along a thermometer must strictly increase from the bulb end."
+    formal_rule:
+      description: "For cells c1, c2, ..., cn from bulb to tip: v1 < v2 < ... < vn"
+      formula: "v[i] < v[i+1] for all i"
+    valid_examples:
+      - [1, 2, 3]
+      - [1, 5, 9]
+      - [2, 4, 6, 8]
+    invalid_examples:
+      - [3, 2, 1]
+      - [1, 1, 2]
+      - [5, 4, 6]
+    implementation: "demonstrations/sudoku/agents/constraints/thermometer.py"
+    frequency: "very_common"
+    visual: "Gray line with circular bulb at one end"
+
+  slow_thermometer:
+    id: "LC002"
+    name: "Slow Thermometer"
+    aliases: ["Non-decreasing Thermometer"]
+    natural_language: |
+      "Digits along a thermometer must generally increase from bulb to tip."
+      "Digits may remain the same when allowed by other rules, but may never decrease."
+    formal_rule:
+      description: "For cells c1, c2, ..., cn from bulb to tip: v1 <= v2 <= ... <= vn"
+      formula: "v[i] <= v[i+1] for all i"
+    valid_examples:
+      - [1, 1, 2]
+      - [1, 2, 2, 3]
+      - [5, 5, 5]
+    invalid_examples:
+      - [3, 2, 1]
+      - [1, 2, 1]
+    implementation: "demonstrations/sudoku/agents/constraints/thermometer.py"
+    frequency: "rare"
+    notes: "Variant of standard thermometer"
+
+  renban:
+    id: "LC003"
+    name: "Renban"
+    aliases: ["Purple Line", "Consecutive Line"]
+    natural_language: |
+      "Digits on a purple renban line form a non-repeating consecutive set in any order."
+      "Each purple line must contain a set of consecutive non-repeating digits in any order."
+    formal_rule:
+      description: "Values form a consecutive range with no repeats (order doesn't matter)"
+      formula: "max(values) - min(values) == len(values) - 1 AND all_unique(values)"
+    valid_examples:
+      - [1, 2, 3]
+      - [3, 1, 2]
+      - [5, 6, 7, 8]
+      - [9, 7, 8]
+    invalid_examples:
+      - [1, 2, 4]
+      - [1, 2, 2, 3]
+      - [1, 3, 5]
+    implementation: "demonstrations/sudoku/agents/constraints/renban.py"
+    frequency: "common"
+    visual: "Purple line"
+
+  entropic_line:
+    id: "LC004"
+    name: "Entropic Line"
+    aliases: ["Peach Line", "Diversity Line"]
+    natural_language: |
+      "Every string of three adjacent digits along a peach Entropic line must contain 
+       one low digit (123), one medium digit (456), and one high digit (789)."
+    formal_rule:
+      description: "Every 3 consecutive cells must have one from {1,2,3}, one from {4,5,6}, one from {7,8,9}"
+      formula: "for each window of 3: sorted(categories) == [low, med, high]"
+    valid_examples:
+      - [1, 4, 7]
+      - [3, 6, 9]
+      - [7, 4, 1]
+      - [2, 5, 8, 3, 6, 9]
+    invalid_examples:
+      - [1, 2, 7]
+      - [1, 4, 5]
+      - [7, 8, 4]
+    implementation: "demonstrations/sudoku/agents/constraints/entropic_line.py"
+    frequency: "occasional"
+    visual: "Peach/light orange line"
+
+  nabner:
+    id: "LC005"
+    name: "Nabner"
+    aliases: ["Orange Line", "Non-consecutive Line"]
+    natural_language: |
+      "The set of digits on an orange nabner line must not repeat and 
+       no two digits on the line may be consecutive."
+    formal_rule:
+      description: "All values unique AND no two values are consecutive"
+      formula: "all_unique(values) AND abs(v[i] - v[j]) > 1 for all i != j"
+    valid_examples:
+      - [1, 3, 5]
+      - [1, 4, 7]
+      - [2, 5, 8]
+    invalid_examples:
+      - [1, 2, 4]
+      - [1, 3, 3]
+      - [2, 4, 5]
+    implementation: "demonstrations/sudoku/agents/constraints/nabner.py"
+    frequency: "rare"
+    visual: "Orange line"
+
+  palindrome:
+    id: "LC006"
+    name: "Palindrome"
+    aliases: ["Mirror Line"]
+    natural_language: |
+      "Digits along a palindrome line read the same forwards and backwards."
+    formal_rule:
+      description: "Values form a palindrome"
+      formula: "values == reversed(values)"
+    valid_examples:
+      - [1, 2, 1]
+      - [3, 5, 7, 5, 3]
+      - [1, 1]
+    invalid_examples:
+      - [1, 2, 3]
+      - [1, 2, 2]
+    implementation: "demonstrations/sudoku/agents/constraints/palindrome.py"
+    frequency: "occasional"
+
+# =============================================================================
+# CATEGORY: Region/Group Constraints
+# Constraints that apply to groups of cells (cages, regions, etc.)
+# =============================================================================
+
+region_constraints:
+
+  killer_cage:
+    id: "RC001"
+    name: "Killer Cage"
+    aliases: ["Cage", "Sum Cage", "Killer Sudoku Cage"]
+    natural_language: |
+      "Digits in cages sum to the small number printed in the corner."
+      "Digits inside Killer Cages cannot repeat, and must add up to the total 
+       indicated in the upper left corner of the cage."
+    formal_rule:
+      description: "Values sum to target AND all values are unique"
+      formula: "sum(values) == target AND all_unique(values)"
+    valid_examples:
+      - target: 5
+        cells: [1, 4]
+      - target: 6
+        cells: [1, 2, 3]
+      - target: 10
+        cells: [1, 2, 3, 4]
+    invalid_examples:
+      - target: 5
+        cells: [2, 3, 1]  # sum is 6
+      - target: 5
+        cells: [2, 2, 1]  # repeat
+    implementation: "demonstrations/sudoku/agents/constraints/killer_cage.py"
+    frequency: "very_common"
+    visual: "Dotted-line cage with small number in corner"
+    notes: |
+      Some variations allow sum to be 'target ± 1' or have other modifications.
+      Standard rule is exact sum, no repeats.
+
+  arrow:
+    id: "RC002"
+    name: "Arrow"
+    aliases: ["Sum Arrow", "Circle Arrow"]
+    natural_language: |
+      "Digits along an arrow sum to the digit in the corresponding circle."
+      "A digit in a circle with an arrow attached is equal to the sum of the digits on the attached arrow."
+    formal_rule:
+      description: "Circle value equals sum of all arrow cell values"
+      formula: "v_circle == sum(v_arrow_cells)"
+    valid_examples:
+      - circle: 3
+        arrows: [1, 2]
+      - circle: 6
+        arrows: [1, 2, 3]
+      - circle: 9
+        arrows: [2, 3, 4]
+    invalid_examples:
+      - circle: 3
+        arrows: [1, 1]  # sum is 2
+      - circle: 5
+        arrows: [2, 4]  # sum is 6
+    implementation: "demonstrations/sudoku/agents/constraints/arrow.py"
+    frequency: "common"
+    visual: "Gray line from circle, circle contains sum"
+    notes: "Arrow cells CAN repeat digits (unlike killer cages)"
+
+# =============================================================================
+# CATEGORY: Global Grid Constraints
+# Constraints that apply globally across the entire grid
+# =============================================================================
+
+global_constraints:
+
+  anti_knight:
+    id: "GC001"
+    name: "Anti-Knight"
+    aliases: ["Knight Move", "Chess Knight"]
+    natural_language: |
+      "Digits that are a knight's move apart cannot be identical anywhere in the grid."
+      "Cells separated by a knight's move (in chess) cannot contain the same digit."
+    formal_rule:
+      description: "For any two cells at knight's move distance: v1 != v2"
+      formula: "if is_knight_move(c1, c2): v1 != v2"
+    knight_offsets:
+      - [-2, -1]
+      - [-2, 1]
+      - [-1, -2]
+      - [-1, 2]
+      - [1, -2]
+      - [1, 2]
+      - [2, -1]
+      - [2, 1]
+    implementation: "demonstrations/sudoku/agents/constraints/knight_move.py"
+    frequency: "common"
+    notes: "Applies to ALL knight move pairs in the grid"
+
+# =============================================================================
+# CATEGORY: External Clue Constraints
+# Constraints defined by clues outside the grid
+# =============================================================================
+
+external_clue_constraints:
+
+  sandwich_sum:
+    id: "EC001"
+    name: "Sandwich Sum"
+    aliases: ["Sum Between", "Between Sum"]
+    natural_language: |
+      "The numbers outside the grid give the sum of the digits between the 1 and the 9 
+       in that row or column."
+      "Numbers outside the grid are Sandwich Sums, which indicate the sum of the digits 
+       between 8 and 9 in the corresponding row or column."
+    formal_rule:
+      description: "Sum of digits between 1 and 9 (or 8 and 9) equals the clue"
+      formula: "sum(digits_between(target1, target9)) == clue"
+    implementation: "TODO"
+    frequency: "occasional"
+    notes: "Variation: some puzzles use 1-9, others use 8-9 as boundaries"
+
+  skyscraper:
+    id: "EC002"
+    name: "Skyscraper"
+    aliases: ["Visibility", "Line of Sight"]
+    natural_language: |
+      "Digits in the grid represent skyscrapers, with their values corresponding to their heights. 
+       Taller skyscrapers obscure all shorter skyscrapers behind them. Clues outside the grid 
+       indicate the number of skyscrapers that can be seen in that row/column, from the line of sight of the clue."
+    formal_rule:
+      description: "Count visible buildings from clue direction equals the clue value"
+      formula: "count_visible(row_or_col, direction) == clue"
+    implementation: "TODO"
+    frequency: "occasional"
+    notes: "A building is visible if all buildings before it are shorter"
+
+  numbered_room:
+    id: "EC003"
+    name: "Numbered Room"
+    aliases: ["Index Clue", "Position Clue"]
+    natural_language: |
+      "A clue outside the grid indicates the digit which has to be placed in the Nth cell 
+       in the corresponding direction, where N is the digit placed in the first cell in that direction."
+    formal_rule:
+      description: "If first cell has value N, then Nth cell contains the clue value"
+      formula: "if v[0] == N: v[N-1] == clue"
+    implementation: "TODO"
+    frequency: "rare"
+
+# =============================================================================
+# CATEGORY: Special/Complex Constraints
+# Constraints with complex rules or special conditions
+# =============================================================================
+
+special_constraints:
+
+  look_and_say_cage:
+    id: "SC001"
+    name: "Look-and-Say Cage"
+    aliases: ["Counting Cage"]
+    natural_language: |
+      "The number in the top left corner also says how many of each digit are in the cage."
+    formal_rule:
+      description: "Clue describes digit counts in the cage"
+      formula: "complex - clue encodes digit frequency"
+    implementation: "TODO"
+    frequency: "rare"
+    notes: "E.g., 'one 1' means exactly one digit '1' in the cage"
+
+  identical_digits_knight:
+    id: "SC002"
+    name: "Identical Digits Cannot Be Knight's Move Apart"
+    natural_language: |
+      "Identical digits cannot be a knight's move apart."
+    formal_rule:
+      description: "Same as Anti-Knight"
+      formula: "if v1 == v2: not is_knight_move(c1, c2)"
+    implementation: "demonstrations/sudoku/agents/constraints/knight_move.py"
+    frequency: "common"
+    notes: "Equivalent to Anti-Knight constraint"
+
+  non_consecutive:
+    id: "SC003"
+    name: "Non-Consecutive"
+    aliases: ["NC", "Red Dot (variant)"]
+    natural_language: |
+      "Digits separated by a red dot are non-consecutive and contain one even digit and one odd digit."
+      "All dots are given!"
+    formal_rule:
+      description: "Values are not consecutive AND have different parity"
+      formula: "abs(v1 - v2) > 1 AND (v1 % 2) != (v2 % 2)"
+    valid_examples:
+      - [1, 4]
+      - [2, 5]
+      - [3, 8]
+    invalid_examples:
+      - [1, 2]
+      - [2, 4]
+      - [1, 3]
+    implementation: "demonstrations/sudoku/agents/constraints/non_consecutive.py"
+    frequency: "occasional"
+    visual: "Red dot between cells"
+
+# =============================================================================
+# IMPLEMENTATION STATUS
+# =============================================================================
+
+implementation_status:
+  implemented:
+    - white_dot
+    - black_dot
+    - red_line
+    - german_whispers
+    - anti_knight
+    - renban
+    - thermometer
+    - slow_thermometer
+    - v_marker
+    - x_marker
+    - killer_cage
+    - arrow
+    - entropic_line
+    - nabner
+    - palindrome
+    - non_consecutive
+
+  todo:
+    - sandwich_sum
+    - skyscraper
+    - numbered_room
+    - look_and_say_cage
+
+# =============================================================================
+# CONSTRAINT COMBINATIONS FOUND IN BENCHMARK
+# =============================================================================
+
+common_combinations:
+  - name: "Sneaky"
+    puzzle_id: "sxsm_99Sneaky_f14a2e4e7e2b47ab724b3ce899e8c0fb"
+    constraints:
+      - v_marker
+      - x_marker
+      - thermometer
+      - killer_cage
+      - entropic_line
+      - renban
+
+  - name: "Lorena & friends"
+    puzzle_id: "sxsm_Lorenafriends_d4dcfd98afd259e8638b2ea58a87368a"
+    constraints:
+      - v_marker
+      - x_marker
+      - german_whispers
+      - killer_cage
+      - sandwich_sum
+
+  - name: "Ascension"
+    puzzle_id: "sxsm_FlorianWortmann_ee3c11d3f90fa0f9110d8b102cfaa3da"
+    constraints:
+      - anti_knight
+      - arrow
+
+  - name: "The Two Headed Martian"
+    puzzle_id: "fpuzzle708593231d1413d3631774cf9d4735b7"
+    constraints:
+      - german_whispers
+      - renban
+      - slow_thermometer
