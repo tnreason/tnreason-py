@@ -162,7 +162,10 @@ class Backtracker:
             c_puct=1.5,
         )
 
-        chosen_atom = mcts.pick_action(self.currentAssignment)
+        chosen_atom = mcts.pick_action(
+            self.currentAssignment,
+            inference_clusters=self.propagator.inferenceClusters
+        )
 
         # Backtracker expects (extendAssignment, featureKey)
         # Here featureKey is the variable we assign (the atom itself)

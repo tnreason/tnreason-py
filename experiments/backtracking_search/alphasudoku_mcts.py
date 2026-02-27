@@ -56,9 +56,11 @@ class MpBackend:
         self.num = num
         self.get_inferer = get_inferer
 
-    def propagate(self, evidence: Dict[str,int], max_message_count: int = 30000):
+    def propagate(self, evidence: Dict[str,int], max_message_count: int = 30000, inference_clusters: Optional[Dict[str, List[str]]] = None):
         """Run forward MP. Returns (propagator, contradiction_bool)."""
         propagator = self.get_inferer(self.num, evidence)
+        if inference_clusters is not None:
+            propagator.update_inferenceClusters(inference_clusters)
         try:
             # tnreason API: propagate_until_convergence(nonTrivialFeatureKeys=..., maxMessageCount=...)
             propagator.propagate_until_convergence(
@@ -236,11 +238,11 @@ class AlphaSudokuMCTS:
         self.dirichlet_eps = dirichlet_eps
         self.rng = rng or random.Random()
 
-    def pick_action(self, root_evidence: Dict[str,int]) -> str:
+    def pick_action(self, root_evidence: Dict[str,int], inference_clusters: Optional[Dict[str, List[str]]] = None) -> str:
         """Run MCTS and return the best next atom_key to set to 1."""
         root = Node(evidence=dict(root_evidence))
         # expand once to get root priors (and optionally inject Dirichlet noise like AlphaZero)
-        self._expand(root, add_dirichlet_noise=True)
+        self._expand(root, add_dirichlet_noise=True, inference_clusters=inference_clusters)
 
         for _ in range(self.simulations):
             path: List[Tuple[Node, str]] = []
@@ -256,7 +258,7 @@ class AlphaSudokuMCTS:
             if node.terminal:
                 value = node.terminal_value
             else:
-                value = self._expand(node, add_dirichlet_noise=False)
+                value = self._expand(node, add_dirichlet_noise=False, inference_clusters=inference_clusters)
 
             # Backup (single-player: no sign flip)
             for parent, action in path:
@@ -283,9 +285,13 @@ class AlphaSudokuMCTS:
         assert best_a is not None
         return best_a
 
-    def _expand(self, node: Node, add_dirichlet_noise: bool) -> float:
+    def _expand(self, node: Node, add_dirichlet_noise: bool, inference_clusters: Optional[Dict[str, List[str]]] = None) -> float:
         """Evaluate node with MP, mark terminal, and populate priors/stats/children. Return value estimate."""
-        propagator, contradiction = self.mp.propagate(node.evidence, max_message_count=self.max_message_count)
+        propagator, contradiction = self.mp.propagate(
+            node.evidence,
+            max_message_count=self.max_message_count,
+            inference_clusters=inference_clusters
+        )
         if contradiction:
             node.terminal = True
             node.terminal_value = -1.0
