@@ -76,6 +76,7 @@ def _solve_with_mcts(
     return state, valid, scalar, engine.cache_info(), comparison, meta
 
 def solve_puzzle(canetwork_factory, challenge_puzzle_num: int = 3, num: int = 3, max_steps: int = 200, simulations: int = 200):
+    print(f"Solving puzzle {challenge_puzzle_num} with MCTS (num={num}, max_steps={max_steps}, simulations={simulations})...")
     return _solve_with_mcts(
         canetwork_factory=canetwork_factory,
         challenge_puzzle_num=challenge_puzzle_num,

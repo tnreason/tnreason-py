@@ -1,3 +1,4 @@
+Solving puzzle 3 with MCTS (num=3, max_steps=200, simulations=200)...
 Message passing terminated after 21656 of allowed 30000 messages.
 Hidden pairs detected: 4
 Naked pairs detected: 1
