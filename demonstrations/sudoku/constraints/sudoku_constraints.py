@@ -49,41 +49,6 @@ def get_assignment_as_CANetwork_load(num, startAssignment):
     )
     return caNet
 
-def get_assignment_as_CANetwork(num, startAssignment):
-    """
-    Prepares the Sudoku game with a start assignment as a Computation-Activation Network
-    """
-    constraints = get_sudoku_constraints(num)
-    
-    # atomVariables = ["a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
-    #                  for r1 in range(num) for r2 in range(num) for c1 in range(num) for c2 in range(num) for n in
-    #                  range(num ** 2)]
-    
-    # path = Path(f"demonstrations/sudoku/examples/n={num}.txt")
-    # path.write_text(json.dumps(constraints, indent=2, sort_keys=True, default=encode_core))
-
-    comCoreDict = application.create_categorical_cores(constraints)
-    # path = Path(f"demonstrations/sudoku/examples/n={num}_comCoreDict.txt")
-    # path.write_text(json.dumps(comCoreDict, indent=2, sort_keys=True, default=encode_core))
-    
-    canParamDict = {evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2],
-                                                                    colors=[evidenceKey],
-                                                                    numberTuple=[startAssignment[evidenceKey]])
-                      for evidenceKey in startAssignment}
-    # path = Path(f"demonstrations/sudoku/examples/n={num}_canParamDict.txt")
-    # path.write_text(json.dumps(canParamDict, indent=2, sort_keys=True, default=encode_core))
-
-    featureDict = representation.standard_featureDict_from_computationCoreDict(comCoreDict)
-    # path = Path(f"demonstrations/sudoku/examples/n={num}_featureDict.txt")
-    # path.write_text(json.dumps({key: str(type(featureDict[key])) for key in featureDict.keys()}, indent=2, sort_keys=True, default=encode_core))
-
-    caNet = representation.ComputationActivationNetwork(
-        featureDict=featureDict,
-        computationCoreDict=comCoreDict,
-        canParamDict=canParamDict
-    )
-    return caNet
-
 def get_sudoku_constraints(num=3):
     return {**get_column_constraints(num),
             **get_row_constraints(num),

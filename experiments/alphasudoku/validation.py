@@ -1,5 +1,4 @@
 from tnreason import engine, representation
-from demonstrations.sudoku.constraints import sudoku_constraints as sc
 
 
 def _infer_cellwise_atom_complements(ca_network, assignment):
@@ -56,7 +55,6 @@ def check_assignment_consistency(ca_network, assignment):
     return True
 
 
-def validate_sudoku_assignment(assignment, num=3):
-    ca_network = sc.get_assignment_as_CANetwork(num=num, startAssignment={})
+def validate_assignment(ca_network, assignment):
     ok = check_assignment_consistency(ca_network, assignment)
     return ok, int(ok)

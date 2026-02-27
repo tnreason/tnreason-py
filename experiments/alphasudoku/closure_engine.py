@@ -4,11 +4,11 @@ import math
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 import demonstrations.sudoku.inferenceClusters as inf_clusters
-from demonstrations.sudoku import sudoku_forward_mp as sfmp
-from experiments.backtracking_search.check_caNetwork import check_consistency
 
 from .actions import ClusterCandidate, cluster_key_from_colors
+from .inference import get_forward_mp_inferer_from_canetwork
 from .state import AlphaSudokuState
+from .validation import check_assignment_consistency
 
 
 def _all_cell_ids(num: int) -> List[Tuple[int, int, int, int]]:
@@ -55,15 +55,17 @@ class AlphaSudokuClosureEngine:
     def __init__(
         self,
         num: int = 3,
-        inferer_factory: Callable[[int, Dict[str, int]], object] = sfmp.get_forward_mp_inferer,
+        canetwork_factory: Optional[Callable[[Dict[str, int]], object]] = None,
         rule_detectors: Optional[Iterable[Callable[[object, int], List[List[str]]]]] = None,
         max_message_count: int = 30000,
         cache_size: int = 512,
+        allow_cleaning: bool = False,
     ):
         self.num = num
-        self.inferer_factory = inferer_factory
+        self.canetwork_factory = canetwork_factory
         self.max_message_count = max_message_count
         self.cache_size = cache_size
+        self.allow_cleaning = allow_cleaning
         self.rule_detectors = list(rule_detectors or [
             inf_clusters.detect_locked_candidates_square,
             inf_clusters.detect_locked_candidates_row,
@@ -89,7 +91,13 @@ class AlphaSudokuClosureEngine:
             return deepcopy(cached_state)
 
         self.cache_misses += 1
-        propagator = self.inferer_factory(self.num, evidence)
+        if self.canetwork_factory is None:
+            raise ValueError("AlphaSudokuClosureEngine requires a canetwork_factory.")
+        ca_network = self.canetwork_factory(evidence)
+        propagator = get_forward_mp_inferer_from_canetwork(
+            ca_network,
+            allow_cleaning=self.allow_cleaning,
+        )
 
         if active_inference_clusters:
             merged = {
@@ -120,7 +128,7 @@ class AlphaSudokuClosureEngine:
         consistency_ok = False
         if not contradiction:
             try:
-                consistency_ok = check_consistency(propagator.caNetwork, closed_evidence)
+                consistency_ok = check_assignment_consistency(propagator.caNetwork, closed_evidence)
             except Exception:
                 consistency_ok = False
                 contradiction = True
