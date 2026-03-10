@@ -151,7 +151,7 @@ if __name__ == "__main__":
     change_count, prop = eval_inferenceCluster(deepcopy(propagator), new_info, return_bool=False, maxMessageCount=5000, verbose=False)
     print("After new information: square", [ prop.meanParamDict["square_0_2_0"][{"square_0_2_0": i }] for i in range(9)])
     print(f"Any variable changed: {change_count}")
-    visualize_propagator_assignment(propagator, label="After Cluster Propagation", path="experiments/alphasudoku/after_cluster_propagation.png")
+    visualize_propagator_assignment(prop, label="After Cluster Propagation", path="experiments/alphasudoku/after_cluster_propagation.png")
 
     # We just want to know if the inference cluster had any effect, without waiting for full convergence, so we run message passing only until the first change occurs
     any_change, _ = eval_inferenceCluster(deepcopy(propagator), new_info, return_bool=True, maxMessageCount=5000, verbose=False)
