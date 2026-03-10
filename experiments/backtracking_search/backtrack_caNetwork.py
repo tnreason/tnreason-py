@@ -183,7 +183,7 @@ def meanParams_to_evidence(meanParamsDict): ## Still on Sudoku! Here counting th
 
 if __name__ == "__main__":
     from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
-    from check_caNetwork import check_consistency
+    from experiments.backtracking_search.check_caNetwork import check_consistency
     import pandas as pd
     import json
 
@@ -193,6 +193,23 @@ if __name__ == "__main__":
     # path = '/Users/alexgoessmann/Documents/tnreason/implementation/demonstrations/sudoku/sudoku_bench/sample_data/')
     df = pd.read_parquet(f'{path}nikoli100.parquet')
     evidenceDict = initial_board_into_evidence(df["initial_board"][puzzleNum])
+
+    def rc_to_atom_assignment(r, c, n):
+        r1 = r // 3
+        r2 = r % 3
+        c1 = c // 3
+        c2 = c % 3
+        return "a_" + str(r1) + "_" + str(r2) + "_" + str(c1) + "_" + str(c2) + "_" + str(n)
+    evidenceDict = {
+                    rc_to_atom_assignment(3, 0, 3): 1,
+                    rc_to_atom_assignment(4, 0, 4): 1,
+                    rc_to_atom_assignment(3, 1, 1): 1,
+                    rc_to_atom_assignment(4, 1, 2): 1,
+                    rc_to_atom_assignment(5, 3, 0): 1,
+                    rc_to_atom_assignment(6, 4, 0): 1,
+                    rc_to_atom_assignment(7, 6, 0): 1,
+                    rc_to_atom_assignment(8, 0, 1): 1,
+                    }
 
     # Solve puzzle with backtracking search
     backtracker = Backtracker(evidenceDict)

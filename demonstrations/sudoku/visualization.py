@@ -1,6 +1,8 @@
 import numpy as np
 
-def visualize_sudoku(sudokuArray, number=3, label=""):
+def visualize_sudoku(sudokuArray, number=3, label="", path = None):
+    if path is None:
+        path = f"demonstrations/sudoku/examples/n={number}_sudoku_{label.replace(' ', '_')}.png"
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(6, 6))
@@ -31,7 +33,7 @@ def visualize_sudoku(sudokuArray, number=3, label=""):
         ax.plot([i, i], [0, number ** 2], color='black', lw=lw)
 
     plt.title(label, fontsize=15)
-    plt.savefig(f"demonstrations/sudoku/examples/n={number}_sudoku_{label.replace(' ', '_')}.png")
+    plt.savefig(path)
     # plt.show()
 
 

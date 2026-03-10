@@ -2,6 +2,7 @@ from tnreason import engine
 
 from tnreason.representation import basis_calculus as bc
 from tnreason.representation import features as ft
+from tnreason.representation import feature_naming
 
 
 def standard_featureDict_from_computationCoreDict(computationCoreDict):
@@ -16,12 +17,13 @@ def standard_featureDict_from_computationCoreDict(computationCoreDict):
                 variableColors.append(colorKey)
                 shapeDict[colorKey] = computationCoreDict[coreKey].shape[i]
 
-    return {**{colorKey: ft.HardPartitionFeature(featureColors=[colorKey], shape=[shapeDict[colorKey]],
+    return {**{colorKey: ft.HardPartitionFeature(featureColors=[colorKey], 
+                                                 shape=[shapeDict[colorKey]],
                                                  affectedComputationCores={}) for colorKey in variableColors},
-            **{"_".join(computationCoreDict[coreKey].colors[::-1]): ft.PassiveFeature(
-                featureColors=computationCoreDict[coreKey].colors,
-                shape=computationCoreDict[coreKey].shape, affectedComputationCores={coreKey}) for
-                coreKey in computationCoreDict}  ## Naming convention to match the Sudoku example
+            **{feature_naming(computationCoreDict[coreKey].colors[::-1]): ft.PassiveFeature(
+                                                featureColors=computationCoreDict[coreKey].colors,
+                                                shape=computationCoreDict[coreKey].shape, 
+                                                affectedComputationCores={coreKey}) for coreKey in computationCoreDict}  ## Naming convention to match the Sudoku example
             }
 
 

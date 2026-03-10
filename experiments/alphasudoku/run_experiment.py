@@ -87,10 +87,14 @@ def solve_puzzle(canetwork_factory, challenge_puzzle_num: int = 3, num: int = 3,
 
 
 if __name__ == "__main__":
-    # ###################### Example usage: Solve a standard Sudoku puzzle from the Challenge100 dataset ######################
-    # final_state, valid, scalar, cache_info, comparison, meta = solve_puzzle(standard_sudoku.get_assignment_as_CANetwork, 3)
-    ###################### Example usage: Solve the Parity Fish puzzle from the Sakana Fish dataset ######################
-    final_state, valid, scalar, cache_info, comparison, meta = solve_puzzle(sakana_fish.get_assignment_as_CANetwork, 23)
+    import time
+    start_time = time.time()
+    ###################### Example usage: Solve a standard Sudoku puzzle from the Challenge100 dataset ######################
+    final_state, valid, scalar, cache_info, comparison, meta = solve_puzzle(standard_sudoku.get_assignment_as_CANetwork, 3)
+    # ###################### Example usage: Solve the Parity Fish puzzle from the Sakana Fish dataset ######################
+    # final_state, valid, scalar, cache_info, comparison, meta = solve_puzzle(sakana_fish.get_assignment_as_CANetwork, 23)
+    final_time = time.time()
+    print(f"Solved in {final_time - start_time:.2f} seconds.")
 
     if meta is not None:
         print("Puzzle:", meta["puzzle_num"], meta["title"], "-", meta["author"])

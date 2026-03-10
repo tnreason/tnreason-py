@@ -1,6 +1,7 @@
 from tnreason import representation
 
 from tnreason.representation import suffixes as suf
+from tnreason.representation import feature_naming
 
 import math
 
@@ -141,5 +142,5 @@ def get_formula_string(expression):
     else:
         if not isinstance(expression[0], str):
             raise ValueError("Connective {} has wrong type!".format(expression[0]))
-        return "(" + expression[0] + "_" + "_".join(
+        return "(" + expression[0] + "_" + feature_naming(
             [get_formula_string(entry) for entry in expression[1:]]) + ")"
