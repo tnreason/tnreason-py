@@ -2,10 +2,10 @@ from dataclasses import dataclass, field
 from math import sqrt
 from typing import Dict, List, Optional, Tuple
 
-from .actions import AlphaSudokuAction
-from .env import AlphaSudokuEnv
+from .actions import AlphaReasonAction
+from .env import AlphaReasonEnv
 from .policies import HeuristicPolicyValue, PolicyValue
-from .state import AlphaSudokuState
+from .state import AlphaReasonState
 
 
 @dataclass
@@ -21,16 +21,16 @@ class EdgeStats:
 
 @dataclass
 class SearchNode:
-    state: AlphaSudokuState
+    state: AlphaReasonState
     expanded: bool = False
-    children: Dict[AlphaSudokuAction, "SearchNode"] = field(default_factory=dict)
-    stats: Dict[AlphaSudokuAction, EdgeStats] = field(default_factory=dict)
+    children: Dict[AlphaReasonAction, "SearchNode"] = field(default_factory=dict)
+    stats: Dict[AlphaReasonAction, EdgeStats] = field(default_factory=dict)
 
 
-class AlphaSudokuMCTS:
+class AlphaReasonMCTS:
     def __init__(
         self,
-        env: AlphaSudokuEnv,
+        env: AlphaReasonEnv,
         policy_value: Optional[PolicyValue] = None,
         c_puct: float = 1.5,
         simulations: int = 200,
@@ -40,7 +40,7 @@ class AlphaSudokuMCTS:
         self.c_puct = c_puct
         self.simulations = simulations
 
-    def choose_action(self, root_state: AlphaSudokuState) -> AlphaSudokuAction:
+    def choose_action(self, root_state: AlphaReasonState) -> AlphaReasonAction:
         root = SearchNode(state=root_state)
         self._expand(root)
 
@@ -53,12 +53,12 @@ class AlphaSudokuMCTS:
 
     def _simulate(self, root: SearchNode) -> None:
         node = root
-        path: List[Tuple[SearchNode, AlphaSudokuAction]] = []
+        path: List[Tuple[SearchNode, AlphaReasonAction]] = []
         rollout_value = 0.0
 
         while True:
             if node.state.done:
-                rollout_value = node.state.value_estimate
+                rollout_value = self.policy_value.value(node.state)
                 break
 
             if not node.expanded:
@@ -72,11 +72,7 @@ class AlphaSudokuMCTS:
                 child_state, reward, _ = self.env.step(node.state, action)
                 child = SearchNode(state=child_state)
                 node.children[action] = child
-                if child_state.done:
-                    rollout_value = reward
-                else:
-                    rollout_value = reward + self._expand(child)
-                node = child
+                rollout_value = reward if child_state.done else reward + self._expand(child)
                 break
 
             node = node.children[action]
@@ -97,7 +93,7 @@ class AlphaSudokuMCTS:
         node.expanded = True
         return self.policy_value.value(node.state)
 
-    def _select(self, node: SearchNode) -> AlphaSudokuAction:
+    def _select(self, node: SearchNode) -> AlphaReasonAction:
         total_visits = sum(stats.visits for stats in node.stats.values()) + 1
         sqrt_total = sqrt(total_visits)
 
@@ -112,3 +108,4 @@ class AlphaSudokuMCTS:
         if best_action is None:
             raise ValueError("Failed to select an action.")
         return best_action
+

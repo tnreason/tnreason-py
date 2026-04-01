@@ -6,6 +6,7 @@ from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_ev
 from .closure_engine import AlphaSudokuClosureEngine
 from .env import AlphaSudokuEnv
 from .mcts import AlphaSudokuMCTS
+from .policies import HeuristicPolicyValue, PolicyValue
 from .validation import validate_assignment
 
 CHALLENGE100_PATH = "/home/schuette/Desktop/AlphaSudoku/tnreason-py-version2(2)/tnreason-py-version2/demonstrations/sudoku/sudoku_bench/sample_data/challenge100.csv"
@@ -29,6 +30,7 @@ def _solve_with_mcts(
     puzzle_evidence=None,
     true_solution=None,
     challenge_puzzle_num=None,
+    policy_value: PolicyValue | None = None,
     num: int = 3,
     max_steps: int = 200,
     simulations: int = 200,
@@ -47,7 +49,11 @@ def _solve_with_mcts(
 
     engine = AlphaSudokuClosureEngine(num=num, canetwork_factory=build_canetwork)
     env = AlphaSudokuEnv(engine)
-    mcts = AlphaSudokuMCTS(env=env, simulations=simulations)
+    mcts = AlphaSudokuMCTS(
+        env=env,
+        policy_value=policy_value or HeuristicPolicyValue(),
+        simulations=simulations,
+    )
 
     state = env.reset(puzzle_evidence)
     for step in range(max_steps):
@@ -75,11 +81,23 @@ def _solve_with_mcts(
 
     return state, valid, scalar, engine.cache_info(), comparison, meta
 
-def solve_puzzle(canetwork_factory, challenge_puzzle_num: int = 3, num: int = 3, max_steps: int = 200, simulations: int = 200):
-    print(f"Solving puzzle {challenge_puzzle_num} with MCTS (num={num}, max_steps={max_steps}, simulations={simulations})...")
+def solve_puzzle(
+    canetwork_factory,
+    challenge_puzzle_num: int = 3,
+    policy_value: PolicyValue | None = None,
+    num: int = 3,
+    max_steps: int = 200,
+    simulations: int = 200,
+):
+    policy_name = type(policy_value).__name__ if policy_value is not None else HeuristicPolicyValue.__name__
+    print(
+        f"Solving puzzle {challenge_puzzle_num} with MCTS "
+        f"(policy={policy_name}, num={num}, max_steps={max_steps}, simulations={simulations})..."
+    )
     return _solve_with_mcts(
         canetwork_factory=canetwork_factory,
         challenge_puzzle_num=challenge_puzzle_num,
+        policy_value=policy_value,
         num=num,
         max_steps=max_steps,
         simulations=simulations,
