@@ -11,7 +11,6 @@ def fc_test_on_puzzle(puzzlePos):
         **sc.get_sudoku_constraint_network(num=3),
         **re.read_evidence(puzzlePos)
     }
-
     chainer = fc.GenericForwardChaining(
         constraintDict
     )
@@ -21,7 +20,7 @@ def fc_test_on_puzzle(puzzlePos):
 
 
 def get_variable_num(sudokuNum):
-    ## Number of variables in Sudoku instance
+    ## Number of variables in Sudoku instance, for verification
     return sudokuNum ** 6 + 4 * sudokuNum ** 4
 
 
@@ -31,11 +30,8 @@ def extract_solutionArray_from_constraintNetwork(constraintNetwork, sudokuNum=3)
         for r_1 in range(sudokuNum):
             for c_0 in range(sudokuNum):
                 for c_1 in range(sudokuNum):
-                    #                    print(constraintNetwork)
                     if "pos_" + str(r_0) + "_" + str(r_1) + "_" + str(c_0) + "_" + str(
                             c_1) + "_core" in constraintNetwork.coresDict:
-                        #                        print(constraintNetwork.coresDict["pos_" + str(r_0) + "_" + str(r_1) + "_" + str(c_0) + "_" + str(
-                        #                            c_1) + "_core"].values)
                         solArray[r_0 * sudokuNum + r_1, c_0 * sudokuNum + c_1] = inv_one_hot(
                             constraintNetwork.coresDict["pos_" + str(r_0) + "_" + str(r_1) + "_" + str(c_0) + "_" + str(
                                 c_1) + "_core"]) + 1
@@ -64,15 +60,10 @@ def full_run():
             sucCount += 1
             print("Solution verified: {}".format(
                 np.array_equal(extract_solutionArray_from_constraintNetwork(resCn), re.get_solution_array(pos))))
-    #                extract_solutionArray_from_constraintNetwork(resCn)==re.get_solution_array(pos)))
     print("#######")
     print(f"Summary: {sucCount} of 100 solved.")
     return sucCount
 
 
 if __name__ == "__main__":
-    # success, resCn = fc_test_on_puzzle(0)
-    # print(extract_solutionArray_from_constraintNetwork(resCn))
-    # print(re.get_solution_array(0))
-
     full_run()
