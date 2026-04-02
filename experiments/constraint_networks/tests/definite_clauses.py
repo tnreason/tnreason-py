@@ -1,4 +1,3 @@
-from experiments.constraint_networks import constraint_networks as cn
 from experiments.constraint_networks import forward_chaining as fc
 from tnreason import engine
 
