@@ -24,12 +24,11 @@ class SudokuTest(unittest.TestCase):
 
         ## Reasoning ##
 
-        # propagator = reasoning.get_inferer("ExpectationPropagator")(
-        #     caNetwork=caNetwork,
-        #     clusterDict=sol.get_simple_clusterDict(num=num),
-        #     meanParamDict=dict()
-        # )
-        propagator = sol.get_forward_mp_inferer(num, evidenceDict)
+        propagator = reasoning.get_inferer("ExpectationPropagator")(
+            caNetwork=caNetwork,
+            clusterDict=sol.get_simple_clusterDict(num=num),
+            meanParamDict=dict()
+        )
         propagator.propagate_until_convergence(evidenceDict.keys())
 
         solution_array = vis.evidence_to_array(sol.meanParams_to_evidence(propagator.meanParamDict), num=num)
