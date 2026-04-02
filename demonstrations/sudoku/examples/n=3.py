@@ -1,6 +1,6 @@
 from tnreason import reasoning
 
-from demonstrations.sudoku.constraints import sudoku_constraints as rep
+from demonstrations.sudoku.examples import standard_sudoku as rep
 from demonstrations.sudoku import sudoku_forward_mp as sol
 from demonstrations.sudoku import visualization as vis
 
