@@ -23,6 +23,9 @@ class ConstraintNetwork:
         core1 = engine.contract({splitKey: self.coresDict[splitKey]}, openColors=colors1)
         coordinateSum = engine.contract({splitKey: self.coresDict[splitKey]}, openColors=[])[:]
 
+        if coordinateSum == 0:
+            return "Inconsistent"
+
         testCore = 1 / coordinateSum * engine.contract({"core0": core0, "core1": core1},
                                                        openColors=self.coresDict[splitKey].colors)
         if names is None:

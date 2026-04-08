@@ -1,10 +1,14 @@
 from experiments.constraint_networks import constraint_networks as con
 from tnreason import engine
+from tnreason.engine import get_dimDict
 
+import numpy as np
 
 class GenericForwardChaining:
     def __init__(self, coresDict):
         self.cn = con.ConstraintNetwork(coresDict)
+
+        # self.dimDict = get_dimDict(coresDict)
 
         ## Initialize nodesDict storing the node edge inclusions
         self.nodesDict = dict()  # Storing those edges containing the node
@@ -23,6 +27,7 @@ class GenericForwardChaining:
 
         self.disentangledNodes = [nodeKey for nodeKey in self.singleNodeEdges if
                                   len(self.nodesDict[nodeKey]) == len(self.singleNodeEdges[nodeKey])]
+        self.consistent = True
 
     def summarize_node(self, nodeKey):
         if len(self.singleNodeEdges[nodeKey]) > 1:
@@ -40,7 +45,7 @@ class GenericForwardChaining:
 
     def propagate_all_singleNodeEdges(self):
         queue = [nodeKey for nodeKey in self.singleNodeEdges if nodeKey not in self.disentangledNodes]
-        while len(queue) > 0:
+        while len(queue) > 0 and self.consistent:
             nodeKey = queue.pop()
             disentangled, newSingleNodeEdges = self.propagate_node(nodeKey)
             for edgeKey in newSingleNodeEdges:
@@ -74,7 +79,10 @@ class GenericForwardChaining:
                                                            if
                                                            color != nodeKey],
                                                   names=[nodeKey + "_" + edgeKey, edgeKey])
-                if splitSuccess:
+
+                if splitSuccess == "Inconsistent":
+                    self.consistent = False
+                elif splitSuccess == True:
                     self.singleNodeEdges[nodeKey].append(nodeKey + "_" + edgeKey)
                     self.nodesDict[nodeKey].remove(edgeKey)
 
@@ -88,6 +96,44 @@ class GenericForwardChaining:
                 else:
                     disentangled = False
         return disentangled, newSingleNodes
+
+
+def backtrack(coreDict):
+    chainer = GenericForwardChaining(coreDict)
+    dimDict = get_dimDict(coreDict)
+    chainer.propagate_all_singleNodeEdges()
+
+    ## Check whether all nodes disentangled, then success is
+    if not chainer.consistent:
+        print("Inconsistent")
+        return False, chainer.cn.coresDict
+    elif len(chainer.disentangledNodes) == len(dimDict):
+        print("Disentangled")
+        return check_local_satisfiability(coreDict), chainer.cn.coresDict
+    else:
+        for nodeKey in np.random.permutation(list(dimDict.keys())):
+            if nodeKey not in chainer.disentangledNodes:
+                for nodeValue in np.random.permutation(range(dimDict[nodeKey])):
+                    print("Guessing node", nodeKey, nodeValue)
+                    success, resCoreDict = backtrack(
+                        {**coreDict, f"guessed_{nodeKey}_{nodeValue}": engine.create_from_slice_iterator(
+                            colors=[nodeKey], shape=[dimDict[nodeKey]], sliceIterator=[(1, {nodeKey: nodeValue})]
+                        )})
+                    if success:
+                        return True, resCoreDict
+
+
+def check_local_satisfiability(coreDict):
+    return all([engine.contract({coreKey: coreDict[coreKey]}, openColors=[])[:] != 0 for coreKey in coreDict])
+
+
+def get_dimDict(coreDict):
+    dimDict = {}
+    for edgeKey in coreDict:
+        for i, nodeKey in enumerate(coreDict[edgeKey].colors):
+            assert nodeKey not in dimDict or dimDict[nodeKey] == coreDict[edgeKey].shape[i]
+            dimDict[nodeKey] = coreDict[edgeKey].shape[i]
+    return dimDict
 
 
 if __name__ == "__main__":
