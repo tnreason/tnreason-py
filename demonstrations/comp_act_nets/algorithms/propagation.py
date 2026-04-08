@@ -1,6 +1,5 @@
 from tnreason.engine import contract
 from tnreason.engine import create_from_slice_iterator as create
-import copy
 
 
 class ContractionPropagation:
@@ -10,7 +9,8 @@ class ContractionPropagation:
     def __init__(self, cores):
         self.cores = cores
         self.directions = {send: [receive for receive in cores if
-                                  [c for c in cores[send].colors if c in cores[receive].colors] and receive != send]
+                                  set(cores[send].colors) & set(
+                                      cores[receive].colors) and receive != send]
                            for send in cores}
         self.messages = {receive: {} for receive in self.cores}
 
@@ -18,7 +18,7 @@ class ContractionPropagation:
         """
         Prepares trivial message from the send to the receive hyperedge
         """
-        commonColors = [c for c in self.cores[send].colors if c in self.cores[receive].colors]
+        commonColors = list(set(self.cores[send].colors) & set(self.cores[receive].colors))
         shape = [self.cores[send].shape[i]
                  for i, c in enumerate(self.cores[send].colors) if c in commonColors]
         return create(shape=shape, colors=commonColors, sliceIterator=[(1, {})])
@@ -30,7 +30,7 @@ class ContractionPropagation:
         return contract({send: self.cores[send],
                          **{preSend: self.messages[send][preSend] for preSend in self.messages[send]
                             if preSend != receive}},
-                        openColors=[c for c in self.cores[send].colors if c in self.cores[receive].colors])
+                        openColors=list(set(self.cores[send].colors) & set(self.cores[receive].colors)))
 
     def tree_propagation(self):
         """
@@ -54,13 +54,12 @@ class ContractionPropagation:
         Implementation of the Directed Belief Propagation Algorithm:
         Messages are sent in direction of the hypergraph
         """
-        edgeDirections = copy.deepcopy(edgeDirections)
         filteredDirections = {
             send: [
                 receive for receive in self.directions[send]
-                if (common := [c for c in self.cores[send].colors if c in self.cores[receive].colors])
-                   and all(c in edgeDirections[send][1] for c in common)
-                   and all(c in edgeDirections[receive][0] for c in common)
+                if (common := set(self.cores[send].colors) & set(self.cores[receive].colors))
+                   and common.issubset(set(edgeDirections[send][1]))
+                   and common.issubset(set(edgeDirections[receive][0]))
             ]
             for send in self.directions
         }
@@ -71,7 +70,7 @@ class ContractionPropagation:
         while len(schedule) > 0:
             send, receive = schedule.pop()
             self.messages[receive][send] = self.calculate_message(send, receive)
-            for x in [c for c in edgeDirections[send][1] if c in edgeDirections[receive][0]]:
+            for x in set(edgeDirections[send][1]) & set(edgeDirections[receive][0]):
                 edgeDirections[receive][0].remove(x)
             if len(edgeDirections[receive][0]) == 0:
                 schedule = schedule + [(receive, next) for next in filteredDirections[receive]

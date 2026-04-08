@@ -58,8 +58,6 @@ def has_trivial_support(core):
     return all([core[idx] != 0 for idx in np.ndindex(core.shape)])
 
 
-
-
 if __name__ == "__main__":
     conNet = ConstraintNetwork(coresDict={"tCore0": engine.create_from_slice_iterator(
         colors=["a", "b"],
@@ -73,4 +71,3 @@ if __name__ == "__main__":
     core = conNet.coresDict["tCore0_0"]
     print([(1, {color: idx[i] for i, color in enumerate(core.colors)}) for idx in np.ndindex(core.shape) if
            core[{color: idx[i] for i, color in enumerate(core.colors)}] != 0])
-

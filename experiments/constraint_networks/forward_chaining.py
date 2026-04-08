@@ -1,10 +1,10 @@
-from experiments.constraint_networks import constraint_networks as cn
+from experiments.constraint_networks import constraint_networks as con
 from tnreason import engine
 
 
 class GenericForwardChaining:
     def __init__(self, coresDict):
-        self.cn = cn.ConstraintNetwork(coresDict)
+        self.cn = con.ConstraintNetwork(coresDict)
 
         ## Initialize nodesDict storing the node edge inclusions
         self.nodesDict = dict()  # Storing those edges containing the node
