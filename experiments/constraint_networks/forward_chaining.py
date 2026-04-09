@@ -4,11 +4,10 @@ from tnreason.engine import get_dimDict
 
 import numpy as np
 
+
 class GenericForwardChaining:
     def __init__(self, coresDict):
         self.cn = con.ConstraintNetwork(coresDict)
-
-        # self.dimDict = get_dimDict(coresDict)
 
         ## Initialize nodesDict storing the node edge inclusions
         self.nodesDict = dict()  # Storing those edges containing the node
@@ -98,29 +97,47 @@ class GenericForwardChaining:
         return disentangled, newSingleNodes
 
 
-def backtrack(coreDict):
+def backtrack(coreDict, depth=0, maxDepth=100, verbose=True):
     chainer = GenericForwardChaining(coreDict)
     dimDict = get_dimDict(coreDict)
     chainer.propagate_all_singleNodeEdges()
-
+    if verbose:
+        print(f"Remaining entangled nodes: {len(dimDict) - len(chainer.disentangledNodes)}")
     ## Check whether all nodes disentangled, then success is
     if not chainer.consistent:
-        print("Inconsistent")
-        return False, chainer.cn.coresDict
+        if verbose:
+            print("Inconsistent")
+        return False, None
     elif len(chainer.disentangledNodes) == len(dimDict):
-        print("Disentangled")
-        return check_local_satisfiability(coreDict), chainer.cn.coresDict
+        consistent = check_local_satisfiability(coreDict)
+        if verbose:
+            print(f"Disentangled. Consistent: {consistent}")
+        return consistent, chainer.cn.coresDict
     else:
+        if depth == maxDepth:
+            return False, None
         for nodeKey in np.random.permutation(list(dimDict.keys())):
             if nodeKey not in chainer.disentangledNodes:
                 for nodeValue in np.random.permutation(range(dimDict[nodeKey])):
-                    print("Guessing node", nodeKey, nodeValue)
+                    if verbose:
+                        print("Guessing node", nodeKey, nodeValue)
                     success, resCoreDict = backtrack(
                         {**coreDict, f"guessed_{nodeKey}_{nodeValue}": engine.create_from_slice_iterator(
                             colors=[nodeKey], shape=[dimDict[nodeKey]], sliceIterator=[(1, {nodeKey: nodeValue})]
-                        )})
+                        )}, depth=depth + 1, maxDepth=maxDepth, verbose=verbose)
                     if success:
                         return True, resCoreDict
+                return False, None
+
+
+def backtrack_with_restarts(coreDict, maxDepth=5, maxRestarts=100, verbose=True):
+    for restart in range(maxRestarts):
+        if verbose:
+            print(f"##### \n Restart: {restart} \n####")
+        success, resCoreDict = backtrack(coreDict, depth=0, maxDepth=maxDepth, verbose=verbose)
+        if success:
+            return True, resCoreDict, restart
+    return False, None, maxRestarts
 
 
 def check_local_satisfiability(coreDict):
