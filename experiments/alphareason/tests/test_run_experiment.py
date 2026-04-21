@@ -6,7 +6,7 @@ from ..task import AlphaReasonTask
 def test_solve_task_runs_through_policy_injection(monkeypatch):
     task = AlphaReasonTask(
         name="toy",
-        canetwork_factory=lambda evidence: None,
+        network_factory=lambda evidence: None,
         initial_evidence={},
         target_feature_keys=("x",),
         feature_domain_sizes={"x": 2},

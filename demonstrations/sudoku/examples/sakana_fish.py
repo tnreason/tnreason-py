@@ -18,6 +18,7 @@ from demonstrations.sudoku.constraints.white_dot import white_dot_constraint, ce
 from demonstrations.sudoku.constraints.black_dot import black_dot_constraint, cenc_black_dot_constraint
 from demonstrations.sudoku.constraints.red_line import red_line_constraint_from_odd, red_line_constraint, prepare_odd_indicator_core, benc_prepare_odd_indicator_core, cenc_red_line_constraint
 from demonstrations.sudoku.constraints.rc_to_variable_helper import rc_to_pos_assignment
+from experiments.constraint_networks.sudoku_tests.standard_constraints import get_sudoku_constraint_network
 
 def get_forward_mp_inferer(num, startAssignment):
     constraints = rep.get_sudoku_constraints(num)
@@ -50,7 +51,27 @@ def get_assignment_as_CANetwork(num, startAssignment):
     """
     constraints_Sudoku = rep.get_sudoku_constraints(num)
     comCoreDict_Sudoku = application.create_categorical_cores(constraints_Sudoku)
+    comCoreDict = {**comCoreDict_Sudoku, **get_sakana_fish_constraint_cores(num=num)}
+    
+    canParamDict = {evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2],
+                                                                    colors=[evidenceKey],
+                                                                    numberTuple=[startAssignment[evidenceKey]])
+                      for evidenceKey in startAssignment}
 
+    featureDict = representation.standard_featureDict_from_computationCoreDict(comCoreDict)
+    
+    caNet = representation.ComputationActivationNetwork(
+        featureDict=featureDict,
+        computationCoreDict=comCoreDict,
+        canParamDict=canParamDict
+    )
+    return caNet
+
+
+def get_sakana_fish_constraint_cores(num=3):
+    """
+    Returns the non-standard Sakana Fish constraint cores.
+    """
     # white_dots = [("pos_" + str(0) + "_" + str(0) + "_" + str(0) + "_" + str(0),"pos_" + str(0) + "_" + str(1) + "_" + str(0) + "_" + str(0)),
     #               ("pos_" + str(0) + "_" + str(0) + "_" + str(0) + "_" + str(1),"pos_" + str(0) + "_" + str(0) + "_" + str(0) + "_" + str(2)),
     #               ("pos_" + str(0) + "_" + str(0) + "_" + str(1) + "_" + str(0),"pos_" + str(0) + "_" + str(1) + "_" + str(1) + "_" + str(0)),
@@ -112,21 +133,27 @@ def get_assignment_as_CANetwork(num, startAssignment):
     comCoreDict_red_line = [red_line_constraint(posVar1, posVar2, sudokuNum=num) for (posVar1, posVar2) in red_line]
     comCoreDict_red_line = dict(ChainMap(*comCoreDict_red_line))
 
-    comCoreDict = {**comCoreDict_Sudoku, **comCoreDict_white_dot, **comCoreDict_black_dot, **comCoreDict_red_line}
-    
-    canParamDict = {evidenceKey: representation.create_basis_core(name=evidenceKey, shape=[2],
-                                                                    colors=[evidenceKey],
-                                                                    numberTuple=[startAssignment[evidenceKey]])
-                      for evidenceKey in startAssignment}
+    return {**comCoreDict_white_dot, **comCoreDict_black_dot, **comCoreDict_red_line}
 
-    featureDict = representation.standard_featureDict_from_computationCoreDict(comCoreDict)
-    
-    caNet = representation.ComputationActivationNetwork(
-        featureDict=featureDict,
-        computationCoreDict=comCoreDict,
-        canParamDict=canParamDict
-    )
-    return caNet
+
+def get_assignment_as_constraint_network(num, startAssignment):
+    """
+    Prepares the Sakana Fish Sudoku as a constraint-network core dictionary.
+    """
+    evidence_cores = {
+        evidenceKey: representation.create_basis_core(
+            name=evidenceKey,
+            shape=[2],
+            colors=[evidenceKey],
+            numberTuple=[startAssignment[evidenceKey]],
+        )
+        for evidenceKey in startAssignment
+    }
+    return {
+        **get_sudoku_constraint_network(num=num),
+        **get_sakana_fish_constraint_cores(num=num),
+        **evidence_cores,
+    }
 
 def solve_Sakana_Fish_Sudoku(num, startAssignment):
     propagator = get_forward_mp_inferer(num, startAssignment)

@@ -18,7 +18,7 @@ def test_policy_target_is_uniform_over_solution_consistent_actions():
     )
     task = AlphaReasonTask(
         name="toy",
-        canetwork_factory=lambda evidence: None,
+        network_factory=lambda evidence: None,
         initial_evidence={},
         target_feature_keys=("x", "y"),
         feature_domain_sizes={"x": 2, "y": 2},
@@ -42,7 +42,7 @@ def test_value_target_is_negative_for_off_solution_assignment():
     )
     task = AlphaReasonTask(
         name="toy",
-        canetwork_factory=lambda evidence: None,
+        network_factory=lambda evidence: None,
         initial_evidence={},
         target_feature_keys=("x",),
         feature_domain_sizes={"x": 2},

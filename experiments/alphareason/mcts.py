@@ -41,6 +41,12 @@ class AlphaReasonMCTS:
         self.simulations = simulations
 
     def choose_action(self, root_state: AlphaReasonState) -> AlphaReasonAction:
+        ranked_actions = self.rank_actions(root_state)
+        if not ranked_actions:
+            raise ValueError("No legal actions available at root.")
+        return ranked_actions[0]
+
+    def rank_actions(self, root_state: AlphaReasonState) -> List[AlphaReasonAction]:
         root = SearchNode(state=root_state)
         self._expand(root)
 
@@ -48,8 +54,15 @@ class AlphaReasonMCTS:
             self._simulate(root)
 
         if not root.stats:
-            raise ValueError("No legal actions available at root.")
-        return max(root.stats.items(), key=lambda item: item[1].visits)[0]
+            return []
+        return [
+            action
+            for action, _ in sorted(
+                root.stats.items(),
+                key=lambda item: (item[1].visits, item[1].q_value, item[1].prior),
+                reverse=True,
+            )
+        ]
 
     def _simulate(self, root: SearchNode) -> None:
         node = root
@@ -108,4 +121,3 @@ class AlphaReasonMCTS:
         if best_action is None:
             raise ValueError("Failed to select an action.")
         return best_action
-

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
 from typing import Dict, Iterable, List, Optional, Sequence
@@ -15,10 +16,18 @@ from .task import AlphaReasonTask
 from .tasks.sudoku import build_standard_sudoku_task
 from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
 
-LOCAL_SUDOKU_DATASET_ROOT = Path(__file__).resolve().parents[2] / "demonstrations" / "sudoku" / "SudokuDataset"
+LOCAL_SUDOKU_DATASET_ROOT = Path(
+    os.environ.get(
+        "ALPHAREASON_LOCAL_SUDOKU_DATASET_ROOT",
+        str(Path(__file__).resolve().parents[2] / "demonstrations" / "sudoku" / "SudokuDataset"),
+    )
+).expanduser()
 HF_SUDOKU_DATASET_CACHE_ROOT = Path(
-    "/home/schuette/.cache/huggingface/hub/datasets--Ritvik19--Sudoku-Dataset"
-)
+    os.environ.get(
+        "ALPHAREASON_HF_SUDOKU_DATASET_CACHE_ROOT",
+        str(Path.home() / ".cache" / "huggingface" / "hub" / "datasets--Ritvik19--Sudoku-Dataset"),
+    )
+).expanduser()
 HF_SUDOKU_DATASET_BLOB_MAP = {
     "train_0.parquet": "c67780404ff7b82a4f9fc84bbff3aa20fecba47e6d3356374e03d58d090fffdb",
     "train_1.parquet": "7e7d8bd405e85397e7da838566600eacca7b00215ffd7431d9c4d78db81c0c59",
@@ -174,8 +183,8 @@ def load_challenge100_training_tasks(
 
     tasks: List[AlphaReasonTask] = []
     for row_idx, row in selected.iterrows():
-        initial_evidence = initial_board_into_evidence(row["initial_board"], colNum=num, rowNum=num)
-        solution_evidence = initial_board_into_evidence(row["solution"], colNum=num, rowNum=num)
+        initial_evidence = initial_board_into_evidence(str(row["initial_board"]), colNum=num, rowNum=num)
+        solution_evidence = initial_board_into_evidence(str(row["solution"]), colNum=num, rowNum=num)
         puzzle_id = row.get("puzzle_id", row_idx)
         task = build_standard_sudoku_task(
             initial_evidence=initial_evidence,

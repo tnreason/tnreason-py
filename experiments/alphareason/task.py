@@ -1,15 +1,20 @@
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
+
+
+def _missing_closure_function(*args, **kwargs):
+    raise NotImplementedError("AlphaReasonTask.closure_function must be provided to close this task.")
 
 
 @dataclass(frozen=True)
 class AlphaReasonTask:
     name: str
-    canetwork_factory: Callable[[Dict[str, int]], object]
+    network_factory: Callable[[Dict[str, int]], object]
     initial_evidence: Dict[str, int]
     target_feature_keys: Tuple[str, ...]
     feature_domain_sizes: Dict[str, int]
     assignment_evidence_map: Dict[str, Dict[int, Dict[str, int]]]
+    closure_function: Callable[[Any, "AlphaReasonTask", Dict[str, int], Dict[str, Tuple[str, ...]]], object] = _missing_closure_function
     solution_assignments: Dict[str, int] = field(default_factory=dict)
     rule_detectors: Tuple[Callable[..., List[List[str]]], ...] = field(default_factory=tuple)
     rule_detector_kwargs: Dict[str, object] = field(default_factory=dict)
@@ -25,4 +30,3 @@ class AlphaReasonTask:
 
     def solution_action_map(self) -> Mapping[str, int]:
         return self.solution_assignments
-

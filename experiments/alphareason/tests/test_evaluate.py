@@ -6,7 +6,7 @@ from ..task import AlphaReasonTask
 def test_summarize_state_counts_correct_assignments():
     task = AlphaReasonTask(
         name="toy",
-        canetwork_factory=lambda evidence: None,
+        network_factory=lambda evidence: None,
         initial_evidence={},
         target_feature_keys=("x", "y"),
         feature_domain_sizes={"x": 2, "y": 2},

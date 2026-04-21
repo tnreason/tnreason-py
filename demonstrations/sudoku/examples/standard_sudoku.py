@@ -3,6 +3,10 @@ from tnreason import representation, application
 import json
 from pathlib import Path
 
+from experiments.constraint_networks.sudoku_tests.standard_constraints import (
+    get_sudoku_constraint_network,
+)
+
 def get_assignment_as_CANetwork(num, startAssignment):
     """
     Prepares the Sudoku game with a start assignment as a Computation-Activation Network
@@ -48,3 +52,22 @@ def get_assignment_as_CANetwork_load(num, startAssignment):
         canParamDict=canParamDict
     )
     return caNet
+
+
+def get_assignment_as_constraint_network(num, startAssignment):
+    """
+    Prepares the standard Sudoku game as a constraint-network core dictionary.
+    """
+    evidence_cores = {
+        evidenceKey: representation.create_basis_core(
+            name=evidenceKey,
+            shape=[2],
+            colors=[evidenceKey],
+            numberTuple=[startAssignment[evidenceKey]],
+        )
+        for evidenceKey in startAssignment
+    }
+    return {
+        **get_sudoku_constraint_network(num=num),
+        **evidence_cores,
+    }
