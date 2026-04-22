@@ -71,3 +71,9 @@ if __name__ == "__main__":
     yLength = 2
     conDict = turn_into_constraintDict(get_all_sets(3, 2, {"vDomino": [(0, 0), (0, 1)]}))
     assert engine.contract(coreDict=get_constraintNetwork(conDict), openColors=[])[:] == (yLength % 2 == 0)
+
+    ##
+    xLength = 3
+    yLength = 2
+    conDict = turn_into_constraintDict(get_all_sets(2, 3, {"triangleLeftDown": [(0, 0), (0, 1), (1, 0)], "triangleRightUp": [(0, 1), (1, 1), (1, 0)]}))
+    assert engine.contract(coreDict=get_constraintNetwork(conDict), openColors=[])[:] == 1
