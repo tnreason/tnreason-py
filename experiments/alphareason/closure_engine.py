@@ -217,8 +217,12 @@ class AlphaReasonClosureEngine:
             domain_size = task.feature_domain_sizes[feature_key]
             summary_core = self._summarize_constraint_node(chainer, feature_key)
             if summary_core is None:
-                feature_priors[feature_key] = tuple(1.0 / domain_size for _ in range(domain_size))
-                supported = list(range(domain_size))
+                supported = self._support_from_evidence(task, evidence, feature_key, domain_size)
+                if supported:
+                    feature_priors[feature_key] = self._distribution_from_supported(domain_size, supported)
+                else:
+                    feature_priors[feature_key] = tuple(1.0 / domain_size for _ in range(domain_size))
+                    supported = list(range(domain_size))
             else:
                 feature_priors[feature_key] = _distribution_from_core(summary_core, feature_key, domain_size)
                 supported = _support_indices(summary_core, feature_key, domain_size)
@@ -270,6 +274,9 @@ class AlphaReasonClosureEngine:
         message_count: int,
     ) -> AlphaReasonState:
         solved = consistency_ok and len(target_assignments) == len(task.target_feature_keys)
+        print("Current assignment after closure:", dict(sorted(target_assignments.items())))
+        if contradiction:
+            print("Contradiction found after closure.")
 
         legal_actions: Tuple[AssignValueAction | AddClusterAction, ...] = tuple()
         action_priors = {}
@@ -335,8 +342,8 @@ class AlphaReasonClosureEngine:
     def _summarize_constraint_node(self, chainer: GenericForwardChaining, feature_key: str):
         edge_keys = [
             edge_key
-            for edge_key in chainer.nodesDict.get(feature_key, [])
-            if edge_key in chainer.cn.coresDict and feature_key in chainer.cn.coresDict[edge_key].colors
+            for edge_key, core in chainer.cn.coresDict.items()
+            if feature_key in core.colors
         ]
         if not edge_keys:
             return None
@@ -344,6 +351,29 @@ class AlphaReasonClosureEngine:
             {edge_key: chainer.cn.coresDict[edge_key] for edge_key in edge_keys},
             openColors=[feature_key],
         )
+
+    def _support_from_evidence(
+        self,
+        task: AlphaReasonTask,
+        evidence: Dict[str, int],
+        feature_key: str,
+        domain_size: int,
+    ) -> List[int]:
+        supported = []
+        for value_index in range(domain_size):
+            try:
+                assignment_evidence = task.assignment_to_evidence(feature_key, value_index)
+            except KeyError:
+                continue
+            if assignment_evidence and all(evidence.get(key) == value for key, value in assignment_evidence.items()):
+                supported.append(value_index)
+        return supported
+
+    def _distribution_from_supported(self, domain_size: int, supported: List[int]) -> Tuple[float, ...]:
+        if not supported:
+            return tuple(1.0 / domain_size for _ in range(domain_size))
+        probability = 1.0 / len(supported)
+        return tuple(probability if idx in supported else 0.0 for idx in range(domain_size))
 
     def _value_estimate(
         self,

@@ -1,0 +1,238 @@
+Current assignment after closure: {}
+Current assignment after closure: {'pos_0_1_0_2': 1}
+Color pos_0_2_0_1 handled trivially, not appearing in coreDict or dimDict.
+Color pos_2_0_0_2 handled trivially, not appearing in coreDict or dimDict.
+Color pos_1_1_0_2 handled trivially, not appearing in coreDict or dimDict.
+Current assignment after closure: {'pos_0_1_0_2': 3}
+Color pos_0_2_1_2 handled trivially, not appearing in coreDict or dimDict.
+Color pos_0_2_1_1 handled trivially, not appearing in coreDict or dimDict.
+Color pos_0_2_1_0 handled trivially, not appearing in coreDict or dimDict.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_2': 1}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_2': 5}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_2': 2}
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_2': 3}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_2': 0}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_2': 1}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_2': 7}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_2': 3}
+Color pos_1_0_0_1 handled trivially, not appearing in coreDict or dimDict.
+Color pos_0_2_0_2 handled trivially, not appearing in coreDict or dimDict.
+Color pos_2_0_0_1 handled trivially, not appearing in coreDict or dimDict.
+Color pos_1_2_0_1 handled trivially, not appearing in coreDict or dimDict.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 3}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 2}
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 1}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_2': 3, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_2': 1, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Color pos_1_2_0_0 handled trivially, not appearing in coreDict or dimDict.
+Color pos_1_0_0_0 handled trivially, not appearing in coreDict or dimDict.
+Color pos_1_0_2_0 handled trivially, not appearing in coreDict or dimDict.
+Color pos_1_0_1_0 handled trivially, not appearing in coreDict or dimDict.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 2}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 5}
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 5}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 5}
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 5}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_2': 1, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_2': 1, 'pos_2_1_0_2': 6, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_2': 1, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Current assignment after closure: {'pos_0_0_0_2': 5, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 5}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 2}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_2': 3, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_2': 3, 'pos_2_1_0_2': 6, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_2': 3, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Current assignment after closure: {'pos_0_0_0_2': 5, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 2}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 2}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 2}
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 0}
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_0_0_2': 6, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_0_0_1': 1, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 5, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_1': 5, 'pos_0_0_0_2': 4, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 5, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 5, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 4, 'pos_0_1_0_0': 5, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 3, 'pos_0_0_0_1': 0, 'pos_0_0_0_2': 1, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 2, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_2_2_0_1': 1, 'pos_2_2_0_2': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 4, 'pos_0_1_0_0': 5, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 6, 'pos_0_1_0_0': 5, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 3, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 1, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 6, 'pos_0_1_0_0': 5, 'pos_0_1_0_2': 3, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 7, 'pos_1_0_0_1': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_2': 6, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 7}
+Current assignment after closure: {'pos_0_2_0_1': 7, 'pos_1_0_0_1': 3, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 5, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_1': 5, 'pos_0_0_0_2': 4, 'pos_2_1_0_2': 8, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 2, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_2_0_1': 3, 'pos_1_0_0_1': 7, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 7, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 3, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 5, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 2, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 3, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 7, 'pos_2_1_0_2': 3, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 3, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 1, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 0, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 0}
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_1': 1, 'pos_0_1_0_2': 7, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 5, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 5, 'pos_0_1_0_2': 7, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 7, 'pos_0_0_0_1': 0, 'pos_0_0_0_2': 1, 'pos_0_1_0_2': 7, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 2, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_2_2_0_1': 1, 'pos_2_2_0_2': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 4, 'pos_0_1_0_0': 5, 'pos_0_1_0_2': 7, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 7, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 1, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_0_0_0': 6, 'pos_0_1_0_0': 5, 'pos_0_1_0_2': 7, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 3, 'pos_1_0_0_1': 0}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 7}
+Current assignment after closure: {'pos_0_2_0_1': 7, 'pos_1_0_0_1': 3, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 5, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 2, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_2_0_1': 3, 'pos_1_0_0_1': 7, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 3, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 2, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 5, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 5, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 2, 'pos_2_2_0_1': 3, 'pos_2_2_0_2': 7}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 7, 'pos_2_2_0_1': 2, 'pos_2_2_0_2': 5}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 3, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 0, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 1, 'pos_1_0_0_1': 7, 'pos_2_1_0_2': 3, 'pos_2_2_0_1': 5, 'pos_2_2_0_2': 2}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 0}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 7}
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_2_0_1': 7, 'pos_1_0_0_1': 3, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_2_0_1': 3, 'pos_1_0_0_1': 7, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 0, 'pos_2_2_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 7, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 2, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 5, 'pos_1_0_0_1': 0, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 0}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 1}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 7}
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 3}
+Current assignment after closure: {'pos_0_2_0_1': 7, 'pos_1_0_0_1': 3, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 1, 'pos_2_2_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_2_0_1': 1, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_2_0_1': 3, 'pos_1_0_0_1': 7, 'pos_2_2_0_1': 1, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 0, 'pos_2_2_0_1': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 7, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 3, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 0, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 1, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 3, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 7, 'pos_2_1_0_2': 2, 'pos_2_2_0_1': 0, 'pos_2_2_0_2': 1}
+Contradiction found after closure.
+Current assignment after closure: {'pos_0_1_0_2': 5, 'pos_0_2_0_1': 1, 'pos_0_2_0_2': 2, 'pos_1_0_0_1': 0, 'pos_2_1_0_2': 4, 'pos_2_2_0_1': 7, 'pos_2_2_0_2': 3}
+Contradiction found after closure.
+Solved in 52.16 seconds
+Task: sakana_fish_constraint_sudoku
+Solved: False
+Contradiction: False
+Assigned target features: 5 / 81
+History length: 134
+Closure cache: {'size': 135, 'hits': 362, 'misses': 135, 'max_size': 512}

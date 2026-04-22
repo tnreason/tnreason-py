@@ -7,6 +7,8 @@ from ..run_experiment import (
     run_sakana_fish_constraint_sudoku,
     solve_task,
 )
+from ..closure_engine import AlphaReasonClosureEngine
+from ..task import AlphaReasonTask
 from ..tasks.sudoku import (
     build_constraint_sudoku_task,
     build_sakana_fish_constraint_sudoku_task,
@@ -84,3 +86,27 @@ def test_run_sakana_fish_constraint_sudoku_helper():
     assert not state.contradiction
     assert isinstance(history, list)
     assert cache_info["misses"] >= 1
+
+
+def test_constraint_closure_preserves_assigned_target_missing_from_network():
+    task = AlphaReasonTask(
+        name="missing_target",
+        network_factory=lambda evidence: {},
+        closure_function=constraint_network_closure,
+        initial_evidence={"x_is_1": 1},
+        target_feature_keys=("x",),
+        feature_domain_sizes={"x": 2},
+        assignment_evidence_map={
+            "x": {
+                0: {"x_is_0": 1},
+                1: {"x_is_1": 1},
+            }
+        },
+        consistency_checker=lambda constraint_network, assignment: True,
+    )
+
+    state = AlphaReasonClosureEngine().close(task, task.initial_evidence)
+
+    assert state.target_assignments == {"x": 1}
+    assert state.assigned_count == 1
+    assert state.solved
