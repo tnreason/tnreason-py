@@ -1,13 +1,12 @@
 from dataclasses import asdict, dataclass
-from typing import Dict, Optional
+from typing import Dict
 
 from .policies import HeuristicPolicyValue, TrainablePolicyValue
 from .run_experiment import solve_task
 from .state import AlphaReasonState
 from .task import AlphaReasonTask
+from .data_loaders import REPO_HF_SUDOKU_DATASET_DIR, load_hf_sudoku_dataset_training_tasks
 from .train import (
-    TrainingConfig,
-    load_hf_sudoku_dataset_training_tasks,
     train_supervised,
 )
 
@@ -58,24 +57,29 @@ def summarize_state(
 
 def compare_heuristic_and_trained_on_validation(
     train_limit: int = 8,
-    valid_index: int = 0,
-    training_config: Optional[TrainingConfig] = None,
     simulations: int = 20,
     max_steps: int = 30,
 ):
-    train_tasks = load_hf_sudoku_dataset_training_tasks(limit=train_limit, offset=0, split="train")
-    valid_tasks = load_hf_sudoku_dataset_training_tasks(limit=1, offset=valid_index, split="valid")
+    train_tasks = load_hf_sudoku_dataset_training_tasks(
+        num_samples=train_limit,
+        split="train",
+        dataset_dir=str(REPO_HF_SUDOKU_DATASET_DIR),
+    )
+    valid_tasks = load_hf_sudoku_dataset_training_tasks(
+        num_samples=1,
+        split="valid",
+        dataset_dir=str(REPO_HF_SUDOKU_DATASET_DIR),
+    )
     if not valid_tasks:
         raise ValueError("No validation task could be loaded.")
     valid_task = valid_tasks[0]
 
-    training_config = training_config or TrainingConfig(
+    model, history = train_supervised(
+        train_tasks,
         epochs=2,
         learning_rate=1e-3,
-        max_samples_per_task=4,
         seed=0,
     )
-    model, history = train_supervised(train_tasks, config=training_config)
 
     heuristic_state, heuristic_history, heuristic_cache = solve_task(
         valid_task,

@@ -20,7 +20,6 @@ class SupervisedSample:
 def extract_solution_trajectory_samples(
     task: AlphaReasonTask,
     closure_engine: Optional[AlphaReasonClosureEngine] = None,
-    max_samples: Optional[int] = None,
     shuffle_good_actions: bool = False,
     rng: Optional[random.Random] = None,
 ) -> List[SupervisedSample]:
@@ -42,8 +41,6 @@ def extract_solution_trajectory_samples(
                     value_target=value_target_from_solution(state, task),
                 )
             )
-            if max_samples is not None and len(samples) >= max_samples:
-                break
 
             good_actions = list(policy_target.keys())
             if shuffle_good_actions:
@@ -65,7 +62,6 @@ def extract_solution_trajectory_samples(
 
 def build_supervised_dataset(
     tasks: Sequence[AlphaReasonTask],
-    max_samples_per_task: Optional[int] = None,
     shuffle_good_actions: bool = False,
     seed: int = 0,
 ) -> List[SupervisedSample]:
@@ -77,10 +73,8 @@ def build_supervised_dataset(
             extract_solution_trajectory_samples(
                 task,
                 closure_engine=closure_engine,
-                max_samples=max_samples_per_task,
                 shuffle_good_actions=shuffle_good_actions,
                 rng=rng,
             )
         )
     return dataset
-

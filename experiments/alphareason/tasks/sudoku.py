@@ -2,6 +2,7 @@ import demonstrations.sudoku.inferenceClusters as inf_clusters
 from demonstrations.sudoku.examples import sakana_fish, standard_sudoku
 from experiments.alphasudoku.validation import check_assignment_consistency
 from experiments.constraint_networks.forward_chaining import check_local_satisfiability
+from tnreason.engine import get_dimDict
 
 from ..task import AlphaReasonTask
 
@@ -55,6 +56,42 @@ def _assignment_evidence_map(num: int):
     }
 
 
+def _constraint_assignment_evidence_map(num: int):
+    return {
+        feature_key: {
+            digit: {
+                feature_key: digit,
+                _cell_atom_key(num, row, col, digit): 1,
+            }
+            for digit in range(num ** 2)
+        }
+        for row in range(num ** 2)
+        for col in range(num ** 2)
+        for feature_key in [_cell_feature_key(num, row, col)]
+    }
+
+
+def _direct_assignment_evidence_map(feature_domain_sizes):
+    return {
+        feature_key: {
+            value_index: {feature_key: value_index}
+            for value_index in range(domain_size)
+        }
+        for feature_key, domain_size in feature_domain_sizes.items()
+    }
+
+
+def _constraint_action_feature_keys(dim_dict):
+    standard_prefixes = ("a_", "row_", "col_", "square_")
+    return tuple(
+        sorted(
+            feature_key
+            for feature_key in dim_dict
+            if not feature_key.startswith(standard_prefixes)
+        )
+    )
+
+
 def canetwork_closure(closure_engine, task, evidence, active_inference_clusters):
     return closure_engine.close_canetwork(task, evidence, active_inference_clusters)
 
@@ -105,9 +142,17 @@ def build_constraint_sudoku_task(
     solution_evidence,
     num: int = 3,
     name: str = "constraint_sudoku",
+    branch_feature_count: int = 1,
 ):
     target_feature_keys = _target_feature_keys(num)
-    feature_domain_sizes = {feature_key: num ** 2 for feature_key in target_feature_keys}
+    dim_dict = get_dimDict(network_factory({}))
+    action_feature_keys = _constraint_action_feature_keys(dim_dict)
+    feature_domain_sizes = {
+        feature_key: dim_dict.get(feature_key, num ** 2)
+        for feature_key in set(target_feature_keys).union(action_feature_keys)
+    }
+    assignment_evidence_map = _direct_assignment_evidence_map(feature_domain_sizes)
+    assignment_evidence_map.update(_constraint_assignment_evidence_map(num))
 
     return AlphaReasonTask(
         name=name,
@@ -116,7 +161,9 @@ def build_constraint_sudoku_task(
         initial_evidence=dict(initial_evidence),
         target_feature_keys=target_feature_keys,
         feature_domain_sizes=feature_domain_sizes,
-        assignment_evidence_map=_assignment_evidence_map(num),
+        assignment_evidence_map=assignment_evidence_map,
+        action_feature_keys=action_feature_keys,
+        branch_feature_count=branch_feature_count,
         solution_assignments=_solution_assignments_from_atom_evidence(solution_evidence, num=num),
         consistency_checker=lambda constraint_network, assignment: check_local_satisfiability(constraint_network.coresDict),
         metadata={"num": num},
@@ -128,6 +175,7 @@ def build_sakana_fish_constraint_sudoku_task(
     solution_evidence=None,
     num: int = 3,
     name: str = "sakana_fish_constraint_sudoku",
+    branch_feature_count: int = 1,
 ):
     initial_evidence = dict(initial_evidence or {})
     solution_evidence = dict(solution_evidence or initial_evidence)
@@ -140,4 +188,5 @@ def build_sakana_fish_constraint_sudoku_task(
         solution_evidence=solution_evidence,
         num=num,
         name=name,
+        branch_feature_count=branch_feature_count,
     )

@@ -1,0 +1,10 @@
+Preparing filtered training parquet (unsolved after one closure step):
+out_parquet: /tmp/alphareason_prepared_unsolved.parquet
+num: 3
+challenge100_csv: /Home/optimier/schuette/tnreasonproj/tnreason-py/demonstrations/sudoku/sudoku_bench/sample_data/challenge100.csv
+challenge100_limit: 2
+hf_dataset_dir: /Home/optimier/schuette/tnreasonproj/tnreason-py/demonstrations/sudoku/sudoku_bench/sample_data/hf_sudoku_dataset
+hf_split: train
+hf_limit: 1
+hf_batch_size: 256
+Processed 3, kept 1, wrote /tmp/alphareason_prepared_unsolved.parquet

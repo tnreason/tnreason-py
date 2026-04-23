@@ -1,11 +1,13 @@
 from demonstrations.sudoku.constraints.sudoku_constraints import get_sudoku_constraints
 from tnreason import representation, application
+from tnreason.engine import get_dimDict
 import json
 from pathlib import Path
 
 from experiments.constraint_networks.sudoku_tests.standard_constraints import (
     get_sudoku_constraint_network,
 )
+
 
 def get_assignment_as_CANetwork(num, startAssignment):
     """
@@ -58,16 +60,18 @@ def get_assignment_as_constraint_network(num, startAssignment):
     """
     Prepares the standard Sudoku game as a constraint-network core dictionary.
     """
+    constraint_cores = get_sudoku_constraint_network(num=num)
+    dim_dict = get_dimDict(constraint_cores)
     evidence_cores = {
         evidenceKey: representation.create_basis_core(
             name=evidenceKey,
-            shape=[2],
+            shape=[dim_dict[evidenceKey]],
             colors=[evidenceKey],
             numberTuple=[startAssignment[evidenceKey]],
         )
         for evidenceKey in startAssignment
     }
     return {
-        **get_sudoku_constraint_network(num=num),
+        **constraint_cores,
         **evidence_cores,
     }

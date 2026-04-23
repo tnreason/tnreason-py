@@ -12,6 +12,7 @@ To be more precise:
 from collections import ChainMap
 
 from tnreason import representation, reasoning, engine, application
+from tnreason.engine import get_dimDict
 
 from demonstrations.sudoku.constraints import sudoku_constraints as rep
 from demonstrations.sudoku.constraints.white_dot import white_dot_constraint, cenc_white_dot_constraint
@@ -19,6 +20,7 @@ from demonstrations.sudoku.constraints.black_dot import black_dot_constraint, ce
 from demonstrations.sudoku.constraints.red_line import red_line_constraint_from_odd, red_line_constraint, prepare_odd_indicator_core, benc_prepare_odd_indicator_core, cenc_red_line_constraint
 from demonstrations.sudoku.constraints.rc_to_variable_helper import rc_to_pos_assignment
 from experiments.constraint_networks.sudoku_tests.standard_constraints import get_sudoku_constraint_network
+
 
 def get_forward_mp_inferer(num, startAssignment):
     constraints = rep.get_sudoku_constraints(num)
@@ -140,18 +142,22 @@ def get_assignment_as_constraint_network(num, startAssignment):
     """
     Prepares the Sakana Fish Sudoku as a constraint-network core dictionary.
     """
+    constraint_cores = {
+        **get_sudoku_constraint_network(num=num),
+        **get_sakana_fish_constraint_cores(num=num),
+    }
+    dim_dict = get_dimDict(constraint_cores)
     evidence_cores = {
         evidenceKey: representation.create_basis_core(
             name=evidenceKey,
-            shape=[2],
+            shape=[dim_dict[evidenceKey]],
             colors=[evidenceKey],
             numberTuple=[startAssignment[evidenceKey]],
         )
         for evidenceKey in startAssignment
     }
     return {
-        **get_sudoku_constraint_network(num=num),
-        **get_sakana_fish_constraint_cores(num=num),
+        **constraint_cores,
         **evidence_cores,
     }
 

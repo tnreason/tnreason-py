@@ -42,9 +42,15 @@ def test_build_constraint_sudoku_task_extracts_targets_and_solution():
 
     assert task.closure_function is constraint_network_closure
     assert len(task.target_feature_keys) == 81
+    assert len(task.action_feature_keys) == len(task.target_feature_keys)
+    assert all(not feature_key.startswith("a_") for feature_key in task.action_feature_keys)
+    assert all(not feature_key.startswith(("row_", "col_", "square_")) for feature_key in task.action_feature_keys)
     assert task.feature_domain_sizes["pos_0_0_0_0"] == 9
     assert task.solution_assignments["pos_0_0_0_0"] == 0
-    assert task.assignment_to_evidence("pos_0_0_0_0", 0) == {"a_0_0_0_0_0": 1}
+    assert task.assignment_to_evidence("pos_0_0_0_0", 0) == {
+        "pos_0_0_0_0": 0,
+        "a_0_0_0_0_0": 1,
+    }
 
 
 def test_constraint_sudoku_demo_runs_through_solver():
@@ -78,6 +84,17 @@ def test_sakana_fish_constraint_sudoku_task_runs_through_solver():
     assert not state.contradiction
     assert isinstance(history, list)
     assert cache_info["misses"] >= 1
+
+
+def test_branch_feature_count_increases_root_actions():
+    narrow_task = build_sakana_fish_constraint_sudoku_task(branch_feature_count=1)
+    wider_task = build_sakana_fish_constraint_sudoku_task(branch_feature_count=5)
+
+    engine = AlphaReasonClosureEngine()
+    narrow_state = engine.close(narrow_task, narrow_task.initial_evidence)
+    wide_state = engine.close(wider_task, wider_task.initial_evidence)
+
+    assert len(wide_state.legal_actions) > len(narrow_state.legal_actions)
 
 
 def test_run_sakana_fish_constraint_sudoku_helper():

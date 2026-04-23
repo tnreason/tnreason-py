@@ -34,11 +34,13 @@ class AlphaReasonMCTS:
         policy_value: Optional[PolicyValue] = None,
         c_puct: float = 1.5,
         simulations: int = 200,
+        rollout_depth: int = 0,
     ):
         self.env = env
         self.policy_value = policy_value or HeuristicPolicyValue()
         self.c_puct = c_puct
         self.simulations = simulations
+        self.rollout_depth = rollout_depth
 
     def choose_action(self, root_state: AlphaReasonState) -> AlphaReasonAction:
         ranked_actions = self.rank_actions(root_state)
@@ -85,7 +87,7 @@ class AlphaReasonMCTS:
                 child_state, reward, _ = self.env.step(node.state, action)
                 child = SearchNode(state=child_state)
                 node.children[action] = child
-                rollout_value = reward if child_state.done else reward + self._expand(child)
+                rollout_value = reward if child_state.done else reward + self._rollout(child_state)
                 break
 
             node = node.children[action]
@@ -105,6 +107,21 @@ class AlphaReasonMCTS:
         node.stats = {action: EdgeStats(prior=priors[action]) for action in legal_actions}
         node.expanded = True
         return self.policy_value.value(node.state)
+
+    def _rollout(self, state: AlphaReasonState) -> float:
+        total_value = 0.0
+        current_state = state
+        for _ in range(self.rollout_depth):
+            if current_state.done:
+                return total_value + self.policy_value.value(current_state)
+            legal_actions = self.env.legal_actions(current_state)
+            if not legal_actions:
+                return total_value - 1.0
+            priors = self.policy_value.action_priors(current_state, legal_actions)
+            action = max(legal_actions, key=lambda candidate: priors.get(candidate, 0.0))
+            current_state, reward, _ = self.env.step(current_state, action)
+            total_value += reward
+        return total_value + self.policy_value.value(current_state)
 
     def _select(self, node: SearchNode) -> AlphaReasonAction:
         total_visits = sum(stats.visits for stats in node.stats.values()) + 1

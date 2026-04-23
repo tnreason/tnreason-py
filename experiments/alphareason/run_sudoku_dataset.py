@@ -1,7 +1,6 @@
 import argparse
 import csv
 from dataclasses import asdict
-import os
 from pathlib import Path
 from time import perf_counter
 
@@ -19,18 +18,7 @@ from .tasks.sudoku import build_constraint_sudoku_task
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "demonstrations" / "sudoku" / "sudoku_bench" / "sample_data"
 DEFAULT_DATASET = "hf:train"
-HF_SUDOKU_DATASET_CACHE_ROOT = Path(
-    os.environ.get(
-        "ALPHAREASON_HF_SUDOKU_DATASET_CACHE_ROOT",
-        str(Path.home() / ".cache" / "huggingface" / "hub" / "datasets--Ritvik19--Sudoku-Dataset"),
-    )
-).expanduser()
-HF_SUDOKU_DATASET_BLOB_MAP = {
-    "train_0.parquet": "c67780404ff7b82a4f9fc84bbff3aa20fecba47e6d3356374e03d58d090fffdb",
-    "train_1.parquet": "7e7d8bd405e85397e7da838566600eacca7b00215ffd7431d9c4d78db81c0c59",
-    "valid_0.parquet": "4fcfcde6c5d86bf1b936d2326f4021de83a3db17c58112038213d3e32e8b8b24",
-    "valid_1.parquet": "0f0a3d7bf6876fc5726845e93edb01edf151a84aea527e945434fe4ea611d9a5",
-}
+REPO_HF_SUDOKU_DATASET_DIR = DATA_DIR / "hf_sudoku_dataset"
 
 
 def load_sudoku_dataframe(path: Path):
@@ -43,17 +31,12 @@ def load_sudoku_dataframe(path: Path):
 
 def hf_sudoku_shards(split: str = "train"):
     shards = []
-    blobs_root = HF_SUDOKU_DATASET_CACHE_ROOT / "blobs"
-    for file_name, blob_name in HF_SUDOKU_DATASET_BLOB_MAP.items():
-        if not file_name.startswith(f"{split}_"):
-            continue
-        blob_path = blobs_root / blob_name
-        if blob_path.exists():
-            shard_index = int(file_name.removeprefix(f"{split}_").removesuffix(".parquet"))
-            shards.append((shard_index, blob_path))
+    for shard_path in REPO_HF_SUDOKU_DATASET_DIR.glob(f"{split}_*.parquet"):
+        shard_index = int(shard_path.stem.removeprefix(f"{split}_"))
+        shards.append((shard_index, shard_path))
     if not shards:
         raise FileNotFoundError(
-            f"Could not find cached HuggingFace Sudoku-Dataset shards for split {split!r} under {HF_SUDOKU_DATASET_CACHE_ROOT}."
+            f"Could not find repo-local Sudoku dataset shards for split {split!r} under {REPO_HF_SUDOKU_DATASET_DIR}."
         )
     return [path for _, path in sorted(shards)]
 

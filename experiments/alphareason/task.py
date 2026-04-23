@@ -15,6 +15,8 @@ class AlphaReasonTask:
     feature_domain_sizes: Dict[str, int]
     assignment_evidence_map: Dict[str, Dict[int, Dict[str, int]]]
     closure_function: Callable[[Any, "AlphaReasonTask", Dict[str, int], Dict[str, Tuple[str, ...]]], object] = _missing_closure_function
+    action_feature_keys: Tuple[str, ...] = field(default_factory=tuple)
+    branch_feature_count: int = 1
     solution_assignments: Dict[str, int] = field(default_factory=dict)
     rule_detectors: Tuple[Callable[..., List[List[str]]], ...] = field(default_factory=tuple)
     rule_detector_kwargs: Dict[str, object] = field(default_factory=dict)
@@ -30,3 +32,6 @@ class AlphaReasonTask:
 
     def solution_action_map(self) -> Mapping[str, int]:
         return self.solution_assignments
+
+    def available_action_feature_keys(self) -> Tuple[str, ...]:
+        return self.action_feature_keys or self.target_feature_keys

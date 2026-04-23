@@ -1,208 +1,23 @@
-from dataclasses import dataclass
 import os
 from pathlib import Path
-import re
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
-import pandas as pd
-import pyarrow.parquet as pq
 import torch
 import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.distributed import DistributedSampler
 
-from .dataset import SupervisedSample, build_supervised_dataset
+from .actions import AddClusterAction, AssignValueAction
+from .data_loaders import (
+    REPO_CHALLENGE100_CSV_PATH,
+    REPO_HF_SUDOKU_DATASET_DIR,
+    load_challenge100_training_tasks,
+    load_hf_sudoku_dataset_training_tasks,
+    load_prepared_sudoku_training_tasks,
+)
+from .dataset import build_supervised_dataset
 from .policies import AlphaReasonPolicyValueNet, action_to_key
-from .run_experiment import CHALLENGE100_PATH, build_demo_sudoku_task
 from .task import AlphaReasonTask
-from .tasks.sudoku import build_standard_sudoku_task
-from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
-
-LOCAL_SUDOKU_DATASET_ROOT = Path(
-    os.environ.get(
-        "ALPHAREASON_LOCAL_SUDOKU_DATASET_ROOT",
-        str(Path(__file__).resolve().parents[2] / "demonstrations" / "sudoku" / "SudokuDataset"),
-    )
-).expanduser()
-HF_SUDOKU_DATASET_CACHE_ROOT = Path(
-    os.environ.get(
-        "ALPHAREASON_HF_SUDOKU_DATASET_CACHE_ROOT",
-        str(Path.home() / ".cache" / "huggingface" / "hub" / "datasets--Ritvik19--Sudoku-Dataset"),
-    )
-).expanduser()
-HF_SUDOKU_DATASET_BLOB_MAP = {
-    "train_0.parquet": "c67780404ff7b82a4f9fc84bbff3aa20fecba47e6d3356374e03d58d090fffdb",
-    "train_1.parquet": "7e7d8bd405e85397e7da838566600eacca7b00215ffd7431d9c4d78db81c0c59",
-    "train_0_aux.parquet": "8fed3620a0d9dd81a969a36a450f5e5667631eb60d1be777e5cb08053df88a4d",
-    "valid_0.parquet": "4fcfcde6c5d86bf1b936d2326f4021de83a3db17c58112038213d3e32e8b8b24",
-    "valid_1.parquet": "0f0a3d7bf6876fc5726845e93edb01edf151a84aea527e945434fe4ea611d9a5",
-    "README.md": "1395ae06a71c498da2faed4040b93e0cfd02124e",
-    ".gitattributes": "28df5f900b358436f0267334b3e3e9af33f917ba",
-}
-
-
-@dataclass
-class TrainingConfig:
-    epochs: int = 5
-    learning_rate: float = 1e-3
-    weight_decay: float = 1e-4
-    max_samples_per_task: Optional[int] = None
-    shuffle_good_actions: bool = True
-    seed: int = 0
-    checkpoint_path: Optional[str] = None
-
-
-def _candidate_sudoku_dataset_dirs() -> List[Path]:
-    candidates: List[Path] = []
-    if LOCAL_SUDOKU_DATASET_ROOT.exists():
-        for path in sorted(LOCAL_SUDOKU_DATASET_ROOT.iterdir()):
-            if path.is_dir():
-                candidates.append(path)
-    snapshots_root = HF_SUDOKU_DATASET_CACHE_ROOT / "snapshots"
-    if snapshots_root.exists():
-        for path in sorted(snapshots_root.iterdir()):
-            if path.is_dir():
-                candidates.append(path)
-    return candidates
-
-
-def _resolve_dataset_file(dataset_dir: Path, file_name: str) -> Path:
-    candidate = dataset_dir / file_name
-    if candidate.exists():
-        return candidate
-    if candidate.is_symlink():
-        target = candidate.readlink()
-        resolved = (candidate.parent / target).resolve(strict=False)
-        if resolved.exists():
-            return resolved
-        blob_match = re.search(r"blobs/([^/]+)$", str(target))
-        if blob_match:
-            blob_path = HF_SUDOKU_DATASET_CACHE_ROOT / "blobs" / blob_match.group(1)
-            if blob_path.exists():
-                return blob_path
-    raise FileNotFoundError(f"Could not resolve dataset file {candidate}.")
-
-
-def _find_sudoku_dataset_dir(split: str) -> Optional[Path]:
-    pattern = re.compile(rf"{re.escape(split)}_\d+\.parquet$")
-    for dataset_dir in _candidate_sudoku_dataset_dirs():
-        try:
-            filenames = [path.name for path in dataset_dir.iterdir()]
-        except FileNotFoundError:
-            continue
-        if any(pattern.match(name) for name in filenames):
-            return dataset_dir
-    return None
-
-
-def _hf_blob_split_files(split: str) -> List[tuple[int, Path]]:
-    pattern = re.compile(rf"{re.escape(split)}_(\d+)\.parquet$")
-    blobs_root = HF_SUDOKU_DATASET_CACHE_ROOT / "blobs"
-    shard_files = []
-    for file_name, blob_name in HF_SUDOKU_DATASET_BLOB_MAP.items():
-        match = pattern.fullmatch(file_name)
-        if not match:
-            continue
-        blob_path = blobs_root / blob_name
-        if blob_path.exists():
-            shard_files.append((int(match.group(1)), blob_path))
-    return sorted(shard_files, key=lambda item: item[0])
-
-
-def load_hf_sudoku_dataset_training_tasks(
-    limit: Optional[int] = None,
-    offset: int = 0,
-    split: str = "train",
-    batch_size: int = 256,
-    num: int = 3,
-    dataset_dir: Optional[str] = None,
-) -> List[AlphaReasonTask]:
-    if offset < 0:
-        raise ValueError("offset must be non-negative.")
-
-    dataset_path = Path(dataset_dir) if dataset_dir is not None else _find_sudoku_dataset_dir(split=split)
-    shard_files: List[tuple[int, Path]] = []
-    if dataset_path is not None:
-        pattern = re.compile(rf"{re.escape(split)}_(\d+)\.parquet$")
-        for path in sorted(dataset_path.iterdir(), key=lambda item: item.name):
-            match = pattern.fullmatch(path.name)
-            if match:
-                shard_files.append((int(match.group(1)), _resolve_dataset_file(dataset_path, path.name)))
-    else:
-        shard_files = _hf_blob_split_files(split=split)
-    if not shard_files:
-        raise FileNotFoundError("Could not find readable parquet shards for the SudokuDataset.")
-
-    tasks: List[AlphaReasonTask] = []
-    seen = 0
-    for shard_idx, parquet_path in shard_files:
-        parquet_file = pq.ParquetFile(parquet_path)
-        for batch in parquet_file.iter_batches(batch_size=batch_size, columns=["puzzle", "solution"]):
-            batch_dict = batch.to_pydict()
-            puzzles = batch_dict["puzzle"]
-            solutions = batch_dict["solution"]
-            for row_idx, (puzzle, solution) in enumerate(zip(puzzles, solutions)):
-                if seen < offset:
-                    seen += 1
-                    continue
-                initial_evidence = initial_board_into_evidence(puzzle, colNum=num, rowNum=num)
-                solution_evidence = initial_board_into_evidence(solution, colNum=num, rowNum=num)
-                task = build_standard_sudoku_task(
-                    initial_evidence=initial_evidence,
-                    solution_evidence=solution_evidence,
-                    num=num,
-                    name=f"sudoku_dataset_{split}_{seen}",
-                )
-                task.metadata.update(
-                    {
-                        "source": "hf_sudoku_dataset",
-                        "split": split,
-                        "row_index": seen,
-                        "shard_file": parquet_path.name,
-                        "shard_index": shard_idx,
-                    }
-                )
-                tasks.append(task)
-                seen += 1
-                if limit is not None and len(tasks) >= limit:
-                    return tasks
-    return tasks
-
-
-def load_challenge100_training_tasks(
-    limit: Optional[int] = None,
-    offset: int = 0,
-    num: int = 3,
-    csv_path: str = CHALLENGE100_PATH,
-) -> List[AlphaReasonTask]:
-    df = pd.read_csv(csv_path)
-    if offset < 0:
-        raise ValueError("offset must be non-negative.")
-    if limit is None:
-        selected = df.iloc[offset:]
-    else:
-        selected = df.iloc[offset : offset + limit]
-
-    tasks: List[AlphaReasonTask] = []
-    for row_idx, row in selected.iterrows():
-        initial_evidence = initial_board_into_evidence(str(row["initial_board"]), colNum=num, rowNum=num)
-        solution_evidence = initial_board_into_evidence(str(row["solution"]), colNum=num, rowNum=num)
-        puzzle_id = row.get("puzzle_id", row_idx)
-        task = build_standard_sudoku_task(
-            initial_evidence=initial_evidence,
-            solution_evidence=solution_evidence,
-            num=num,
-            name=f"challenge100_{puzzle_id}",
-        )
-        task.metadata.update(
-            {
-                "source": "challenge100",
-                "row_index": int(row_idx),
-                "puzzle_id": puzzle_id,
-                "title": row.get("title"),
-                "author": row.get("author"),
-            }
-        )
-        tasks.append(task)
-    return tasks
 
 
 def infer_model_shape(tasks: Sequence[AlphaReasonTask]) -> tuple[int, int]:
@@ -211,169 +26,320 @@ def infer_model_shape(tasks: Sequence[AlphaReasonTask]) -> tuple[int, int]:
     return num_features, max_feature_dim
 
 
-def compute_policy_value_loss(
-    model: AlphaReasonPolicyValueNet,
-    sample: SupervisedSample,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    legal_actions = list(sample.state.legal_actions)
-    state_tensor = model.encode_state(sample.state)
-    action_tensor = model.encode_actions(sample.state, legal_actions)
-    logits, value = model.forward_tensors(state_tensor, action_tensor)
+def _encode_state_cpu(state, *, num_features: int, max_feature_dim: int) -> torch.Tensor:
+    assigned = torch.zeros((num_features, max_feature_dim), dtype=torch.float32, device="cpu")
+    priors = torch.zeros((num_features, max_feature_dim), dtype=torch.float32, device="cpu")
+    assigned_mask = torch.zeros(num_features, dtype=torch.float32, device="cpu")
+    unresolved_mask = torch.zeros(num_features, dtype=torch.float32, device="cpu")
 
-    target_probs = torch.zeros(len(legal_actions), dtype=torch.float32, device=model.device)
-    action_index = {action_to_key(action): idx for idx, action in enumerate(legal_actions)}
-    for action, prob in sample.policy_target.items():
-        key = action_to_key(action)
-        if key in action_index:
-            target_probs[action_index[key]] = float(prob)
+    feature_index = {feature_key: idx for idx, feature_key in enumerate(state.target_feature_keys[:num_features])}
+    for feature_key, idx in feature_index.items():
+        domain_size = min(state.feature_domain_sizes[feature_key], max_feature_dim)
+        feature_probs = state.feature_priors.get(feature_key, tuple())
+        for value_index in range(min(len(feature_probs), domain_size)):
+            priors[idx, value_index] = float(feature_probs[value_index])
+        if feature_key in state.target_assignments:
+            value_index = state.target_assignments[feature_key]
+            if value_index < max_feature_dim:
+                assigned[idx, value_index] = 1.0
+            assigned_mask[idx] = 1.0
+        else:
+            unresolved_mask[idx] = 1.0
 
-    if target_probs.sum() <= 0:
-        target_probs = torch.full_like(target_probs, 1.0 / max(1, len(legal_actions)))
-    else:
-        target_probs = target_probs / target_probs.sum()
+    summary = torch.tensor(
+        [
+            float(state.assigned_count) / max(1.0, float(len(state.target_feature_keys))),
+            float(len(state.active_inference_clusters)) / 32.0,
+            float(len(state.cluster_candidates)) / 32.0,
+            float(state.value_estimate),
+        ],
+        dtype=torch.float32,
+        device="cpu",
+    )
+    return torch.cat(
+        [
+            assigned.flatten(),
+            priors.flatten(),
+            assigned_mask,
+            unresolved_mask,
+            summary,
+        ],
+        dim=0,
+    )
 
-    log_probs = F.log_softmax(logits, dim=0)
-    policy_loss = -(target_probs * log_probs).sum()
 
-    value_target = torch.tensor([sample.value_target], dtype=torch.float32, device=model.device)
-    value_loss = F.mse_loss(value.view(1), value_target)
-    total_loss = policy_loss + value_loss
-    return total_loss, policy_loss.detach(), value_loss.detach()
+def _encode_actions_cpu(
+    state,
+    legal_actions: List[object],
+    *,
+    num_features: int,
+    max_feature_dim: int,
+) -> torch.Tensor:
+    action_dim = num_features + max_feature_dim + 3
+    if not legal_actions:
+        return torch.zeros((0, action_dim), dtype=torch.float32, device="cpu")
+
+    feature_index = {feature_key: idx for idx, feature_key in enumerate(state.target_feature_keys[:num_features])}
+    action_vectors: List[torch.Tensor] = []
+    for action in legal_actions:
+        vector = torch.zeros(action_dim, dtype=torch.float32, device="cpu")
+        if isinstance(action, AssignValueAction):
+            if action.feature_key in feature_index:
+                vector[feature_index[action.feature_key]] = 1.0
+            if action.value_index < max_feature_dim:
+                vector[num_features + action.value_index] = 1.0
+            vector[num_features + max_feature_dim] = 1.0
+        elif isinstance(action, AddClusterAction):
+            vector[num_features + max_feature_dim + 1] = 1.0
+            vector[num_features + max_feature_dim + 2] = min(1.0, len(action.cluster_key) / 128.0)
+        action_vectors.append(vector)
+    return torch.stack(action_vectors, dim=0)
+
+
+class _EncodedSampleDataset(Dataset):
+    def __init__(self, rows: List[dict]):
+        self._rows = rows
+
+    def __len__(self) -> int:
+        return len(self._rows)
+
+    def __getitem__(self, idx: int):
+        return self._rows[idx]
+
+
+def _collate_encoded_batch(rows: List[dict]):
+    batch_size = len(rows)
+    max_actions = max(row["action_tensor"].shape[0] for row in rows) if rows else 0
+
+    state = torch.stack([row["state_tensor"] for row in rows], dim=0)
+    value_target = torch.tensor([row["value_target"] for row in rows], dtype=torch.float32)
+
+    action_dim = rows[0]["action_dim"]
+    actions = torch.zeros((batch_size, max_actions, action_dim), dtype=torch.float32)
+    target_probs = torch.zeros((batch_size, max_actions), dtype=torch.float32)
+    mask = torch.zeros((batch_size, max_actions), dtype=torch.bool)
+
+    for i, row in enumerate(rows):
+        a = row["action_tensor"].shape[0]
+        if a:
+            actions[i, :a, :] = row["action_tensor"]
+            target_probs[i, :a] = row["target_probs"]
+            mask[i, :a] = True
+
+    return {
+        "state": state,
+        "actions": actions,
+        "target_probs": target_probs,
+        "mask": mask,
+        "value_target": value_target,
+    }
+
+
+def _maybe_init_ddp(device: torch.device) -> tuple[bool, int, int]:
+    world_size = int(os.environ.get("WORLD_SIZE", "1"))
+    if world_size <= 1:
+        return False, 0, 0
+    if device.type != "cuda":
+        raise ValueError("DDP requested via WORLD_SIZE>1 but device is not CUDA.")
+    if not torch.distributed.is_available():
+        raise RuntimeError("torch.distributed is not available.")
+    if not torch.distributed.is_initialized():
+        torch.distributed.init_process_group(backend="nccl")
+    rank = int(os.environ.get("RANK", "0"))
+    local_rank = int(os.environ.get("LOCAL_RANK", "0"))
+    torch.cuda.set_device(local_rank)
+    return True, rank, local_rank
 
 
 def train_supervised(
     tasks: Sequence[AlphaReasonTask],
-    config: Optional[TrainingConfig] = None,
     model: Optional[AlphaReasonPolicyValueNet] = None,
+    epochs: int = 5,
+    learning_rate: float = 1e-3,
+    weight_decay: float = 1e-4,
+    shuffle_good_actions: bool = True,
+    seed: int = 0,
+    checkpoint_path: Optional[str] = None,
+    log_every_epoch: bool = False,
+    device: torch.device | str = "cpu",
+    batch_size: int = 256,
+    use_amp: bool = True,
 ) -> tuple[AlphaReasonPolicyValueNet, List[Dict[str, float]]]:
     if not tasks:
         raise ValueError("train_supervised requires at least one task.")
 
-    config = config or TrainingConfig()
+    device = torch.device(device)
+    ddp_enabled, ddp_rank, ddp_local_rank = _maybe_init_ddp(device)
+    if ddp_enabled:
+        seed = int(seed) + ddp_rank
+        device = torch.device("cuda", ddp_local_rank)
+
     num_features, max_feature_dim = infer_model_shape(tasks)
     model = model or AlphaReasonPolicyValueNet(
         num_features=num_features,
         max_feature_dim=max_feature_dim,
+        device=device,
     )
-    optimizer = torch.optim.Adam(
-        model.parameters(),
-        lr=config.learning_rate,
-        weight_decay=config.weight_decay,
-    )
+    if model.device != device:
+        model.device = device
+        model.to(device)
+    if ddp_enabled:
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device.index])
 
-    dataset = build_supervised_dataset(
-        tasks,
-        max_samples_per_task=config.max_samples_per_task,
-        shuffle_good_actions=config.shuffle_good_actions,
-        seed=config.seed,
-    )
-    if not dataset:
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
+    supervised_samples = build_supervised_dataset(tasks, shuffle_good_actions=shuffle_good_actions, seed=seed)
+    if not supervised_samples:
         raise ValueError("No supervised samples could be extracted from the provided tasks.")
 
-    generator = torch.Generator(device="cpu")
-    generator.manual_seed(config.seed)
+    action_dim = num_features + max_feature_dim + 3
+    encoded_rows: List[dict] = []
+    for sample in supervised_samples:
+        legal_actions = list(sample.state.legal_actions)
+        state_tensor = _encode_state_cpu(sample.state, num_features=num_features, max_feature_dim=max_feature_dim)
+        action_tensor = _encode_actions_cpu(
+            sample.state, legal_actions, num_features=num_features, max_feature_dim=max_feature_dim
+        )
+
+        target_probs = torch.zeros(len(legal_actions), dtype=torch.float32, device="cpu")
+        action_index = {action_to_key(action): idx for idx, action in enumerate(legal_actions)}
+        for action, prob in sample.policy_target.items():
+            key = action_to_key(action)
+            if key in action_index:
+                target_probs[action_index[key]] = float(prob)
+        total = float(target_probs.sum().item())
+        if total > 0.0:
+            target_probs = target_probs / total
+
+        encoded_rows.append(
+            {
+                "state_tensor": state_tensor,
+                "action_tensor": action_tensor,
+                "target_probs": target_probs,
+                "value_target": float(sample.value_target),
+                "action_dim": action_dim,
+            }
+        )
+
+    dataset = _EncodedSampleDataset(encoded_rows)
+    sampler = DistributedSampler(dataset, shuffle=True, seed=seed, drop_last=False) if ddp_enabled else None
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        sampler=sampler,
+        shuffle=(sampler is None),
+        num_workers=0,
+        collate_fn=_collate_encoded_batch,
+        pin_memory=(device.type == "cuda"),
+    )
+
+    scaler = torch.amp.GradScaler("cuda", enabled=(use_amp and device.type == "cuda"))
     history: List[Dict[str, float]] = []
 
-    for epoch in range(config.epochs):
-        permutation = torch.randperm(len(dataset), generator=generator).tolist()
+    for epoch in range(epochs):
+        if sampler is not None:
+            sampler.set_epoch(epoch)
+
         total_loss_sum = 0.0
         policy_loss_sum = 0.0
         value_loss_sum = 0.0
+        step_count = 0
 
-        for sample_idx in permutation:
-            sample = dataset[sample_idx]
-            optimizer.zero_grad()
-            total_loss, policy_loss, value_loss = compute_policy_value_loss(model, sample)
-            total_loss.backward()
-            optimizer.step()
+        model.train()
+        for batch in loader:
+            state = batch["state"].to(device, non_blocking=True)
+            actions = batch["actions"].to(device, non_blocking=True)
+            target_probs = batch["target_probs"].to(device, non_blocking=True)
+            mask = batch["mask"].to(device, non_blocking=True)
+            value_target = batch["value_target"].to(device, non_blocking=True)
+
+            optimizer.zero_grad(set_to_none=True)
+            with torch.amp.autocast("cuda", enabled=(use_amp and device.type == "cuda")):
+                raw_model = model.module if hasattr(model, "module") else model
+                state_hidden = raw_model.trunk(state)
+                value = raw_model.value_head(state_hidden).squeeze(-1)
+
+                expanded_hidden = state_hidden.unsqueeze(1).expand(actions.shape[0], actions.shape[1], -1)
+                flat_inp = torch.cat([expanded_hidden, actions], dim=2).reshape(
+                    -1, expanded_hidden.shape[2] + actions.shape[2]
+                )
+                flat_scores = raw_model.action_head(flat_inp).reshape(actions.shape[0], actions.shape[1]).squeeze(-1)
+
+                logits = flat_scores.float().masked_fill(~mask, -1e9)
+                log_probs = F.log_softmax(logits, dim=1)
+
+                target_sum = target_probs.sum(dim=1, keepdim=True)
+                legal_counts = mask.sum(dim=1, keepdim=True).clamp(min=1).to(dtype=torch.float32)
+                uniform = mask.to(dtype=torch.float32) / legal_counts
+                normed_targets = torch.where(
+                    target_sum > 0.0, target_probs / target_sum.clamp(min=1e-12), uniform
+                )
+
+                policy_loss = -(normed_targets * log_probs).sum(dim=1).mean()
+                value_loss = F.mse_loss(value, value_target)
+                total_loss = policy_loss + value_loss
+
+            scaler.scale(total_loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             total_loss_sum += float(total_loss.item())
             policy_loss_sum += float(policy_loss.item())
             value_loss_sum += float(value_loss.item())
+            step_count += 1
+
+        if ddp_enabled:
+            sums = torch.tensor(
+                [total_loss_sum, policy_loss_sum, value_loss_sum, float(step_count)],
+                device=device,
+                dtype=torch.float64,
+            )
+            torch.distributed.all_reduce(sums, op=torch.distributed.ReduceOp.SUM)
+            total_loss_sum, policy_loss_sum, value_loss_sum, step_count = map(float, sums.tolist())
 
         epoch_stats = {
             "epoch": float(epoch + 1),
-            "total_loss": total_loss_sum / len(dataset),
-            "policy_loss": policy_loss_sum / len(dataset),
-            "value_loss": value_loss_sum / len(dataset),
+            "total_loss": total_loss_sum / max(1.0, step_count),
+            "policy_loss": policy_loss_sum / max(1.0, step_count),
+            "value_loss": value_loss_sum / max(1.0, step_count),
             "samples": float(len(dataset)),
         }
-        history.append(epoch_stats)
+        if (not ddp_enabled) or ddp_rank == 0:
+            history.append(epoch_stats)
+        if log_every_epoch and ((not ddp_enabled) or ddp_rank == 0):
+            print(f"Epoch {epoch + 1}/{epochs}: total_loss={epoch_stats['total_loss']:.6f}", flush=True)
 
-    if config.checkpoint_path:
-        checkpoint_path = Path(config.checkpoint_path)
-        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+    if checkpoint_path and ((not ddp_enabled) or ddp_rank == 0):
+        checkpoint_file = Path(checkpoint_path)
+        checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
+        raw_model = model.module if hasattr(model, "module") else model
         torch.save(
             {
-                "model_state_dict": model.state_dict(),
-                "num_features": model.num_features,
-                "max_feature_dim": model.max_feature_dim,
+                "model_state_dict": raw_model.state_dict(),
+                "num_features": raw_model.num_features,
+                "max_feature_dim": raw_model.max_feature_dim,
                 "history": history,
             },
-            checkpoint_path,
+            checkpoint_file,
         )
 
     return model, history
 
 
-def build_demo_training_tasks() -> List[AlphaReasonTask]:
-    return [
-        build_demo_sudoku_task(),
-        build_demo_sudoku_task(
-            initial="1.3." ".4.." "..4." "4..1",
-            name="demo_standard_sudoku_4x4_variant_a",
-        ),
-        build_demo_sudoku_task(
-            initial="..3." "34.." "..4." "4...",
-            name="demo_standard_sudoku_4x4_variant_b",
-        ),
-    ]
-
-
-def build_default_training_tasks(
-    use_hf_sudoku_dataset: bool = True,
-    hf_sudoku_limit: int = 8,
-    hf_sudoku_offset: int = 0,
-    use_challenge100: bool = True,
-    challenge100_limit: int = 8,
-    challenge100_offset: int = 0,
-) -> List[AlphaReasonTask]:
-    if use_hf_sudoku_dataset:
-        try:
-            tasks = load_hf_sudoku_dataset_training_tasks(
-                limit=hf_sudoku_limit,
-                offset=hf_sudoku_offset,
-                split="train",
-            )
-        except FileNotFoundError:
-            tasks = []
-        if tasks:
-            return tasks
-    if use_challenge100:
-        tasks = load_challenge100_training_tasks(
-            limit=challenge100_limit,
-            offset=challenge100_offset,
-        )
-        if tasks:
-            return tasks
-    return build_demo_training_tasks()
-
-
 if __name__ == "__main__":
-    tasks = build_default_training_tasks(
-        use_hf_sudoku_dataset=True,
-        hf_sudoku_limit=8,
-        use_challenge100=True,
-        challenge100_limit=8,
-    )
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for this training entrypoint.")
+    prepared_parquet = "/tmp/alphareason_prepared_unsolved.parquet"
+    tasks = load_prepared_sudoku_training_tasks(parquet_path=prepared_parquet, num_samples=None, num=3)
     model, history = train_supervised(
         tasks,
-        config=TrainingConfig(
-            epochs=5,
-            learning_rate=1e-3,
-            max_samples_per_task=8,
-            checkpoint_path="/tmp/alphareason_demo.pt",
-        ),
+        epochs=1,
+        learning_rate=1e-3,
+        checkpoint_path="/tmp/alphareason_demo.pt",
+        log_every_epoch=True,
+        device="cuda",
+        batch_size=512,
+        use_amp=True,
     )
     print("Trained on", len(tasks), "tasks.")
     print("First task:", tasks[0].name)

@@ -4,7 +4,7 @@ def initial_board_into_evidence(boardString, colNum = 3, rowNum = 3):
     """
     evidenceDict = {}
     for i in range(len(boardString)):
-        if boardString[i] != ".":
+        if boardString[i] not in ".0":
 
             # Calculuate the column and row indices
             coarseColPos = i % colNum**2
