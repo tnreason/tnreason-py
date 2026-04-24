@@ -1,0 +1,1530 @@
+0
+
+Steps:
+0. Forward chaining closure -> assigned=25/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_2=4; then forward chaining closure -> assigned=26/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_0_1=9; then forward chaining closure -> assigned=27/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+1
+
+Steps:
+0. Forward chaining closure -> assigned=28/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_1=6; then forward chaining closure -> assigned=30/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_0=9; then forward chaining closure -> assigned=31/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_2_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+2
+
+Steps:
+0. Forward chaining closure -> assigned=24/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+3
+
+Steps:
+0. Forward chaining closure -> assigned=26/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+4
+
+Steps:
+0. Forward chaining closure -> assigned=40/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=6; then forward chaining closure -> assigned=45/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=47/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_0_0=2; then forward chaining closure -> assigned=49/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_0_2_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+5
+
+Steps:
+0. Forward chaining closure -> assigned=27/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_1=5; then forward chaining closure -> assigned=31/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+6
+
+Steps:
+0. Forward chaining closure -> assigned=36/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+7
+
+Steps:
+0. Forward chaining closure -> assigned=24/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=9; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+8
+
+Steps:
+0. Forward chaining closure -> assigned=25/81, contradiction=False, active_clusters=0
+1. Branch pos_0_2_1_1=6; then forward chaining closure -> assigned=26/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+9
+
+Steps:
+0. Forward chaining closure -> assigned=28/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+10
+
+Steps:
+0. Forward chaining closure -> assigned=24/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=2; then forward chaining closure -> assigned=30/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_2_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+11
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+12
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=65/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+13
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+14
+
+Steps:
+0. Forward chaining closure -> assigned=60/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+15
+
+Steps:
+0. Forward chaining closure -> assigned=65/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_2_0=1; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_2=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_1_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+16
+
+Steps:
+0. Forward chaining closure -> assigned=60/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=62/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+17
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+18
+
+Steps:
+0. Forward chaining closure -> assigned=64/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+19
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+20
+
+Steps:
+0. Forward chaining closure -> assigned=40/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=8; then forward chaining closure -> assigned=41/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+21
+
+Steps:
+0. Forward chaining closure -> assigned=56/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=4; then forward chaining closure -> assigned=72/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=3; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_1_1=7; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_1_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+22
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+23
+
+Steps:
+0. Forward chaining closure -> assigned=56/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=4; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=74/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=4; then forward chaining closure -> assigned=77/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_1_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+24
+
+Steps:
+0. Forward chaining closure -> assigned=39/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=6; then forward chaining closure -> assigned=46/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_0=4; then forward chaining closure -> assigned=47/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_1=3; then forward chaining closure -> assigned=49/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_1_2_0=6; then forward chaining closure -> assigned=53/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_0_2_1_0=2; then forward chaining closure -> assigned=55/81, contradiction=False, solved=False, active_clusters=0
+6. Branch pos_1_0_0_1=2; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+7. Branch pos_1_0_0_2=3; then forward chaining closure -> assigned=68/81, contradiction=False, solved=False, active_clusters=0
+8. Branch pos_1_0_1_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+25
+
+Steps:
+0. Forward chaining closure -> assigned=62/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=5; then forward chaining closure -> assigned=72/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+26
+
+Steps:
+0. Forward chaining closure -> assigned=41/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+27
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_2=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+28
+
+Steps:
+0. Forward chaining closure -> assigned=65/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+29
+
+Steps:
+0. Forward chaining closure -> assigned=46/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=6; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=5; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_1_1=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_0_1_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+30
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_1_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+31
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+32
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+33
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+34
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+35
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+36
+
+Steps:
+0. Forward chaining closure -> assigned=53/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_1=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+37
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_1_0_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+38
+
+Steps:
+0. Forward chaining closure -> assigned=50/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=9; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+39
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+40
+
+Steps:
+0. Forward chaining closure -> assigned=53/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=72/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_2_2_1=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+41
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+42
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+43
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+44
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+45
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+46
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+47
+
+Steps:
+0. Forward chaining closure -> assigned=59/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_2_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+48
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+49
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+50
+
+Steps:
+0. Forward chaining closure -> assigned=48/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=6; then forward chaining closure -> assigned=54/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+51
+
+Steps:
+0. Forward chaining closure -> assigned=48/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=3; then forward chaining closure -> assigned=64/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_1_1=2; then forward chaining closure -> assigned=71/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_2=1; then forward chaining closure -> assigned=77/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_2_0_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+52
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+53
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_1_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+54
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+55
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+56
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+57
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+58
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_1=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+59
+
+Steps:
+0. Forward chaining closure -> assigned=47/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=51/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_2_1=5; then forward chaining closure -> assigned=53/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_1=5; then forward chaining closure -> assigned=55/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_2_1_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+60
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+61
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+62
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+63
+
+Steps:
+0. Forward chaining closure -> assigned=43/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+64
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+65
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+66
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_0=2; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+67
+
+Steps:
+0. Forward chaining closure -> assigned=65/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_2=1; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_2_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+68
+
+Steps:
+0. Forward chaining closure -> assigned=47/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+69
+
+Steps:
+0. Forward chaining closure -> assigned=50/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=56/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_2_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+70
+
+Steps:
+0. Forward chaining closure -> assigned=57/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=6; then forward chaining closure -> assigned=59/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_1_1=7; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_2_1_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+71
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_2_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+72
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+73
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_1_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+74
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_1_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+75
+
+Steps:
+0. Forward chaining closure -> assigned=52/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_2_0=3; then forward chaining closure -> assigned=55/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_2_0=1; then forward chaining closure -> assigned=58/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_1=7; then forward chaining closure -> assigned=64/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+76
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+77
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+78
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+79
+
+Steps:
+0. Forward chaining closure -> assigned=57/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_0=7; then forward chaining closure -> assigned=59/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=64/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_2_1_0=3; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_2_1_1=1; then forward chaining closure -> assigned=72/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_0_0_2=4; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+6. Branch pos_1_0_1_1=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+7. Branch pos_1_1_0_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+80
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+81
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+82
+
+Steps:
+0. Forward chaining closure -> assigned=68/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=3; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_2=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_1_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+83
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+84
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_2_0=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_2=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+85
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+86
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+87
+
+Steps:
+0. Forward chaining closure -> assigned=65/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+88
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_1_0_0=2; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_1_0=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+89
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_0=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+90
+
+Steps:
+0. Forward chaining closure -> assigned=49/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=57/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=4; then forward chaining closure -> assigned=64/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_1_2=2; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_1_0_0=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+91
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+92
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+93
+
+Steps:
+0. Forward chaining closure -> assigned=59/81, contradiction=False, active_clusters=0
+1. Branch pos_0_2_1_0=6; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_1_0_0=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+94
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+95
+
+Steps:
+0. Forward chaining closure -> assigned=58/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=62/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=2; then forward chaining closure -> assigned=77/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+96
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+97
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+98
+
+Steps:
+0. Forward chaining closure -> assigned=45/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_2=3; then forward chaining closure -> assigned=54/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+99
+
+Steps:
+0. Forward chaining closure -> assigned=57/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=3; then forward chaining closure -> assigned=59/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+100
+
+Steps:
+0. Forward chaining closure -> assigned=63/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=3; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_2_0=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_2=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+101
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+102
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+103
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_2_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+104
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+105
+
+Steps:
+0. Forward chaining closure -> assigned=66/81, contradiction=False, active_clusters=0
+1. Branch pos_1_2_1_1=9; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+106
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_1_0=7; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+107
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+108
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+109
+
+Steps:
+0. Forward chaining closure -> assigned=59/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=1; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_2_0=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_0_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+110
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_1=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_1_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+111
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+112
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+113
+
+Steps:
+0. Forward chaining closure -> assigned=43/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=4; then forward chaining closure -> assigned=46/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_0=2; then forward chaining closure -> assigned=47/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+114
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+115
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=7; then forward chaining closure -> assigned=66/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_1=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_2_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+116
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+117
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+118
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+119
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+120
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_1_0_2=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+121
+
+Steps:
+0. Forward chaining closure -> assigned=51/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=54/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_1=2; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_2=1; then forward chaining closure -> assigned=74/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+122
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+123
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_2_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+124
+
+Steps:
+0. Forward chaining closure -> assigned=55/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_1=1; then forward chaining closure -> assigned=59/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_1=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+125
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+126
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+127
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_2=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+128
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+129
+
+Steps:
+0. Forward chaining closure -> assigned=68/81, contradiction=False, active_clusters=0
+1. Branch pos_0_2_2_0=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_1_1=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+130
+
+Steps:
+0. Forward chaining closure -> assigned=56/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=2; then forward chaining closure -> assigned=58/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_1=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+131
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+132
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_2_0=7; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+133
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+134
+
+Steps:
+0. Forward chaining closure -> assigned=52/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_0=1; then forward chaining closure -> assigned=56/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+135
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+136
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+137
+
+Steps:
+0. Forward chaining closure -> assigned=66/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=2; then forward chaining closure -> assigned=72/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_1=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_1_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_1_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+138
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+139
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+140
+
+Steps:
+0. Forward chaining closure -> assigned=66/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+141
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+142
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+143
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=4; then forward chaining closure -> assigned=60/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=2; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_1_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+144
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+145
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_1_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+146
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+147
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+148
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+149
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+150
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+151
+
+Steps:
+0. Forward chaining closure -> assigned=68/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=4; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_1=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_2_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+152
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_2=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+153
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+154
+
+Steps:
+0. Forward chaining closure -> assigned=51/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+155
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+156
+
+Steps:
+0. Forward chaining closure -> assigned=55/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+157
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+158
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+159
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_2=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+160
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=7; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_1_0_0=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_1_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+161
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_1_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+162
+
+Steps:
+0. Forward chaining closure -> assigned=68/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+163
+
+Steps:
+0. Forward chaining closure -> assigned=50/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=2; then forward chaining closure -> assigned=55/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=4; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_1_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+164
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_2_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+165
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_1_1=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_1_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+166
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+167
+
+Steps:
+0. Forward chaining closure -> assigned=52/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=60/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+168
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_1=2; then forward chaining closure -> assigned=77/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+169
+
+Steps:
+0. Forward chaining closure -> assigned=55/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=3; then forward chaining closure -> assigned=61/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=5; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_1_0=2; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_1_0_1=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_2_1_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+170
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_1_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+171
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_1_2_0_0=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+172
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+173
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+174
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+175
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+176
+
+Steps:
+0. Forward chaining closure -> assigned=60/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=2; then forward chaining closure -> assigned=62/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_2=8; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+177
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_1_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+178
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+179
+
+Steps:
+0. Forward chaining closure -> assigned=44/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_0=6; then forward chaining closure -> assigned=55/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+180
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+181
+
+Steps:
+0. Forward chaining closure -> assigned=48/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=1; then forward chaining closure -> assigned=49/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_1=8; then forward chaining closure -> assigned=60/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_2_1_0=1; then forward chaining closure -> assigned=61/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_2_1_1=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+182
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=4; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_1_1=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_1_0_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+183
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+184
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+185
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_2=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+186
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_0=4; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=7; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+187
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_2=1; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+188
+
+Steps:
+0. Forward chaining closure -> assigned=44/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=47/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_2_0=2; then forward chaining closure -> assigned=66/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_1_2=8; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_1_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+189
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+190
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+191
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+192
+
+Steps:
+0. Forward chaining closure -> assigned=50/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=2; then forward chaining closure -> assigned=61/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_1_0=6; then forward chaining closure -> assigned=65/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_0=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_1_0=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_2_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+193
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+194
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+195
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+196
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_2=3; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=1; then forward chaining closure -> assigned=68/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_0_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+197
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+198
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=3; then forward chaining closure -> assigned=56/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_1_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+199
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+200
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+201
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+202
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+203
+
+Steps:
+0. Forward chaining closure -> assigned=58/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+204
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+205
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=61/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_2_1=3; then forward chaining closure -> assigned=65/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_1_1=2; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_0_2=6; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+6. Branch pos_2_0_1_1=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+206
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+207
+
+Steps:
+0. Forward chaining closure -> assigned=39/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=1; then forward chaining closure -> assigned=40/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=3; then forward chaining closure -> assigned=51/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_2_1=4; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_0_2_0=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_0_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+208
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+209
+
+Steps:
+0. Forward chaining closure -> assigned=50/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+210
+
+Steps:
+0. Forward chaining closure -> assigned=49/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+211
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=2; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+212
+
+Steps:
+0. Forward chaining closure -> assigned=50/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=52/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=6; then forward chaining closure -> assigned=54/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_0_2_0=5; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_0_1_2=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_0_0_0=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+6. Branch pos_1_0_1_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+213
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+214
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+215
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+216
+
+Steps:
+0. Forward chaining closure -> assigned=64/81, contradiction=False, active_clusters=0
+1. Branch pos_0_2_2_1=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+217
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_2=5; then forward chaining closure -> assigned=56/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=60/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_0_0=8; then forward chaining closure -> assigned=62/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_0_1_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+218
+
+Steps:
+0. Forward chaining closure -> assigned=57/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=6; then forward chaining closure -> assigned=61/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_1=4; then forward chaining closure -> assigned=69/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_0=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+219
+
+Steps:
+0. Forward chaining closure -> assigned=37/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=9; then forward chaining closure -> assigned=47/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_2_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+220
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_2=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+221
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+222
+
+Steps:
+0. Forward chaining closure -> assigned=55/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_1_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+223
+
+Steps:
+0. Forward chaining closure -> assigned=53/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_1=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+224
+
+Steps:
+0. Forward chaining closure -> assigned=53/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=54/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_2=4; then forward chaining closure -> assigned=61/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_0_0=2; then forward chaining closure -> assigned=68/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_0_2=1; then forward chaining closure -> assigned=77/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_0_0_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+225
+
+Steps:
+0. Forward chaining closure -> assigned=35/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+226
+
+Steps:
+0. Forward chaining closure -> assigned=60/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+227
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=6; then forward chaining closure -> assigned=65/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_0_0=7; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_0=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+228
+
+Steps:
+0. Forward chaining closure -> assigned=63/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_0_1_1=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_0_2=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+229
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_1_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+230
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+231
+
+Steps:
+0. Forward chaining closure -> assigned=60/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=3; then forward chaining closure -> assigned=65/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_2=5; then forward chaining closure -> assigned=67/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_0_1_1_0=6; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_0_1=1; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_1_1_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+232
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=7; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_1_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+233
+
+Steps:
+0. Forward chaining closure -> assigned=52/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+234
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+235
+
+Steps:
+0. Forward chaining closure -> assigned=51/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+236
+
+Steps:
+0. Forward chaining closure -> assigned=61/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=77/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_1_0_1=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+237
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=6; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_2_0_0_2=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+238
+
+Steps:
+0. Forward chaining closure -> assigned=56/81, contradiction=False, active_clusters=0
+1. Branch pos_0_2_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+239
+
+Steps:
+0. Forward chaining closure -> assigned=46/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_2_0=2; then forward chaining closure -> assigned=48/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_0_2=2; then forward chaining closure -> assigned=64/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_0=2; then forward chaining closure -> assigned=66/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_1_2=3; then forward chaining closure -> assigned=72/81, contradiction=False, solved=False, active_clusters=0
+5. Branch pos_0_0_0_0=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+6. Branch pos_0_0_1_2=5; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+7. Branch pos_0_1_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+240
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+241
+
+Steps:
+0. Forward chaining closure -> assigned=59/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+242
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_1=3; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+243
+
+Steps:
+0. Forward chaining closure -> assigned=44/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+244
+
+Steps:
+0. Forward chaining closure -> assigned=55/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+245
+
+Steps:
+0. Forward chaining closure -> assigned=70/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+246
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+247
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_2=3; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_2_2=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_1=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+248
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_1=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+249
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+250
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_0_2=6; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+251
+
+Steps:
+0. Forward chaining closure -> assigned=54/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_2=4; then forward chaining closure -> assigned=63/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_2_1_1=4; then forward chaining closure -> assigned=65/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_0=3; then forward chaining closure -> assigned=70/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_1_0_1_0=8; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+252
+
+Steps:
+0. Forward chaining closure -> assigned=63/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_1=3; then forward chaining closure -> assigned=68/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_0_1_1_0=6; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_2_0_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+4. Branch pos_2_0_1_0=4; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+253
+
+Steps:
+0. Forward chaining closure -> assigned=73/81, contradiction=False, active_clusters=0
+1. Branch pos_1_0_1_1=4; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=5; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+254
+
+Steps:
+0. Forward chaining closure -> assigned=75/81, contradiction=False, active_clusters=0
+1. Branch pos_2_0_0_2=2; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+255
+
+Steps:
+0. Forward chaining closure -> assigned=45/81, contradiction=False, active_clusters=0
+1. Branch pos_0_1_0_2=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+256
+
+Steps:
+0. Forward chaining closure -> assigned=60/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=9; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+257
+
+Steps:
+0. Forward chaining closure -> assigned=67/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_1_0=1; then forward chaining closure -> assigned=73/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_1_2=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+3. Branch pos_1_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+258
+
+Steps:
+0. Forward chaining closure -> assigned=57/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_0=7; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0
+259
+
+Steps:
+0. Forward chaining closure -> assigned=69/81, contradiction=False, active_clusters=0
+1. Branch pos_0_0_0_1=3; then forward chaining closure -> assigned=75/81, contradiction=False, solved=False, active_clusters=0
+2. Branch pos_1_0_0_0=1; then forward chaining closure -> assigned=81/81, contradiction=False, solved=True, active_clusters=0

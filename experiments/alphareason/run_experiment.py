@@ -302,11 +302,8 @@ def run_sakana_fish_constraint_sudoku(
     max_steps: int = 5,
     simulations: int = 5,
     rollout_depth: int = 5,
-    branch_feature_count: int = 1,
 ):
-    task = build_sakana_fish_constraint_sudoku_task(
-        branch_feature_count=branch_feature_count,
-    )
+    task = build_sakana_fish_constraint_sudoku_task()
     return solve_task_with_backtracking(
         task,
         max_steps=max_steps,
@@ -317,9 +314,7 @@ def run_sakana_fish_constraint_sudoku(
 
 if __name__ == "__main__":
     import time
-    task = build_sakana_fish_constraint_sudoku_task(
-        branch_feature_count=1,
-    )
+    task = build_sakana_fish_constraint_sudoku_task()
     # task = build_n3_example_constraint_sudoku_task()
     start = time.time()
     final_state, history, cache_info, diagnostics = solve_task_with_backtracking(

@@ -86,15 +86,13 @@ def test_sakana_fish_constraint_sudoku_task_runs_through_solver():
     assert cache_info["misses"] >= 1
 
 
-def test_branch_feature_count_increases_root_actions():
-    narrow_task = build_sakana_fish_constraint_sudoku_task(branch_feature_count=1)
-    wider_task = build_sakana_fish_constraint_sudoku_task(branch_feature_count=5)
+def test_sakana_fish_root_actions_are_cell_assignments():
+    task = build_sakana_fish_constraint_sudoku_task()
 
-    engine = AlphaReasonClosureEngine()
-    narrow_state = engine.close(narrow_task, narrow_task.initial_evidence)
-    wide_state = engine.close(wider_task, wider_task.initial_evidence)
+    state = AlphaReasonClosureEngine().close(task, task.initial_evidence)
 
-    assert len(wide_state.legal_actions) > len(narrow_state.legal_actions)
+    assert state.legal_actions
+    assert all(action.feature_key.startswith("pos_") for action in state.legal_actions)
 
 
 def test_run_sakana_fish_constraint_sudoku_helper():

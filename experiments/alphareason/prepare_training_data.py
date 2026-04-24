@@ -1,5 +1,7 @@
 import csv
 from dataclasses import dataclass
+import json
+import os
 from pathlib import Path
 import re
 from typing import Iterator, Optional
@@ -16,7 +18,7 @@ from .tasks.sudoku import build_constraint_sudoku_task
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CHALLENGE100_CSV = REPO_ROOT / "demonstrations" / "sudoku" / "sudoku_bench" / "sample_data" / "challenge100.csv"
 DEFAULT_HF_DATASET_DIR = REPO_ROOT / "demonstrations" / "sudoku" / "sudoku_bench" / "sample_data" / "hf_sudoku_dataset"
-DEFAULT_OUT_PARQUET = Path("/tmp/alphareason_prepared_unsolved.parquet")
+DEFAULT_OUT_PARQUET = REPO_ROOT / "demonstrations" / "sudoku" / "sudoku_bench" / "sample_data" / "alphareason_prepared_unsolved.parquet"
 
 
 @dataclass(frozen=True)
@@ -122,20 +124,48 @@ def prepare_filtered_parquet(
     out_parquet.parent.mkdir(parents=True, exist_ok=True)
 
     engine = AlphaReasonClosureEngine()
-    writer: Optional[pq.ParquetWriter] = None
     kept = 0
     processed = 0
 
-    def flush(records: list[dict]):
-        nonlocal writer
-        if not records:
-            return
-        table = pa.Table.from_pylist(records)
-        if writer is None:
-            writer = pq.ParquetWriter(out_parquet, table.schema)
-        writer.write_table(table)
+    # We keep a simple append-only journal so we can periodically rewrite a fully valid parquet
+    # at `out_parquet` without producing multiple shard files.
+    journal_path = out_parquet.with_suffix(out_parquet.suffix + ".jsonl")
+    tmp_path = out_parquet.with_suffix(out_parquet.suffix + ".tmp")
+    with journal_path.open("w"):
+        pass
 
-    buffer: list[dict] = []
+    def write_parquet_checkpoint() -> None:
+        writer: Optional[pq.ParquetWriter] = None
+        batch: list[dict] = []
+
+        def flush_batch() -> None:
+            nonlocal writer, batch
+            if not batch:
+                return
+            table = pa.Table.from_pylist(batch)
+            if writer is None:
+                writer = pq.ParquetWriter(tmp_path, table.schema)
+            writer.write_table(table)
+            batch = []
+
+        with journal_path.open("r") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                batch.append(json.loads(line))
+                if len(batch) >= 5000:
+                    flush_batch()
+            flush_batch()
+
+        if writer is None:
+            raise ValueError("No puzzles were kept; output parquet would be empty.")
+        writer.close()
+        os.replace(tmp_path, out_parquet)
+
+    checkpoint_every_processed = 100
+    journal_handle = journal_path.open("a", buffering=1)
+    last_checkpoint_processed = 0
     for row in _iter_rows(
         challenge100_csv=challenge100_csv,
         challenge100_limit=challenge100_limit,
@@ -153,28 +183,36 @@ def prepare_filtered_parquet(
         # Keep only puzzles that are NOT solved after one closure step and not contradictory.
         if (not state.solved) and (not state.contradiction):
             kept += 1
-            buffer.append(
-                {
-                    "puzzle": row.puzzle,
-                    "solution": row.solution,
-                    "source": row.source,
-                    "name": row.name,
-                    "puzzle_id": row.puzzle_id,
-                    "assigned_count": int(state.assigned_count),
-                    "message_count": int(getattr(state, "message_count", 0)),
-                }
-            )
-            if len(buffer) >= 1000:
-                flush(buffer)
-                buffer.clear()
+            record = {
+                "puzzle": row.puzzle,
+                "solution": row.solution,
+                "source": row.source,
+                "name": row.name,
+                "puzzle_id": row.puzzle_id,
+                "assigned_count": int(state.assigned_count),
+                "message_count": int(getattr(state, "message_count", 0)),
+            }
+            journal_handle.write(json.dumps(record) + "\n")
 
-    flush(buffer)
-    if writer is not None:
-        writer.close()
-    else:
-        raise ValueError("No puzzles were kept; output parquet would be empty.")
+        if processed - last_checkpoint_processed >= checkpoint_every_processed:
+            journal_handle.flush()
+            write_parquet_checkpoint()
+            last_checkpoint_processed = processed
+
+    journal_handle.flush()
+    journal_handle.close()
+    write_parquet_checkpoint()
 
     print(f"Processed {processed}, kept {kept}, wrote {out_parquet}")
+    # On success, keep only the parquet output; the journal is only for mid-run checkpoints/resume.
+    try:
+        journal_path.unlink(missing_ok=True)
+    except Exception:
+        pass
+    try:
+        tmp_path.unlink(missing_ok=True)
+    except Exception:
+        pass
 
 
 def main() -> int:
@@ -187,7 +225,7 @@ def main() -> int:
 
     hf_dataset_dir = DEFAULT_HF_DATASET_DIR
     hf_split = "train"
-    hf_limit = 10000
+    hf_limit = 100000
     hf_batch_size = 256
 
     print("Preparing filtered training parquet (unsolved after one closure step):", flush=True)

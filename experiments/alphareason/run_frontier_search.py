@@ -76,7 +76,7 @@ def solve_task_with_frontier_search(
     env = AlphaReasonEnv(task=task, closure_engine=engine)
     mcts = AlphaReasonMCTS(
         env=env,
-        policy_value=policy_value or HeuristicPolicyValue(),
+        policy_value=policy_value,
         simulations=simulations,
         rollout_depth=rollout_depth,
     )
@@ -200,7 +200,7 @@ def solve_task_with_frontier_search(
 
 
 if __name__ == "__main__":
-    task = build_sakana_fish_constraint_sudoku_task(branch_feature_count=5)
+    task = build_sakana_fish_constraint_sudoku_task()
 
     start = time()
     final_state, history, cache_info, diagnostics = solve_task_with_frontier_search(

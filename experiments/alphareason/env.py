@@ -14,11 +14,6 @@ class AlphaReasonEnv:
     def reset(self) -> AlphaReasonState:
         return self.closure_engine.close(self.task, self.task.initial_evidence, active_inference_clusters={})
 
-    def legal_actions(self, state: AlphaReasonState) -> List[AlphaReasonAction]:
-        if state.done:
-            return []
-        return list(state.legal_actions)
-
     def step(self, state: AlphaReasonState, action: AlphaReasonAction) -> Tuple[AlphaReasonState, float, bool]:
         evidence = dict(state.evidence)
         active_clusters = dict(state.active_inference_clusters)

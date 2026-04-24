@@ -102,7 +102,7 @@ class AlphaReasonMCTS:
             node.expanded = True
             return self.policy_value.value(node.state)
 
-        legal_actions = self.env.legal_actions(node.state)
+        legal_actions = node.state.legal_actions
         priors = self.policy_value.action_priors(node.state, legal_actions)
         node.stats = {action: EdgeStats(prior=priors[action]) for action in legal_actions}
         node.expanded = True
@@ -114,7 +114,7 @@ class AlphaReasonMCTS:
         for _ in range(self.rollout_depth):
             if current_state.done:
                 return total_value + self.policy_value.value(current_state)
-            legal_actions = self.env.legal_actions(current_state)
+            legal_actions = current_state.legal_actions
             if not legal_actions:
                 return total_value - 1.0
             priors = self.policy_value.action_priors(current_state, legal_actions)

@@ -13,15 +13,16 @@ class _ChainState:
     def done(self):
         return self.depth >= self.terminal_depth
 
+    @property
+    def legal_actions(self):
+        if self.done:
+            return []
+        return [AssignValueAction(f"x{self.depth}", 0)]
+
 
 class _ChainEnv:
     def __init__(self):
         self.step_calls = 0
-
-    def legal_actions(self, state):
-        if state.done:
-            return []
-        return [AssignValueAction(f"x{state.depth}", 0)]
 
     def step(self, state, action):
         self.step_calls += 1

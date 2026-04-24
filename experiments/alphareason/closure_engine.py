@@ -12,7 +12,6 @@ from .constraint_propagation import (
     add_singleton_domain_cores,
     enforce_generalized_arc_consistency,
 )
-from .inference import get_forward_mp_inferer_from_canetwork
 from .state import AlphaReasonState, ClusterCandidate
 from .task import AlphaReasonTask
 from .validation import check_assignment_consistency
@@ -115,7 +114,6 @@ class AlphaReasonClosureEngine:
         if not candidates:
             return tuple(), {}
 
-        branch_feature_count = max(1, task.branch_feature_count)
         selected = sorted(
             candidates,
             key=lambda item: (
@@ -123,7 +121,7 @@ class AlphaReasonClosureEngine:
                 -max(feature_priors[item[0]][value_index] for value_index in item[1]),
                 item[0],
             ),
-        )[:branch_feature_count]
+        )
 
         actions = tuple(
             AssignValueAction(feature_key, value_index)
@@ -142,6 +140,8 @@ class AlphaReasonClosureEngine:
         evidence: Dict[str, int],
         active_inference_clusters: Dict[str, Tuple[str, ...]],
     ) -> AlphaReasonState:
+        from .inference import get_forward_mp_inferer_from_canetwork
+
         ca_network = task.network_factory(evidence)
         propagator = get_forward_mp_inferer_from_canetwork(
             ca_network,
@@ -167,6 +167,7 @@ class AlphaReasonClosureEngine:
 
         closed_evidence = dict(evidence)
         target_assignments: Dict[str, int] = {}
+        feature_supports: Dict[str, Tuple[int, ...]] = {}
         feature_priors: Dict[str, Tuple[float, ...]] = {}
         unresolved_features: List[Tuple[str, List[int]]] = []
 
@@ -178,6 +179,7 @@ class AlphaReasonClosureEngine:
                 domain_size,
             )
             supported = _support_indices(propagator.caNetwork.canParamDict[feature_key], feature_key, domain_size)
+            feature_supports[feature_key] = tuple(supported)
             if len(supported) == 1:
                 value_index = supported[0]
                 target_assignments[feature_key] = value_index
@@ -201,6 +203,7 @@ class AlphaReasonClosureEngine:
             evidence=evidence,
             active_inference_clusters=active_inference_clusters,
             target_assignments=target_assignments,
+            feature_supports=feature_supports,
             feature_priors=feature_priors,
             unresolved_features=unresolved_features,
             contradiction=contradiction,
@@ -240,6 +243,7 @@ class AlphaReasonClosureEngine:
 
         closed_evidence = dict(evidence)
         target_assignments: Dict[str, int] = {}
+        feature_supports: Dict[str, Tuple[int, ...]] = {}
         feature_priors: Dict[str, Tuple[float, ...]] = {}
         unresolved_features: List[Tuple[str, List[int]]] = []
 
@@ -264,6 +268,7 @@ class AlphaReasonClosureEngine:
                 if feature_key in domains:
                     supported = [value_index for value_index in supported if value_index in domains[feature_key]]
                     feature_priors[feature_key] = self._distribution_from_supported(domain_size, supported)
+            feature_supports[feature_key] = tuple(supported)
 
             if len(supported) == 1:
                 value_index = supported[0]
@@ -289,8 +294,9 @@ class AlphaReasonClosureEngine:
         return self._build_state(
             task=task,
             evidence=closed_evidence,
-            active_inference_clusters={},
+            active_inference_clusters=active_inference_clusters,
             target_assignments=target_assignments,
+            feature_supports=feature_supports,
             feature_priors=feature_priors,
             unresolved_features=unresolved_features,
             contradiction=contradiction,
@@ -305,6 +311,7 @@ class AlphaReasonClosureEngine:
         evidence: Dict[str, int],
         active_inference_clusters: Dict[str, Tuple[str, ...]],
         target_assignments: Dict[str, int],
+        feature_supports: Dict[str, Tuple[int, ...]],
         feature_priors: Dict[str, Tuple[float, ...]],
         unresolved_features: List[Tuple[str, List[int]]],
         contradiction: bool,
@@ -339,6 +346,7 @@ class AlphaReasonClosureEngine:
             target_feature_keys=task.target_feature_keys,
             feature_domain_sizes=task.feature_domain_sizes,
             target_assignments=target_assignments,
+            feature_supports=feature_supports,
             feature_priors=feature_priors,
             legal_actions=tuple(all_actions),
             action_priors=self._normalize_action_priors(action_priors, tuple(all_actions)),
@@ -459,7 +467,6 @@ class AlphaReasonClosureEngine:
     ) -> Tuple[str, Tuple[Tuple[str, int], ...], Tuple[Tuple[str, Tuple[str, ...]], ...]]:
         return (
             task.name,
-            task.branch_feature_count,
             tuple(task.available_action_feature_keys()),
             tuple(sorted(evidence.items())),
             tuple(sorted((key, tuple(colors)) for key, colors in active_inference_clusters.items())),

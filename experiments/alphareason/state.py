@@ -8,6 +8,10 @@ from .actions import AlphaReasonAction
 class ClusterCandidate:
     key: str
     colors: Tuple[str, ...]
+    projected_features: Tuple[str, ...] = field(default_factory=tuple)
+    estimated_cost: float = 0.0
+    estimated_gain: float = 0.0
+    tier: str = "micro"
 
 
 @dataclass
@@ -17,6 +21,7 @@ class AlphaReasonState:
     target_feature_keys: Tuple[str, ...]
     feature_domain_sizes: Dict[str, int]
     target_assignments: Dict[str, int] = field(default_factory=dict)
+    feature_supports: Dict[str, Tuple[int, ...]] = field(default_factory=dict)
     feature_priors: Dict[str, Tuple[float, ...]] = field(default_factory=dict)
     legal_actions: Tuple[AlphaReasonAction, ...] = field(default_factory=tuple)
     action_priors: Dict[AlphaReasonAction, float] = field(default_factory=dict)
@@ -38,4 +43,3 @@ class AlphaReasonState:
             tuple(sorted(self.evidence.items())),
             tuple(sorted(self.active_inference_clusters.items())),
         )
-

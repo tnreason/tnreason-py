@@ -329,11 +329,11 @@ def train_supervised(
 if __name__ == "__main__":
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for this training entrypoint.")
-    prepared_parquet = "/tmp/alphareason_prepared_unsolved.parquet"
+    prepared_parquet = "demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet"
     tasks = load_prepared_sudoku_training_tasks(parquet_path=prepared_parquet, num_samples=None, num=3)
     model, history = train_supervised(
         tasks,
-        epochs=1,
+        epochs=50,
         learning_rate=1e-3,
         checkpoint_path="/tmp/alphareason_demo.pt",
         log_every_epoch=True,

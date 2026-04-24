@@ -1,10 +1,33 @@
+from pathlib import Path
+
 import demonstrations.sudoku.inferenceClusters as inf_clusters
 from demonstrations.sudoku.examples import sakana_fish, standard_sudoku
+from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
 from experiments.alphasudoku.validation import check_assignment_consistency
 from experiments.constraint_networks.forward_chaining import check_local_satisfiability
+import pandas as pd
 from tnreason.engine import get_dimDict
 
 from ..task import AlphaReasonTask
+
+
+PREPARED_UNSOLVED_PARQUET = (
+    Path(__file__).resolve().parents[3]
+    / "demonstrations"
+    / "sudoku"
+    / "sudoku_bench"
+    / "sample_data"
+    / "alphareason_prepared_unsolved.parquet"
+)
+CHALLENGE100_CSV = (
+    Path(__file__).resolve().parents[3]
+    / "demonstrations"
+    / "sudoku"
+    / "sudoku_bench"
+    / "sample_data"
+    / "challenge100.csv"
+)
+SAKANA_FISH_CHALLENGE100_INDEX = 23
 
 
 def _cell_feature_key(num: int, row: int, col: int) -> str:
@@ -82,14 +105,28 @@ def _direct_assignment_evidence_map(feature_domain_sizes):
 
 
 def _constraint_action_feature_keys(dim_dict):
-    standard_prefixes = ("a_", "row_", "col_", "square_")
     return tuple(
         sorted(
             feature_key
             for feature_key in dim_dict
-            if not feature_key.startswith(standard_prefixes)
+            if feature_key.startswith("pos_")
         )
     )
+
+
+def _direct_neighbor_counts(core_dict, feature_keys):
+    return {
+        feature_key: len(
+            {
+                color
+                for core in core_dict.values()
+                if feature_key in core.colors
+                for color in core.colors
+                if color != feature_key
+            }
+        )
+        for feature_key in feature_keys
+    }
 
 
 def canetwork_closure(closure_engine, task, evidence, active_inference_clusters):
@@ -142,10 +179,10 @@ def build_constraint_sudoku_task(
     solution_evidence,
     num: int = 3,
     name: str = "constraint_sudoku",
-    branch_feature_count: int = 1,
 ):
     target_feature_keys = _target_feature_keys(num)
-    dim_dict = get_dimDict(network_factory({}))
+    core_dict = network_factory({})
+    dim_dict = get_dimDict(core_dict)
     action_feature_keys = _constraint_action_feature_keys(dim_dict)
     feature_domain_sizes = {
         feature_key: dim_dict.get(feature_key, num ** 2)
@@ -163,10 +200,12 @@ def build_constraint_sudoku_task(
         feature_domain_sizes=feature_domain_sizes,
         assignment_evidence_map=assignment_evidence_map,
         action_feature_keys=action_feature_keys,
-        branch_feature_count=branch_feature_count,
         solution_assignments=_solution_assignments_from_atom_evidence(solution_evidence, num=num),
         consistency_checker=lambda constraint_network, assignment: check_local_satisfiability(constraint_network.coresDict),
-        metadata={"num": num},
+        metadata={
+            "num": num,
+            "direct_neighbor_counts": _direct_neighbor_counts(core_dict, target_feature_keys),
+        },
     )
 
 
@@ -175,10 +214,12 @@ def build_sakana_fish_constraint_sudoku_task(
     solution_evidence=None,
     num: int = 3,
     name: str = "sakana_fish_constraint_sudoku",
-    branch_feature_count: int = 1,
 ):
     initial_evidence = dict(initial_evidence or {})
-    solution_evidence = dict(solution_evidence or initial_evidence)
+    if solution_evidence is None:
+        row = pd.read_csv(CHALLENGE100_CSV).iloc[SAKANA_FISH_CHALLENGE100_INDEX]
+        solution_evidence = initial_board_into_evidence(str(row["solution"]))
+    solution_evidence = dict(solution_evidence)
     return build_constraint_sudoku_task(
         network_factory=lambda evidence: sakana_fish.get_assignment_as_constraint_network(
             num=num,
@@ -188,5 +229,26 @@ def build_sakana_fish_constraint_sudoku_task(
         solution_evidence=solution_evidence,
         num=num,
         name=name,
-        branch_feature_count=branch_feature_count,
     )
+
+
+def build_prepared_standard_sudoku_task(row_index: int = 0, path: Path = PREPARED_UNSOLVED_PARQUET):
+    row = pd.read_parquet(path).iloc[row_index]
+    task = build_constraint_sudoku_task(
+        network_factory=lambda evidence: standard_sudoku.get_assignment_as_constraint_network(
+            num=3,
+            startAssignment=evidence,
+        ),
+        initial_evidence=initial_board_into_evidence(row["puzzle"]),
+        solution_evidence=initial_board_into_evidence(row["solution"]),
+        num=3,
+        name=row["name"],
+    )
+    task.metadata.update(
+        {
+            "source": row["source"],
+            "puzzle_id": row["puzzle_id"],
+            "prepared_assigned_count": int(row["assigned_count"]),
+        }
+    )
+    return task
