@@ -12,6 +12,7 @@ from .constraint_propagation import (
     add_singleton_domain_cores,
     enforce_generalized_arc_consistency,
 )
+from .cluster_proposals import propose_direct_micro_clusters
 from .state import AlphaReasonState, ClusterCandidate
 from .task import AlphaReasonTask
 from .validation import check_assignment_consistency
@@ -65,10 +66,12 @@ class AlphaReasonClosureEngine:
         max_message_count: int = 30000,
         cache_size: int = 512,
         allow_cleaning: bool = False,
+        enable_micro_clusters: bool = False,
     ):
         self.max_message_count = max_message_count
         self.cache_size = cache_size
         self.allow_cleaning = allow_cleaning
+        self.enable_micro_clusters = enable_micro_clusters
         self._closure_cache: "OrderedDict[Tuple[str, Tuple[Tuple[str, int], ...], Tuple[Tuple[str, Tuple[str, ...]], ...]], AlphaReasonState]" = OrderedDict()
         self.cache_hits = 0
         self.cache_misses = 0
@@ -291,6 +294,20 @@ class AlphaReasonClosureEngine:
                 contradiction = True
                 consistency_ok = False
 
+        cluster_candidates = tuple()
+        if self.enable_micro_clusters and not contradiction:
+            cluster_candidates = propose_direct_micro_clusters(
+                core_dict,
+                self._state_preview(
+                    task,
+                    closed_evidence,
+                    target_assignments,
+                    feature_supports,
+                    feature_priors,
+                    active_inference_clusters,
+                ),
+            )
+
         return self._build_state(
             task=task,
             evidence=closed_evidence,
@@ -303,6 +320,7 @@ class AlphaReasonClosureEngine:
             consistency_ok=consistency_ok,
             propagator=None,
             message_count=0,
+            cluster_candidates=cluster_candidates,
         )
 
     def _build_state(
@@ -318,11 +336,11 @@ class AlphaReasonClosureEngine:
         consistency_ok: bool,
         propagator,
         message_count: int,
+        cluster_candidates: Tuple[ClusterCandidate, ...] = tuple(),
     ) -> AlphaReasonState:
         solved = consistency_ok and len(target_assignments) == len(task.target_feature_keys)
         legal_actions: Tuple[AssignValueAction | AddClusterAction, ...] = tuple()
         action_priors = {}
-        cluster_candidates: Tuple[ClusterCandidate, ...] = tuple()
         if not contradiction and not solved:
             legal_actions, action_priors = self._assignment_actions(task, unresolved_features, feature_priors)
             if propagator is not None:
@@ -381,6 +399,26 @@ class AlphaReasonClosureEngine:
                 seen.add(key)
                 candidates.append(ClusterCandidate(key=key, colors=colors_tuple))
         return tuple(sorted(candidates, key=lambda candidate: candidate.key))
+
+    def _state_preview(
+        self,
+        task: AlphaReasonTask,
+        evidence: Dict[str, int],
+        target_assignments: Dict[str, int],
+        feature_supports: Dict[str, Tuple[int, ...]],
+        feature_priors: Dict[str, Tuple[float, ...]],
+        active_inference_clusters: Dict[str, Tuple[str, ...]],
+    ) -> AlphaReasonState:
+        return AlphaReasonState(
+            task_name=task.name,
+            evidence=evidence,
+            target_feature_keys=task.target_feature_keys,
+            feature_domain_sizes=task.feature_domain_sizes,
+            target_assignments=target_assignments,
+            feature_supports=feature_supports,
+            feature_priors=feature_priors,
+            active_inference_clusters=active_inference_clusters,
+        )
 
     def _summarize_constraint_node(self, chainer: GenericForwardChaining, feature_key: str):
         edge_keys = [
@@ -467,6 +505,7 @@ class AlphaReasonClosureEngine:
     ) -> Tuple[str, Tuple[Tuple[str, int], ...], Tuple[Tuple[str, Tuple[str, ...]], ...]]:
         return (
             task.name,
+            self.enable_micro_clusters,
             tuple(task.available_action_feature_keys()),
             tuple(sorted(evidence.items())),
             tuple(sorted((key, tuple(colors)) for key, colors in active_inference_clusters.items())),

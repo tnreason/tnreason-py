@@ -30,7 +30,7 @@ class ConstraintNetwork:
                                                        openColors=self.coresDict[splitKey].colors)
         if names is None:
             names = [splitKey + "_0", splitKey + "_1"]
-        if testCore == self.coresDict[splitKey]:
+        if engine.cores_close(testCore, self.coresDict[splitKey]):
             del self.coresDict[splitKey]
             self.coresDict[names[0]] = 1 / coordinateSum * core0
             self.coresDict[names[1]] = core1

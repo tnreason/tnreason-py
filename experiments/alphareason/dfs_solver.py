@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-from .actions import AssignValueAction
+from .actions import AddClusterAction, AlphaReasonAction, AssignValueAction
 from .closure_engine import AlphaReasonClosureEngine
 from .state import AlphaReasonState
 from .task import AlphaReasonTask
@@ -10,7 +10,7 @@ from .task import AlphaReasonTask
 @dataclass
 class DFSResult:
     state: AlphaReasonState
-    history: List[AssignValueAction]
+    history: List[AlphaReasonAction]
     nodes: int
     solved: bool
 
@@ -55,8 +55,8 @@ class AlphaReasonDFSSolver:
         self,
         task: AlphaReasonTask,
         state: AlphaReasonState,
-        history: List[AssignValueAction],
-    ) -> Tuple[Optional[AlphaReasonState], List[AssignValueAction]]:
+        history: List[AlphaReasonAction],
+    ) -> Tuple[Optional[AlphaReasonState], List[AlphaReasonAction]]:
         self.nodes += 1
         if self.nodes > self.max_nodes or state.contradiction:
             return None, history
@@ -68,6 +68,31 @@ class AlphaReasonDFSSolver:
         state_key = state.state_key()
         if state_key in self.failed:
             return None, history
+
+        for candidate in state.cluster_candidates:
+            action = AddClusterAction(candidate.key)
+            if self.trace:
+                print(
+                    f"{len(history) + 1}. Activate {candidate.tier} cluster {candidate.key} "
+                    f"(gain={candidate.estimated_gain:.1f}, colors={candidate.colors}, nodes={self.nodes})",
+                    flush=True,
+                )
+            active_clusters = dict(state.active_inference_clusters)
+            active_clusters[candidate.key] = candidate.colors
+            next_state = self.closure_engine.close(task, state.evidence, active_clusters)
+            if self.trace:
+                print(
+                    "   Forward chaining closure -> "
+                    f"assigned={next_state.assigned_count}/{len(task.target_feature_keys)}, "
+                    f"contradiction={next_state.contradiction}, solved={next_state.solved}, "
+                    f"active_clusters={len(next_state.active_inference_clusters)}",
+                    flush=True,
+                )
+            solved_state, solved_history = self._search(task, next_state, [*history, action])
+            if solved_state is not None:
+                return solved_state, solved_history
+            if self.trace:
+                print(f"   Backtrack cluster {candidate.key}", flush=True)
 
         direct_neighbor_counts = task.metadata.get("direct_neighbor_counts", {})
         branch_features = sorted(

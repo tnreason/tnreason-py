@@ -44,7 +44,7 @@ class NewConstraintNetwork:
         if names is None:
             names = [splitKey + "_0", splitKey + "_1"]
 
-        if testCore == self.coresDict[splitKey]:
+        if engine.cores_close(testCore, self.coresDict[splitKey]):
             newUnitEdges = []
             if len(colors0) == 1 and colors0[0] not in self.cg.singleNodeEdges:
                 newUnitEdges.append(colors0[0])
