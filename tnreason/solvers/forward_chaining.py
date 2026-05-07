@@ -75,15 +75,23 @@ class ForwardChaining:
     # ── Internal ──────────────────────────────────────────────────────────────
 
     def _summarize_node(self, color: str) -> None:
-        """Merge >1 unary factors for ``color`` into one."""
+        """Merge >1 unary factors for ``color`` into one.
+
+        Also detects contradiction: if the combined factor is all-zero,
+        the constraint network is inconsistent.
+        """
         keys = [k for k in self.singleNodeEdges.get(color, [])
                 if k in self.coresDict]
         if len(keys) <= 1:
             return
         name = color + "_summary"
-        self.coresDict[name] = engine.contract(
+        combined = engine.contract(
             {k: self.coresDict[k] for k in keys}, openColors=[color]
         )
+        if float(combined.values.sum()) == 0:
+            self.consistent = False
+            return
+        self.coresDict[name] = combined
         for k in keys:
             if k in self.coresDict and k != name:
                 del self.coresDict[k]
