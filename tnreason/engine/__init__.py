@@ -4,6 +4,8 @@ from tnreason.engine.contraction_handling import contract, sum_contract, normali
 
 from tnreason.engine.core_creation import get_core, create_from_slice_iterator, convert, create_random_core
 
+from tnreason.engine.core_comparison import cores_equal, cores_close
+
 def get_dimDict(coreDict):
     dimDict = {}
     for coreKey in coreDict:

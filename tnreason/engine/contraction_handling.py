@@ -77,13 +77,16 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         from tnreason.engine.workload_to_pgmpy import PgmpyVariableEliminator
         return PgmpyVariableEliminator(coreDict=coreDict, openColors=openColors).contract()
 
+    elif contractionMethod == "VariableElimination":
+        from tnreason.engine.variable_elimination import VariableEliminationContractor
+        return VariableEliminationContractor(coreDict=coreDict, openColors=openColors).contract()
+
     ## Corewise Contractor
     elif contractionMethod == "CorewiseContractor":
         """
         Requires the contract_with() method of cores
         """
         return CorewiseContractor(coreDict=coreDict, openColors=openColors).contract()
-
 
     else:
         raise ValueError("Contractor Type {} not known.".format(contractionMethod))

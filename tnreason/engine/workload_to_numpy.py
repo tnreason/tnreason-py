@@ -116,12 +116,17 @@ class NumpyCore(cb.TensorCore):
         return {color: sample[i] for i, color in enumerate(self.colors)}
 
 class NumpyEinsumContractor:
-    def __init__(self, coreDict={}, openColors=[]):
+    def __init__(self, coreDict={}, openColors=[], optimize='greedy'):
         self.coreDict = {key: coreDict[key].clone() for key in coreDict}
         self.openColors = openColors
+        self.optimize = optimize
 
     def contract(self):
         substring, coreOrder, colorDict, colorOrder = subc.get_einsum_substring(self.coreDict, self.openColors)
+        operands = [self.coreDict[key].values for key in coreOrder]
+        result = (np.einsum(substring, *operands, optimize=self.optimize)
+                  if len(operands) > 2 else
+                  np.einsum(substring, *operands))
         return NumpyCore(
-            np.einsum(substring, *[self.coreDict[key].values for key in coreOrder]),
+            result,
             [color for color in colorOrder if color in self.openColors])
