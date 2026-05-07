@@ -314,5 +314,100 @@ class TestBacktracking(unittest.TestCase):
         self.assertNotEqual(sol.get("b"), 0)
 
 
+# ── Test: Semiring parameterisation ──────────────────────────────────────────
+
+class TestSemirings(unittest.TestCase):
+    """Four-semiring evaluation on the same NEQ chain (domain {0,1})."""
+
+    def setUp(self):
+        from tnreason.engine.semirings import SUM_PRODUCT, MAX_PRODUCT, BOOLEAN, TROPICAL
+        self.SUM_PRODUCT = SUM_PRODUCT
+        self.MAX_PRODUCT = MAX_PRODUCT
+        self.BOOLEAN     = BOOLEAN
+        self.TROPICAL    = TROPICAL
+
+        NEQ  = np.array([[0., 1.], [1., 0.]])
+        P0   = np.array([0.3, 0.7])   # prior: X0=1 is more likely
+        self.cores = {
+            'n01': NumpyCore(NEQ.copy(), ['x0','x1'], 'n01'),
+            'n12': NumpyCore(NEQ.copy(), ['x1','x2'], 'n12'),
+            'n23': NumpyCore(NEQ.copy(), ['x2','x3'], 'n23'),
+            'p0' : NumpyCore(P0.copy(),  ['x0'],      'p0'),
+        }
+        neq_cost = np.where(NEQ == 0, np.inf, 0.)
+        self.tcores = {
+            'n01': NumpyCore(neq_cost.copy(), ['x0','x1'], 'n01'),
+            'n12': NumpyCore(neq_cost.copy(), ['x1','x2'], 'n12'),
+            'n23': NumpyCore(neq_cost.copy(), ['x2','x3'], 'n23'),
+            'c0' : NumpyCore(-np.log(P0),     ['x0'],      'c0'),
+        }
+
+    def test_boolean_satisfiable(self):
+        """Boolean semiring: NEQ chain with {0,1} cores is satisfiable → Z = 1."""
+        NEQ = np.array([[0., 1.], [1., 0.]])
+        bool_cores = {
+            'n01': NumpyCore(NEQ.copy(), ['x0','x1'], 'n01'),
+            'n12': NumpyCore(NEQ.copy(), ['x1','x2'], 'n12'),
+            'n23': NumpyCore(NEQ.copy(), ['x2','x3'], 'n23'),
+        }
+        Z = float(engine.contract(bool_cores, openColors=[], semiring=self.BOOLEAN)[:])
+        self.assertAlmostEqual(Z, 1.0)
+
+    def test_boolean_unsatisfiable(self):
+        """Boolean semiring: contradictory givens → Z = 0."""
+        cores = {
+            'n01': NumpyCore(np.array([[0.,1.],[1.,0.]]), ['x0','x1'], 'n'),
+            'fx0': NumpyCore(np.array([1., 0.]), ['x0'], 'fx0'),
+            'fx1': NumpyCore(np.array([1., 0.]), ['x1'], 'fx1'),  # x0=x1=0 violates NEQ
+        }
+        Z = float(engine.contract(cores, openColors=[], semiring=self.BOOLEAN)[:])
+        self.assertAlmostEqual(Z, 0.0)
+
+    def test_sum_product_matches_einsum(self):
+        """SumProduct semiring must give same marginals as NumpyEinsum."""
+        r_sr  = engine.contract(self.cores, openColors=['x3'], semiring=self.SUM_PRODUCT)
+        r_ein = engine.contract(self.cores, openColors=['x3'])
+        m_sr  = r_sr.values  / r_sr.values.sum()
+        m_ein = r_ein.values / r_ein.values.sum()
+        np.testing.assert_allclose(m_sr, m_ein, atol=1e-9)
+
+    def test_sum_product_marginal_value(self):
+        """P(X3=1) should equal P(X1=1) by the alternating NEQ chain."""
+        r = engine.contract(self.cores, openColors=['x3'], semiring=self.SUM_PRODUCT)
+        marg = r.values / r.values.sum()
+        # With P0=[0.3,0.7]: chain alternates, X3 has same distribution as X1
+        self.assertAlmostEqual(float(marg[1]), 0.3, places=5)
+
+    def test_max_product_map_alternates(self):
+        """MaxProduct MAP should alternate 1,0,1,0 (X0 prefers 1, rest forced)."""
+        r = engine.contract(
+            self.cores, openColors=['x0','x1','x2','x3'], semiring=self.MAX_PRODUCT
+        )
+        idx = np.unravel_index(np.argmax(r.values), r.values.shape)
+        # x0=1 (highest prior), x1=0, x2=1, x3=0
+        colors = r.colors
+        assignment = dict(zip(colors, [int(i) for i in idx]))
+        self.assertEqual(assignment['x0'], 1)
+        self.assertEqual(assignment['x1'], 0)
+
+    def test_tropical_min_cost(self):
+        """Tropical semiring: minimum-cost X3 matches Max-Product MAP for X3."""
+        r = engine.contract(self.tcores, openColors=['x3'], semiring=self.TROPICAL)
+        best_x3 = int(np.argmin(r.values))
+        # Max-Product MAP has x3=0 (alternating from x0=1)
+        self.assertEqual(best_x3, 0)
+
+    def test_semiring_registry(self):
+        """get_semiring returns the correct semiring by name."""
+        from tnreason.engine.semirings import get_semiring, SUM_PRODUCT
+        sr = get_semiring("SumProduct")
+        self.assertIs(sr, SUM_PRODUCT)
+
+    def test_unknown_semiring_raises(self):
+        from tnreason.engine.semirings import get_semiring
+        with self.assertRaises(ValueError):
+            get_semiring("NonExistentSemiring")
+
+
 if __name__ == "__main__":
     unittest.main()

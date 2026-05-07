@@ -31,7 +31,7 @@ def sum_contract(weightedCoreDicts, backCores={}, openColors=[], dimensionDict={
         return contracted
 
 
-def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, coreType=None, colorEvidenceDict={}):
+def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, coreType=None, colorEvidenceDict={}, semiring=None):
     """
     Contractors are initialized with
         * coreDict: Dictionary of colored tensor cores specifying a network
@@ -58,6 +58,11 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
                                                                    shape=[dimensionDict[color]],
                                                                    colors=[color], coreType=coreType)
 
+    ## Semiring-parameterised contractor (any semiring, including Sum-Product)
+    if semiring is not None:
+        from tnreason.engine.workload_to_numpy import SemiringContractor
+        return SemiringContractor(coreDict=coreDict, openColors=openColors, semiring=semiring).contract()
+
     ## Einstein Summation Contractors
     if contractionMethod == "NumpyEinsum":
         from tnreason.engine.workload_to_numpy import NumpyEinsumContractor
@@ -80,6 +85,12 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
     elif contractionMethod == "VariableElimination":
         from tnreason.engine.variable_elimination import VariableEliminationContractor
         return VariableEliminationContractor(coreDict=coreDict, openColors=openColors).contract()
+
+    elif contractionMethod == "SemiringContractor":
+        from tnreason.engine.workload_to_numpy import SemiringContractor
+        from tnreason.engine.semirings import SUM_PRODUCT
+        sr = semiring if semiring is not None else SUM_PRODUCT
+        return SemiringContractor(coreDict=coreDict, openColors=openColors, semiring=sr).contract()
 
     ## Corewise Contractor
     elif contractionMethod == "CorewiseContractor":

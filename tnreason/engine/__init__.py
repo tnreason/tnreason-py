@@ -6,6 +6,11 @@ from tnreason.engine.core_creation import get_core, create_from_slice_iterator, 
 
 from tnreason.engine.core_comparison import cores_equal, cores_close
 
+from tnreason.engine.semirings import (
+    Semiring, SUM_PRODUCT, MAX_PRODUCT, BOOLEAN, TROPICAL,
+    SEMIRING_REGISTRY, get_semiring,
+)
+
 def get_dimDict(coreDict):
     dimDict = {}
     for coreKey in coreDict:
