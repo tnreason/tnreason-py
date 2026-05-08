@@ -85,8 +85,14 @@ class VariableEliminationContractor:
     def _merge_factors(self, left_colors, left_values, right_colors, right_values):
         """Merge two factors into one.
 
-        Parameters are the color lists and tensor values for the left and
-        right factors. Returns a tuple of (merged_values, merged_colors).
+        Args:
+            left_colors: Colors of the left factor.
+            left_values: Tensor values of the left factor.
+            right_colors: Colors of the right factor.
+            right_values: Tensor values of the right factor.
+
+        Returns:
+            Tuple of merged tensor values and the merged color order.
         """
         merged_colors = list(set(left_colors) | set(right_colors))
         merged_dict = {
@@ -98,6 +104,7 @@ class VariableEliminationContractor:
         )
         tensors = {"A": left_values, "B": right_values}
         merged_values = np.einsum(substr, *[tensors[key] for key in order])
+        # Keep only the requested merged scope in the order returned by einsum.
         return merged_values, [c for c in resulting_color_order if c in merged_colors]
 
     # ── Core elimination step ─────────────────────────────────────────────────
