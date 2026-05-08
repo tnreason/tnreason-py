@@ -34,6 +34,7 @@ class VariableEliminationContractor:
             k: v.clone() for k, v in coreDict.items()
         }
         self.openColors: set[str] = set(openColors)
+        self._next_factor_id = 0
         # Determine elimination order
         all_colors = self._all_colors()
         self.elim_order = self._min_fill_order(all_colors - self.openColors)
@@ -48,6 +49,13 @@ class VariableEliminationContractor:
 
     def _factors_containing(self, color: str) -> list[str]:
         return [k for k, core in self.factors.items() if color in core.colors]
+
+    def _new_factor_key(self) -> str:
+        while True:
+            key = f"_ve_{self._next_factor_id}"
+            self._next_factor_id += 1
+            if key not in self.factors:
+                return key
 
     def _neighbours(self, color: str) -> set[str]:
         """Variables that share at least one factor with `color`."""
@@ -136,9 +144,9 @@ class VariableEliminationContractor:
             combined_colors = [c for c in combined_colors if c != color]
 
         # Remove old factors, add new one
-        new_key = f"_ve_{'_'.join(sorted(combined_colors))}"
         for key in keys:
             del self.factors[key]
+        new_key = self._new_factor_key()
         if combined_colors:  # non-scalar
             self.factors[new_key] = self.NumpyCore(
                 values=combined_values, colors=combined_colors, name=new_key

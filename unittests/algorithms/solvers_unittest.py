@@ -13,7 +13,7 @@ import unittest
 import numpy as np
 
 from tnreason import engine
-from tnreason.engine.workload_to_numpy import NumpyCore
+from tnreason.engine.workload_to_numpy import NumpyCore, NumpyEinsumContractor
 from tnreason.engine.core_comparison import cores_equal, cores_close
 from tnreason.solvers import (
     ForwardChaining,
@@ -117,10 +117,12 @@ class TestNumpyEinsumOptimize(unittest.TestCase):
             "bc": NumpyCore(NEQ3.copy(), ["b", "c"], "bc"),
             "ac": NumpyCore(NEQ3.copy(), ["a", "c"], "ac"),
         }
-        result_default = engine.contract(cores, openColors=["a"],
-                                         contractionMethod="NumpyEinsum")
-        result_greedy  = engine.contract(cores, openColors=["a"],
-                                         contractionMethod="NumpyEinsum")
+        result_default = NumpyEinsumContractor(
+            cores, openColors=["a"], optimize=False
+        ).contract()
+        result_greedy = NumpyEinsumContractor(
+            cores, openColors=["a"], optimize="greedy"
+        ).contract()
         np.testing.assert_allclose(result_default.values, result_greedy.values)
 
     def test_scalar_contraction(self):
@@ -175,6 +177,18 @@ class TestVariableElimination(unittest.TestCase):
         v_ve  = r_ve.values / r_ve.values.sum()
         v_ein = r_ein.values / r_ein.values.sum()
         np.testing.assert_allclose(v_ve, v_ein, atol=1e-9)
+
+    def test_existing_factor_key_is_not_overwritten(self):
+        """VE-generated keys must not overwrite surviving user factors."""
+        cores = {
+            "ab": NumpyCore(np.ones((2, 2)), ["a", "b"], "ab"),
+            "_ve_0": NumpyCore(np.array([3.0, 5.0]), ["z"], "_ve_0"),
+        }
+        result = engine.contract(
+            cores, openColors=["z"], contractionMethod="VariableElimination"
+        )
+        self.assertEqual(result.colors, ["z"])
+        np.testing.assert_allclose(result.values, np.array([12.0, 20.0]))
 
 
 # ── Test: ForwardChaining ─────────────────────────────────────────────────────
