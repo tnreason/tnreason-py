@@ -18,6 +18,7 @@ giving max intermediate size 4^5 = 1024 — tractable.
 """
 
 from __future__ import annotations
+from types import SimpleNamespace
 import numpy as np
 from tnreason.engine import subscript_creation as subc
 
@@ -81,6 +82,19 @@ class VariableEliminationContractor:
             remaining.remove(best)
         return order
 
+    def _merge_factors(self, left_colors, left_values, right_colors, right_values):
+        merged_colors = list(dict.fromkeys([*left_colors, *right_colors]))
+        merged_dict = {
+            "A": SimpleNamespace(colors=left_colors),
+            "B": SimpleNamespace(colors=right_colors),
+        }
+        substr, order, _, color_order = subc.get_einsum_substring(
+            merged_dict, merged_colors
+        )
+        tensors = {"A": left_values, "B": right_values}
+        merged_values = np.einsum(substr, *[tensors[key] for key in order])
+        return merged_values, [c for c in color_order if c in merged_colors]
+
     # ── Core elimination step ─────────────────────────────────────────────────
 
     def _eliminate(self, color: str) -> None:
@@ -99,21 +113,9 @@ class VariableEliminationContractor:
                 combined_colors = list(core.colors)
                 combined_values = core.values.copy()
             else:
-                # Merge: outer product then sum over shared indices
-                new_colors = list(set(combined_colors) | set(core.colors))
-                # Use einsum for the merge
-                lhs = "".join(subc.defaultSymbols[i]
-                               for i, c in enumerate(combined_colors)
-                               for _ in [None]
-                               if True)
-                # Build a temporary mini-dict and use get_einsum_substring
-                class _M:
-                    def __init__(self, c): self.colors = c
-                merged_dict = {"A": _M(combined_colors), "B": _M(core.colors)}
-                substr, order, cmap, corder = subc.get_einsum_substring(merged_dict, new_colors)
-                tensors = {"A": combined_values, "B": core.values}
-                combined_values = np.einsum(substr, *[tensors[k] for k in order])
-                combined_colors = [c for c in corder if c in new_colors]
+                combined_values, combined_colors = self._merge_factors(
+                    combined_colors, combined_values, core.colors, core.values
+                )
 
         # Sum out `color`
         if color in combined_colors:
@@ -152,14 +154,9 @@ class VariableEliminationContractor:
         result_values = remaining[0].values.copy()
 
         for core in remaining[1:]:
-            class _M:
-                def __init__(self, c): self.colors = c
-            all_cols = list(set(result_colors) | set(core.colors))
-            merged_dict = {"A": _M(result_colors), "B": _M(core.colors)}
-            substr, order, cmap, corder = subc.get_einsum_substring(merged_dict, all_cols)
-            tensors = {"A": result_values, "B": core.values}
-            result_values = np.einsum(substr, *[tensors[k] for k in order])
-            result_colors = [c for c in corder if c in all_cols]
+            result_values, result_colors = self._merge_factors(
+                result_colors, result_values, core.colors, core.values
+            )
 
         # Reorder to match openColors
         open_list = [c for c in result_colors if c in self.openColors]
