@@ -83,8 +83,12 @@ class VariableEliminationContractor:
         return order
 
     def _merge_factors(self, left_colors, left_values, right_colors, right_values):
-        """Merge two factors and return the merged values and color order."""
-        merged_colors = list(dict.fromkeys([*left_colors, *right_colors]))
+        """Merge two factors into one.
+
+        Parameters are the color lists and tensor values for the left and
+        right factors. Returns a tuple of (merged_values, merged_colors).
+        """
+        merged_colors = list(set(left_colors) | set(right_colors))
         merged_dict = {
             "A": SimpleNamespace(colors=left_colors),
             "B": SimpleNamespace(colors=right_colors),
