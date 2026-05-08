@@ -51,10 +51,9 @@ class VariableEliminationContractor:
         return [k for k, core in self.factors.items() if color in core.colors]
 
     def _new_factor_key(self) -> str:
-        key = f"_ve_{self._next_factor_id}"
-        while key in self.factors:
+        while f"_ve_{self._next_factor_id}" in self.factors:
             self._next_factor_id += 1
-            key = f"_ve_{self._next_factor_id}"
+        key = f"_ve_{self._next_factor_id}"
         self._next_factor_id += 1
         return key
 
