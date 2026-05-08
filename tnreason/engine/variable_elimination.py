@@ -51,11 +51,12 @@ class VariableEliminationContractor:
         return [k for k, core in self.factors.items() if color in core.colors]
 
     def _new_factor_key(self) -> str:
-        while True:
-            key = f"_ve_{self._next_factor_id}"
+        key = f"_ve_{self._next_factor_id}"
+        while key in self.factors:
             self._next_factor_id += 1
-            if key not in self.factors:
-                return key
+            key = f"_ve_{self._next_factor_id}"
+        self._next_factor_id += 1
+        return key
 
     def _neighbours(self, color: str) -> set[str]:
         """Variables that share at least one factor with `color`."""
