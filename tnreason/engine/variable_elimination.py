@@ -83,17 +83,18 @@ class VariableEliminationContractor:
         return order
 
     def _merge_factors(self, left_colors, left_values, right_colors, right_values):
+        """Merge two factors and return the merged values and color order."""
         merged_colors = list(dict.fromkeys([*left_colors, *right_colors]))
         merged_dict = {
             "A": SimpleNamespace(colors=left_colors),
             "B": SimpleNamespace(colors=right_colors),
         }
-        substr, order, _, color_order = subc.get_einsum_substring(
+        substr, order, _, resulting_color_order = subc.get_einsum_substring(
             merged_dict, merged_colors
         )
         tensors = {"A": left_values, "B": right_values}
         merged_values = np.einsum(substr, *[tensors[key] for key in order])
-        return merged_values, [c for c in color_order if c in merged_colors]
+        return merged_values, [c for c in resulting_color_order if c in merged_colors]
 
     # ── Core elimination step ─────────────────────────────────────────────────
 
