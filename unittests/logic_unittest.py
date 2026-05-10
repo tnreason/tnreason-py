@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+from tnreason.engine.subscript_creation import defaultSymbols
 from tnreason.logic import LogicCompiler, TTGadgets, WorldModelUtils, consistency_certificate
 
 
@@ -21,7 +22,7 @@ class LogicModuleTest(unittest.TestCase):
 
     def test_compile_rejects_too_many_variables(self):
         compiler = LogicCompiler(domain_size=2)
-        for i in range(63):
+        for i in range(len(defaultSymbols) + 1):
             compiler.add_variable(f"v{i}")
         with self.assertRaises(ValueError):
             compiler.compile()
@@ -42,7 +43,7 @@ class LogicModuleTest(unittest.TestCase):
         compiler.add_constraint("GT", ("x", "y"))
         self.assertEqual(compiler.solve(), 6.0)
 
-    def test_alldiff_contract_counts_injective_assignments(self):
+    def test_alldiff_contraction_counts_injective_assignments(self):
         cores = TTGadgets.alldiff_cores(2, 3)
         actual_assignments = {(): {0}}
         for core in cores:
