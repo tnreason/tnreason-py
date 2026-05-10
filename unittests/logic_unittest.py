@@ -5,6 +5,10 @@ import numpy as np
 from tnreason.logic import LogicCompiler, TTGadgets, WorldModelUtils, consistency_certificate
 
 
+def is_power_of_two(value: int) -> bool:
+    return value > 0 and value & (value - 1) == 0
+
+
 class LogicModuleTest(unittest.TestCase):
     def test_empty_system_returns_unit_partition(self):
         self.assertEqual(LogicCompiler(domain_size=3).solve(), 1.0)
@@ -49,7 +53,7 @@ class LogicModuleTest(unittest.TestCase):
                     if source_mask not in reachable_states:
                         continue
                     changed_bit = int(target_mask ^ source_mask)
-                    self.assertEqual(changed_bit & (changed_bit - 1), 0)
+                    self.assertTrue(is_power_of_two(changed_bit))
                     value = changed_bit.bit_length() - 1
                     next_assignments.setdefault(assignment + (value,), set()).add(target_mask)
             actual_assignments = next_assignments
