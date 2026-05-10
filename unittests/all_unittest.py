@@ -20,6 +20,7 @@ from application.entropy_maximization_unittest import WeightEstimationTest
 from knowledge.hybridKB_unittest import HybridKBTest
 from knowledge.formula_boosting_unittest import FormulaBoostingTest
 from knowledge.learning_test import HybridLearnerTest
+from logic_unittest import LogicModuleTest
 
 from reasoning.forward_backward_test import ForwardBackwardTest
 from reasoning.hard_feature_test import HardFeatureTest

@@ -5,9 +5,11 @@ to Tensor Networks and structural gadgets for scaling to large domains.
 """
 
 from __future__ import annotations
+
 import numpy as np
-import string
-from typing import List, Tuple, Dict, Any, Optional
+from typing import Optional
+
+from tnreason.engine.subscript_creation import defaultSymbols
 
 class LogicCompiler:
     """A Domain Specific Language (DSL) for Tensor Network Reasoning.
@@ -19,38 +21,54 @@ class LogicCompiler:
         self.domain_size = domain_size
         self.variables: list[str] = []
         self.constraints: list[tuple[str, tuple[str, ...], np.ndarray]] = []
-        self.char_map = string.ascii_lowercase + string.ascii_uppercase
+        self.char_map = defaultSymbols
 
     def add_variable(self, name: str):
         """Register a variable in the logical system."""
         if name not in self.variables:
             self.variables.append(name)
 
-    def add_constraint(self, type: str, vars: tuple[str, ...], tensor: Optional[np.ndarray] = None):
+    def add_constraint(
+        self,
+        constraint_type: str,
+        variables: tuple[str, ...],
+        tensor: Optional[np.ndarray] = None,
+    ):
         """Add a relational constraint between variables."""
-        for v in vars:
+        for v in variables:
             self.add_variable(v)
-        
+
         if tensor is None:
-            if type == "NEQ":
+            if len(variables) != 2:
+                raise ValueError(f"{constraint_type} constraints require exactly 2 variables.")
+            if constraint_type == "NEQ":
                 # Binary Not-Equal
                 tensor = (1.0 - np.eye(self.domain_size))
-            elif type == "EQ":
+            elif constraint_type == "EQ":
                 # Binary Equal
                 tensor = np.eye(self.domain_size)
-            elif type == "GT":
+            elif constraint_type == "GT":
                 # Binary Greater-Than
-                tensor = np.zeros((self.domain_size, self.domain_size))
-                for i in range(self.domain_size):
-                    for j in range(self.domain_size):
-                        if i > j: tensor[i, j] = 1.0
+                tensor = np.tril(np.ones((self.domain_size, self.domain_size)), k=-1)
             else:
-                raise ValueError(f"Unknown constraint type: {type}")
-        
-        self.constraints.append((type, vars, tensor))
+                raise ValueError(f"Unknown constraint type: {constraint_type}")
+        else:
+            tensor = np.asarray(tensor, dtype=float)
+            expected_shape = (self.domain_size,) * len(variables)
+            if tensor.shape != expected_shape:
+                raise ValueError(
+                    f"Constraint tensor shape {tensor.shape} does not match "
+                    f"{len(variables)} variables over domain size {self.domain_size}."
+                )
+
+        self.constraints.append((constraint_type, variables, tensor))
 
     def compile(self) -> tuple[str, list[np.ndarray]]:
         """Compiles the logical system into an einsum string and core list."""
+        if len(self.variables) > len(self.char_map):
+            raise ValueError(
+                f"Too many variables for einsum compilation: {len(self.variables)} > {len(self.char_map)}."
+            )
         var_to_char = {v: self.char_map[i] for i, v in enumerate(self.variables)}
         operands = []
         einsum_parts = []
@@ -74,6 +92,8 @@ class LogicCompiler:
     def solve(self, semiring: str = "sum_product") -> float:
         """Solves the system and returns the partition function Z."""
         equation, operands = self.compile()
+        if not operands:
+            return 1.0
         # Semiring-aware einsum (can be extended to custom backends)
         if semiring == "sum_product":
             return float(np.einsum(equation, *operands))
@@ -81,40 +101,47 @@ class LogicCompiler:
             # For max-product, we use a simple loop-based contraction for small systems
             # In a real library, this would use a proper semiring-contractor.
             raise NotImplementedError("Advanced semirings require SemiringContractor.")
-        else:
+        if semiring == "boolean":
             return float(np.einsum(equation, *operands) > 0)
+        raise ValueError(f"Unknown semiring: {semiring}")
 
 
 class TTGadgets:
     """Structural Tensor-Train decompositions for high-arity constraints."""
     
     @staticmethod
-    def alldiff_cores(n: int, d: int) -> list[np.ndarray]:
-        """Generate sparse TT cores for an N-variable, D-domain AllDiff constraint.
-        
-        Complexity: O(N * D * 2^D) non-zeros.
-        """
+    def alldiff_cores(n: int, d: int) -> list[tuple[int, np.ndarray, np.ndarray]]:
+        """Generate sparse transition cores for an N-variable, D-domain AllDiff constraint."""
         num_states = 1 << d
-        cores = []
-        for _ in range(n):
-            # Shape: (bond_in, physical, bond_out)
-            core = np.zeros((num_states, d, num_states))
-            for mask in range(num_states):
-                for val in range(d):
-                    bit = 1 << val
-                    if not (mask & bit):
-                        core[mask, val, mask | bit] = 1.0
-            cores.append(core)
-        return cores
+        source_masks = []
+        target_masks = []
+        for mask in range(num_states):
+            for val in range(d):
+                bit = 1 << val
+                if not (mask & bit):
+                    source_masks.append(mask)
+                    target_masks.append(mask | bit)
+        sparse_core = (
+            num_states,
+            np.asarray(source_masks, dtype=np.int64),
+            np.asarray(target_masks, dtype=np.int64),
+        )
+        return [sparse_core] * n
 
     @staticmethod
-    def contract_tt(cores: list[np.ndarray]) -> float:
+    def contract_tt(cores: list[tuple[int, np.ndarray, np.ndarray]]) -> float:
         """Sequential contraction of a TT chain."""
-        state = np.zeros(cores[0].shape[0])
+        if not cores:
+            return 1.0
+        state = np.zeros(cores[0][0])
         state[0] = 1.0
-        for core in cores:
-            state = np.einsum('i,ijk->jk', state, core).sum(axis=0)
-        return float(state[-1])
+        for num_states, source_masks, target_masks in cores:
+            if num_states != len(state):
+                raise ValueError("All TT cores must share the same state dimension.")
+            next_state = np.zeros(num_states)
+            np.add.at(next_state, target_masks, state[source_masks])
+            state = next_state
+        return float(state.sum())
 
 
 class WorldModelUtils:
@@ -126,6 +153,8 @@ class WorldModelUtils:
         
         Reduces O(S^2) to O(S_i^2).
         """
+        if dims != 2:
+            raise ValueError("build_factored_transition currently supports exactly 2 dimensions.")
         # Example for 4 actions: up, right, down, left
         moves = [(-1, 0), (0, 1), (1, 0), (0, -1)]
         cores = []
@@ -144,5 +173,6 @@ class WorldModelUtils:
 
 def consistency_certificate(z: float, z_max: float) -> float:
     """Returns a continuous confidence score in [0, 1]."""
-    if z_max == 0: return 0.0
-    return min(1.0, z / z_max)
+    if z_max <= 0:
+        raise ValueError("z_max must be positive.")
+    return max(0.0, min(1.0, z / z_max))
