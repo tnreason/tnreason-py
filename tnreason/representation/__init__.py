@@ -7,7 +7,7 @@ from tnreason.representation.basis_calculus import create_basis_encoding_from_la
     create_interpretation_vector
 
 from tnreason.representation.features import SingleSoftFeature, SoftPartitionFeature, \
-    HardPartitionFeature, PassiveFeature, EnergyDictFeature, SingleHybridFeature
+    HardPartitionFeature, PassiveFeature, EnergyDictFeature, SingleHybridFeature, feature_naming
 
 from tnreason.representation.ca_network import ComputationActivationNetwork, standard_featureDict_from_computationCoreDict
 

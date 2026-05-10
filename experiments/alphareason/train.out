@@ -1,0 +1,8 @@
+/Home/optimier/schuette/.conda/envs/alphareason/lib/python3.14/site-packages/torch/cuda/__init__.py:180: UserWarning: CUDA initialization: Unexpected error from cudaGetDeviceCount(). Did you run some cuda functions before calling NumCudaDevices() that might have already set an error? Error 802: system not yet initialized (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Home/optimier/schuette/tnreasonproj/tnreason-py/experiments/alphareason/train.py", line 331, in <module>
+    raise RuntimeError("CUDA is required for this training entrypoint.")
+RuntimeError: CUDA is required for this training entrypoint.

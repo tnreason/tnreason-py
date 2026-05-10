@@ -2,9 +2,9 @@ import unittest
 
 from tnreason import reasoning
 
-from demonstrations.sudoku import sudoku_constraints as rep
 from demonstrations.sudoku import sudoku_forward_mp as sol
 from demonstrations.sudoku import visualization as vis
+from demonstrations.sudoku.examples import standard_sudoku as rep
 
 class SudokuTest(unittest.TestCase):
     def test_num2(self):

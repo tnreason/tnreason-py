@@ -1,0 +1,51 @@
+Solving puzzle 3 with MCTS (num=3, max_steps=200, simulations=200)...
+Message passing terminated after 21840 of allowed 30000 messages.
+Hidden pairs detected: 4
+Naked pairs detected: 1
+Message passing terminated after 22090 of allowed 30000 messages.
+Hidden pairs detected: 7
+Message passing terminated after 21591 of allowed 30000 messages.
+Hidden pairs detected: 5
+Message passing terminated after 21895 of allowed 30000 messages.
+Hidden pairs detected: 7
+Naked pairs detected: 3
+Message passing terminated after 22642 of allowed 30000 messages.
+Hidden pairs detected: 11
+Naked pairs detected: 7
+Message passing terminated after 21510 of allowed 30000 messages.
+Hidden pairs detected: 5
+Message passing terminated after 21249 of allowed 30000 messages.
+Hidden pairs detected: 4
+Naked pairs detected: 1
+Message passing terminated after 21249 of allowed 30000 messages.
+Hidden pairs detected: 4
+Naked pairs detected: 1
+Message passing terminated after 21203 of allowed 30000 messages.
+Hidden pairs detected: 4
+Naked pairs detected: 1
+Message passing terminated after 21207 of allowed 30000 messages.
+Hidden pairs detected: 4
+Naked pairs detected: 1
+Message passing terminated after 21207 of allowed 30000 messages.
+Hidden pairs detected: 4
+Naked pairs detected: 1
+Message passing terminated after 27850 of allowed 30000 messages.
+Message passing terminated after 22073 of allowed 30000 messages.
+Hidden pairs detected: 5
+Message passing terminated after 22030 of allowed 30000 messages.
+Hidden pairs detected: 5
+Message passing terminated after 21625 of allowed 30000 messages.
+Hidden pairs detected: 11
+Naked pairs detected: 7
+step=1 action=AssignAction(atom_key='a_0_1_1_1_5') reward=0.025 assigned=30
+step=2 action=AssignAction(atom_key='a_0_0_1_0_8') reward=0.012 assigned=31
+step=3 action=AssignAction(atom_key='a_0_0_2_2_0') reward=1.000 assigned=81
+Solved in 1691.84 seconds.
+Puzzle: 3 Nikoli nhk2208h1 - Nikoli
+Solved: True
+Contradiction: False
+Assigned count: 81
+Valid assignment: True score: 1
+Matches known solution: True
+Correct atoms vs known solution: 81 / 81
+Closure cache: {'size': 21, 'hits': 18, 'misses': 21, 'max_size': 512}

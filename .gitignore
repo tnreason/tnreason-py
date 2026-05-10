@@ -19,3 +19,7 @@ demonstrations/markowitz_portfolio/examples/datev_11prod/*
 old_dist/
 tnreason.egg-info/
 
+demonstrations/sudoku/sudoku_bench/sample_data/hf_sudoku_dataset/*
+demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet
+demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet.jsonl
+demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet.tmp

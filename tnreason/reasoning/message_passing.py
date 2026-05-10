@@ -1,5 +1,6 @@
 from tnreason.reasoning import variational_inference as vi
 from sortedcontainers import SortedList
+from tnreason.representation import feature_naming
 
 
 def standard_clusters_from_computationCoreDict(computationCoreDict):
@@ -15,8 +16,8 @@ def standard_clusters_from_computationCoreDict(computationCoreDict):
             if colorKey not in variableColors:
                 variableColors.append(colorKey)
     return {colorKey: [colorKey] for colorKey in variableColors}, {
-        "_".join(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
-            "_".join(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict}
+            feature_naming(computationCoreDict[coreKey].colors[::-1]): computationCoreDict[coreKey].colors + [
+                            feature_naming(computationCoreDict[coreKey].colors[::-1])] for coreKey in computationCoreDict}
 
 
 class ForwardMessagePasser(vi.InferenceBase):
@@ -31,34 +32,9 @@ class ForwardMessagePasser(vi.InferenceBase):
         super().__init__(**inferenceSpec)
 
         self.inferenceClusters = inferenceClusters
-
-        if messageClusters is not None:
-            self.messageClusters = messageClusters
-        else:  # Initialize via inference cluster intersections
-            self.messageClusters = dict()
-            for firstKey in self.inferenceClusters:
-                for secondKey in self.inferenceClusters:
-                    if firstKey != secondKey:
-                        intersection = set(self.inferenceClusters[firstKey]) & set(self.inferenceClusters[secondKey])
-                        if len(intersection) != 0 and intersection not in [set(v) for v in
-                                                                           self.messageClusters.values()]:
-                            self.messageClusters[f"{firstKey}_{secondKey}"] = list(intersection)
-
-        # Initialize allowed message directions
-        if messageArchitecture is not None:
-            self.messageArchitecture = messageArchitecture
-        else:
-            self.messageArchitecture = {
-                messageClusterKey: [inferenceClusterKey for inferenceClusterKey in inferenceClusters if
-                                    all([featureKey in self.inferenceClusters[inferenceClusterKey] for featureKey in
-                                         self.messageClusters[messageClusterKey]])
-                                    ] for messageClusterKey in self.messageClusters}
-        # Initialize messages
-        self.messages = {
-            messageCluster: {inferenceCluster: dict() for inferenceCluster in self.messageArchitecture[messageCluster]}
-            for
-            messageCluster in self.messageClusters  # dictionary of received messages
-        }
+        self.messageClusters = self.initialize_messageClusters(messageClusters, inferenceClusters)
+        self.messageArchitecture = self.initialize_messageArchitecture(messageArchitecture, inferenceClusters, self.messageClusters)
+        self.messages = self.initialize_messages(self.messageClusters, self.messageArchitecture)
 
         if startMessageSchedule is None:
             self.messageQueue = SortedList()  # FIFO -> Stack
@@ -73,6 +49,48 @@ class ForwardMessagePasser(vi.InferenceBase):
 
         self.forwardInferenceMethod = forwardInferenceMethod
         self.backwardInferenceMethod = backwardInferenceMethod
+    
+    def update_inferenceClusters(self, newInferenceClusters):
+        self.inferenceClusters = newInferenceClusters
+        self.messageClusters = self.initialize_messageClusters(self.messageClusters, newInferenceClusters)
+        self.messageArchitecture = self.initialize_messageArchitecture(self.messageArchitecture, newInferenceClusters, self.messageClusters)
+        self.messages = self.initialize_messages(self.messageClusters, self.messageArchitecture)
+
+    def initialize_messages(self, messageClusters, messageArchitecture):
+        # Initialize messages
+        messages = {
+            messageCluster: {inferenceCluster: dict() for inferenceCluster in messageArchitecture[messageCluster]}
+            for
+            messageCluster in messageClusters  # dictionary of received messages
+        }
+        return messages
+        
+    def initialize_messageArchitecture(self, messageArchitecture, inferenceClusters, messageClusters):
+        # Initialize allowed message directions
+        # if messageArchitecture is not None:
+        #     self.messageArchitecture = messageArchitecture
+        # if messageArchitecture is None:
+        messageArchitecture = {
+            messageClusterKey: [inferenceClusterKey for inferenceClusterKey in inferenceClusters if
+                                all([featureKey in inferenceClusters[inferenceClusterKey] for featureKey in
+                                        messageClusters[messageClusterKey]])
+                                ] for messageClusterKey in messageClusters}
+        return messageArchitecture
+
+    def initialize_messageClusters(self, messageClusters, inferenceClusters):
+        # if messageClusters is not None:
+        #     self.messageClusters = messageClusters
+        # if messageClusters is None:  # Initialize via inference cluster intersections
+        messageClusters = dict()
+        for firstKey in inferenceClusters:
+            for secondKey in inferenceClusters:
+                if firstKey != secondKey:
+                    intersection = set(inferenceClusters[firstKey]) & set(inferenceClusters[secondKey])
+                    if len(intersection) != 0 and intersection not in [set(v) for v in
+                                                                        messageClusters.values()]:
+                        messageClusters[f"{firstKey}_{secondKey}"] = list(intersection)
+        return messageClusters
+
 
     def compute_canParam_message(self, inferenceCluster, messageCluster):
         # assert inferenceCluster in self.messageArchitecture[messageCluster], "Cluster {} is not a parent of cluster {}.".format(
@@ -95,11 +113,18 @@ class ForwardMessagePasser(vi.InferenceBase):
                                              )
                                              for featureKey in self.inferenceClusters[inferenceCluster]})
         )
-        forwardInferer.infer_meanParams(self.messageClusters[messageCluster])
+
+        # Changed: forwardInferer.infer_meanParams(self.messageClusters[messageCluster])
+        activeMessageFeatures = [
+            featureKey for featureKey in self.messageClusters[messageCluster]
+            if "passive" not in self.caNetwork.featureDict[featureKey].featureProperties
+        ]
+        forwardInferer.infer_meanParams(activeMessageFeatures)
 
         # ## Find features which meanParam has changed, could also select based on canonical parameters
         changedFeatures = []
-        for featureKey in self.messageClusters[messageCluster]:
+        # Changed: for featureKey in self.messageClusters[messageCluster]:
+        for featureKey in activeMessageFeatures:
             if featureKey in self.meanParamDict:
                 if not self.meanParamDict[featureKey] == forwardInferer.meanParamDict[featureKey]:
                     self.meanParamDict[featureKey] = forwardInferer.meanParamDict[featureKey]
@@ -111,11 +136,13 @@ class ForwardMessagePasser(vi.InferenceBase):
         ## Compute the message to be sent as canParams
         backwardInferer = vi.get_inferer(self.backwardInferenceMethod)(
             caNetwork=self.get_caNetwork(self.messageClusters[messageCluster]),
-            meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.messageClusters[messageCluster]},
+            # Changed: meanParamDict={key: forwardInferer.meanParamDict[key] for key in self.messageClusters[messageCluster]},
+            meanParamDict={key: forwardInferer.meanParamDict[key] for key in activeMessageFeatures},
         )
         backwardInferer.alternating_updates(
-            featureKeys={featureKey for featureKey in self.messageClusters[messageCluster] if not
-            "passive" in self.caNetwork.featureDict[featureKey].featureProperties},
+            featureKeys={featureKey for featureKey in self.messageClusters[messageCluster] 
+                         if not "passive" in self.caNetwork.featureDict[featureKey].featureProperties
+            },
             sweepNum=1)
 
         messageCanParamDict = backwardInferer.caNetwork.canParamDict
@@ -173,6 +200,7 @@ class ForwardMessagePasser(vi.InferenceBase):
             print("Message passing terminated after {} messages.".format(self.messageCount))
 
     def add_affected_directions(self, featureKeys, exceptionList=[], verbose=False):
+        # print("on the inside", self.inferenceClusters["a_1_1_0_2_0_a_1_0_0_2_0_square_0_1_0_col_0_0_2"])
         affectedDirections = [(inferenceCluster, messageCluster) for messageCluster in self.messageArchitecture for
                               inferenceCluster in
                               self.messageArchitecture[messageCluster] if

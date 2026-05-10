@@ -1,21 +1,56 @@
 """Core comparison utilities."""
+
 import numpy as np
 
 
-def cores_equal(core1, core2) -> bool:
-    """Exact equality of two cores (value and color set)."""
-    if set(core1.colors) != set(core2.colors):
+def _same_named_shape(core0, core1):
+    if set(core0.colors) != set(core1.colors):
         return False
-    # Reorder core2 to match core1's color order
-    perm = [core2.colors.index(c) for c in core1.colors]
-    v2 = np.transpose(core2.values, perm)
-    return np.array_equal(core1.values, v2)
+    return all(
+        core0.shape[core0.colors.index(color)] == core1.shape[core1.colors.index(color)]
+        for color in core0.colors
+    )
 
 
-def cores_close(core1, core2, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
-    """Approximate equality of two cores up to color reordering."""
-    if set(core1.colors) != set(core2.colors):
+def _values_in_color_order(core, target_colors):
+    values = getattr(core, "values", None)
+    if not isinstance(values, np.ndarray):
+        return None
+    if list(core.colors) == list(target_colors):
+        return values
+    permutation = [core.colors.index(color) for color in target_colors]
+    return np.transpose(values, permutation)
+
+
+def cores_equal(core0, core1):
+    """Exact tensor equality, matching colors by name rather than by axis position."""
+    if not _same_named_shape(core0, core1):
         return False
-    perm = [core2.colors.index(c) for c in core1.colors]
-    v2 = np.transpose(core2.values, perm)
-    return bool(np.allclose(core1.values, v2, rtol=rtol, atol=atol))
+
+    values0 = _values_in_color_order(core0, core0.colors)
+    values1 = _values_in_color_order(core1, core0.colors)
+    if values0 is not None and values1 is not None:
+        return bool(np.array_equal(values0, values1))
+
+    for index in np.ndindex(*core0.shape):
+        color_pos_dict = {color: index[i] for i, color in enumerate(core0.colors)}
+        if core0[color_pos_dict] != core1[color_pos_dict]:
+            return False
+    return True
+
+
+def cores_close(core0, core1, rtol=1e-9, atol=1e-9):
+    """Approximate tensor equality for floating-point results of contractions."""
+    if not _same_named_shape(core0, core1):
+        return False
+
+    values0 = _values_in_color_order(core0, core0.colors)
+    values1 = _values_in_color_order(core1, core0.colors)
+    if values0 is not None and values1 is not None:
+        return bool(np.allclose(values0, values1, rtol=rtol, atol=atol))
+
+    for index in np.ndindex(*core0.shape):
+        color_pos_dict = {color: index[i] for i, color in enumerate(core0.colors)}
+        if not np.isclose(core0[color_pos_dict], core1[color_pos_dict], rtol=rtol, atol=atol):
+            return False
+    return True

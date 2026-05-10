@@ -1,6 +1,7 @@
-from demonstrations.sudoku import sudoku_constraints as rep
+from demonstrations.sudoku.examples import standard_sudoku as rep
 
 from tnreason import reasoning, engine
+from tnreason.representation import feature_naming
 
 
 def get_forward_mp_inferer(num, startAssignment):
@@ -24,7 +25,7 @@ def get_forward_mp_inferer(num, startAssignment):
             **{categoricalKey: engine.create_from_slice_iterator(
                 shape=[num ** 2], colors=[categoricalKey],
                 sliceIterator=[(1, {})]) for categoricalKey in constraints}},
-        allowClearning=True  # aggressively drop settled features to help larger boards converge
+        allowClearning=False  # aggressively drop settled features to help larger boards converge
     )
 
 
@@ -40,7 +41,7 @@ def get_simple_clusterDict(num):
     return {
         **{atomKey: [atomKey] for atomKey in atomVariables},
         **{categoricalKey: [categoricalKey] for categoricalKey in constraints},
-        **{categoricalKey + "_" + atomKey: [categoricalKey, atomKey, categoricalKey + "_" + atomKey]
+        **{feature_naming([categoricalKey,atomKey]): [categoricalKey, atomKey, feature_naming([categoricalKey,atomKey])]
            for categoricalKey in constraints for atomKey in constraints[categoricalKey]}
     }
 

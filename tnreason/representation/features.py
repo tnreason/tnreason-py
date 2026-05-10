@@ -6,6 +6,8 @@ import numpy as np
 
 canCorePre = "_can"
 
+def feature_naming(vars):
+    return "_".join(sorted(vars))
 
 class ComputedFeature:
     def __init__(self, featureColors, affectedComputationCores=[], shape=None, name=None):
@@ -13,7 +15,7 @@ class ComputedFeature:
         self.affectedComputationCores = affectedComputationCores
 
         if name is None:
-            self.name = "_".join(featureColors)
+            self.name = feature_naming(featureColors) #"_".join(featureColors)
         else:
             self.name = str(name)
 
