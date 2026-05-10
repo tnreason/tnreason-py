@@ -1,6 +1,6 @@
 from experiments.constraint_networks.tests import definite_clauses
 from experiments.constraint_networks.tests import modus_ponens
-from experiments.constraint_networks.sudoku_tests import fc_test as fct
+from experiments.constraint_networks.sudoku_tests import up_test as fct
 
 import os
 

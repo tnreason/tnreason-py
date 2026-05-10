@@ -1,4 +1,4 @@
-from experiments.constraint_networks import forward_chaining as fc
+from experiments.constraint_networks import unit_propagation as fc
 from tnreason import engine
 
 ## Example in Norvig Fig 7.16
@@ -25,7 +25,7 @@ def clauses_to_coreDict(clauseList):
     return {"clause" + str(i): clause_to_core(colorTup[0], colorTup[1]) for i, colorTup in enumerate(clauseList)}
 
 
-chainer = fc.GenericForwardChaining(clauses_to_coreDict(clauseList))
+chainer = fc.GenericUnitPropagation(clauses_to_coreDict(clauseList))
 chainer.propagate_all_singleNodeEdges()
 
 ## Check whether all

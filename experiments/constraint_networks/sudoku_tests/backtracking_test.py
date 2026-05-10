@@ -1,4 +1,4 @@
-from experiments.constraint_networks import forward_chaining as fc
+from experiments.constraint_networks import unit_propagation as fc
 
 from experiments.constraint_networks.sudoku_tests import standard_constraints as sc
 from experiments.constraint_networks.sudoku_tests import read_evidence as re

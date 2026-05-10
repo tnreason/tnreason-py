@@ -5,7 +5,7 @@ from tnreason.engine import get_dimDict
 import numpy as np
 
 
-class GenericForwardChaining:
+class GenericUnitPropagation:
     def __init__(self, coresDict):
         self.cn = con.ConstraintNetwork(coresDict)
 
@@ -98,7 +98,7 @@ class GenericForwardChaining:
 
 
 def backtrack(coreDict, depth=0, maxDepth=100, verbose=True):
-    chainer = GenericForwardChaining(coreDict)
+    chainer = GenericUnitPropagation(coreDict)
     dimDict = get_dimDict(coreDict)
     chainer.propagate_all_singleNodeEdges()
     if verbose:
@@ -167,7 +167,7 @@ if __name__ == "__main__":
         )
     }
 
-    chainer = GenericForwardChaining(coreDict)
+    chainer = GenericUnitPropagation(coreDict)
     chainer.propagate_all_singleNodeEdges()
 
     assert chainer.cn.coresDict["a_core"][0] == 1

@@ -1,5 +1,5 @@
 from tnreason import application
-from experiments.constraint_networks import forward_chaining as fc
+from experiments.constraint_networks import unit_propagation as fc
 
 import numpy as np
 from matplotlib import pyplot as plt

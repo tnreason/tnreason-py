@@ -4,7 +4,7 @@ import demonstrations.sudoku.inferenceClusters as inf_clusters
 from demonstrations.sudoku.examples import sakana_fish, standard_sudoku
 from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
 from experiments.alphasudoku.validation import check_assignment_consistency
-from experiments.constraint_networks.forward_chaining import check_local_satisfiability
+from experiments.constraint_networks.unit_propagation import check_local_satisfiability
 import pandas as pd
 from tnreason.engine import get_dimDict
 

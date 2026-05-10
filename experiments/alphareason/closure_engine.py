@@ -3,7 +3,7 @@ from copy import deepcopy
 import math
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from experiments.constraint_networks.forward_chaining import GenericForwardChaining, check_local_satisfiability
+from experiments.constraint_networks.unit_propagation import GenericUnitPropagation, check_local_satisfiability
 from tnreason import engine
 
 from .actions import AddClusterAction, AssignValueAction, cluster_key_from_colors
@@ -237,7 +237,7 @@ class AlphaReasonClosureEngine:
         except Exception:
             contradiction = True
 
-        chainer = GenericForwardChaining(core_dict)
+        chainer = GenericUnitPropagation(core_dict)
         try:
             if not contradiction:
                 chainer.propagate_all_singleNodeEdges()
@@ -420,7 +420,7 @@ class AlphaReasonClosureEngine:
             active_inference_clusters=active_inference_clusters,
         )
 
-    def _summarize_constraint_node(self, chainer: GenericForwardChaining, feature_key: str):
+    def _summarize_constraint_node(self, chainer: GenericUnitPropagation, feature_key: str):
         edge_keys = [
             edge_key
             for edge_key, core in chainer.cn.coresDict.items()

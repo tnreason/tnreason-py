@@ -1,5 +1,5 @@
 from demonstrations.sudoku.examples import sakana_fish, standard_sudoku
-from experiments.constraint_networks.forward_chaining import GenericForwardChaining
+from experiments.constraint_networks.unit_propagation import GenericUnitPropagation
 
 from experiments.alphareason.closure_engine import AlphaReasonClosureEngine
 from experiments.alphareason.env import AlphaReasonEnv
@@ -64,7 +64,7 @@ def test_standard_sudoku_example_exposes_constraint_network_for_forward_chaining
     core_dict = standard_sudoku.get_assignment_as_constraint_network(num=2, startAssignment=evidence)
     assert evidence.keys() <= core_dict.keys()
 
-    chainer = GenericForwardChaining(core_dict)
+    chainer = GenericUnitPropagation(core_dict)
     chainer.propagate_all_singleNodeEdges()
 
     assert chainer.consistent
@@ -78,7 +78,7 @@ def test_sakana_fish_example_exposes_constraint_network_for_forward_chaining():
     assert "black_dot_pos_0_1_0_2_pos_0_2_0_2" in core_dict
     assert "red_line_pos_0_2_0_1_pos_0_2_0_2" in core_dict
 
-    chainer = GenericForwardChaining(core_dict)
+    chainer = GenericUnitPropagation(core_dict)
     chainer.propagate_all_singleNodeEdges()
 
     assert chainer.consistent
