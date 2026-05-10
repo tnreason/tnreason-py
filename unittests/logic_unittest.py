@@ -48,7 +48,9 @@ class LogicModuleTest(unittest.TestCase):
                 for assignment, reachable_states in actual_assignments.items():
                     if source_mask not in reachable_states:
                         continue
-                    value = int(target_mask ^ source_mask).bit_length() - 1
+                    changed_bit = int(target_mask ^ source_mask)
+                    self.assertEqual(changed_bit & (changed_bit - 1), 0)
+                    value = changed_bit.bit_length() - 1
                     next_assignments.setdefault(assignment + (value,), set()).add(target_mask)
             actual_assignments = next_assignments
         self.assertEqual(
