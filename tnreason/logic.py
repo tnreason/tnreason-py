@@ -6,8 +6,9 @@ to Tensor Networks and structural gadgets for scaling to large domains.
 
 from __future__ import annotations
 
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from tnreason.engine.subscript_creation import defaultSymbols
 
@@ -53,6 +54,7 @@ class LogicCompiler:
                 if len(variables) != 2:
                     raise ValueError("GT constraints require exactly 2 variables.")
                 # Binary Greater-Than
+                # Rows index the first variable and columns index the second one.
                 tensor = np.tril(np.ones((self.domain_size, self.domain_size)), k=-1)
             else:
                 raise ValueError(f"Unknown constraint type: {constraint_type}")
