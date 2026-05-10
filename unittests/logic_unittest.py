@@ -39,7 +39,23 @@ class LogicModuleTest(unittest.TestCase):
         self.assertEqual(compiler.solve(), 6.0)
 
     def test_alldiff_contract_counts_injective_assignments(self):
-        self.assertEqual(TTGadgets.contract_tt(TTGadgets.alldiff_cores(2, 3)), 6.0)
+        cores = TTGadgets.alldiff_cores(2, 3)
+        actual_assignments = {(): {0}}
+        for core in cores:
+            num_states, source_masks, target_masks = core
+            next_assignments = {}
+            for source_mask, target_mask in zip(source_masks, target_masks):
+                for assignment, reachable_states in actual_assignments.items():
+                    if source_mask not in reachable_states:
+                        continue
+                    value = int(target_mask ^ source_mask).bit_length() - 1
+                    next_assignments.setdefault(assignment + (value,), set()).add(target_mask)
+            actual_assignments = next_assignments
+        self.assertEqual(
+            set(actual_assignments),
+            {(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)},
+        )
+        self.assertEqual(TTGadgets.contract_tt(cores), 6.0)
         self.assertEqual(TTGadgets.contract_tt(TTGadgets.alldiff_cores(4, 3)), 0.0)
 
     def test_build_factored_transition_shapes_and_moves(self):

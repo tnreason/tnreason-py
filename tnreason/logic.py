@@ -39,15 +39,19 @@ class LogicCompiler:
             self.add_variable(v)
 
         if tensor is None:
-            if len(variables) != 2:
-                raise ValueError(f"{constraint_type} constraints require exactly 2 variables.")
             if constraint_type == "NEQ":
+                if len(variables) != 2:
+                    raise ValueError("NEQ constraints require exactly 2 variables.")
                 # Binary Not-Equal
                 tensor = (1.0 - np.eye(self.domain_size))
             elif constraint_type == "EQ":
+                if len(variables) != 2:
+                    raise ValueError("EQ constraints require exactly 2 variables.")
                 # Binary Equal
                 tensor = np.eye(self.domain_size)
             elif constraint_type == "GT":
+                if len(variables) != 2:
+                    raise ValueError("GT constraints require exactly 2 variables.")
                 # Binary Greater-Than
                 tensor = np.tril(np.ones((self.domain_size, self.domain_size)), k=-1)
             else:
@@ -141,7 +145,8 @@ class TTGadgets:
             next_state = np.zeros(num_states)
             np.add.at(next_state, target_masks, state[source_masks])
             state = next_state
-        return float(state.sum())
+        accepting_states = [mask for mask in range(len(state)) if mask.bit_count() == len(cores)]
+        return float(state[accepting_states].sum())
 
 
 class WorldModelUtils:
