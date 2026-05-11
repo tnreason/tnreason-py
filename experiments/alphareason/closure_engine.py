@@ -3,7 +3,7 @@ from copy import deepcopy
 import math
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from experiments.constraint_networks.unit_propagation import GenericUnitPropagation, check_local_satisfiability
+from experiments.constraint_networks.forward_chaining import GenericForwardChaining, check_local_satisfiability
 from tnreason import engine
 
 from .actions import AddClusterAction, AssignValueAction, cluster_key_from_colors
@@ -67,11 +67,17 @@ class AlphaReasonClosureEngine:
         cache_size: int = 512,
         allow_cleaning: bool = False,
         enable_micro_clusters: bool = False,
+        forward_chaining_parallel: bool = True,
+        forward_chaining_max_workers: int = 3,
+        forward_chaining_min_parallel_edges: int = 2,
     ):
         self.max_message_count = max_message_count
         self.cache_size = cache_size
         self.allow_cleaning = allow_cleaning
         self.enable_micro_clusters = enable_micro_clusters
+        self.forward_chaining_parallel = forward_chaining_parallel
+        self.forward_chaining_max_workers = forward_chaining_max_workers
+        self.forward_chaining_min_parallel_edges = forward_chaining_min_parallel_edges
         self._closure_cache: "OrderedDict[Tuple[str, Tuple[Tuple[str, int], ...], Tuple[Tuple[str, Tuple[str, ...]], ...]], AlphaReasonState]" = OrderedDict()
         self.cache_hits = 0
         self.cache_misses = 0
@@ -237,7 +243,12 @@ class AlphaReasonClosureEngine:
         except Exception:
             contradiction = True
 
-        chainer = GenericUnitPropagation(core_dict)
+        chainer = GenericForwardChaining(
+            core_dict,
+            parallel=self.forward_chaining_parallel,
+            max_workers=self.forward_chaining_max_workers,
+            min_parallel_edges=self.forward_chaining_min_parallel_edges,
+        )
         try:
             if not contradiction:
                 chainer.propagate_all_singleNodeEdges()
@@ -420,7 +431,7 @@ class AlphaReasonClosureEngine:
             active_inference_clusters=active_inference_clusters,
         )
 
-    def _summarize_constraint_node(self, chainer: GenericUnitPropagation, feature_key: str):
+    def _summarize_constraint_node(self, chainer: GenericForwardChaining, feature_key: str):
         edge_keys = [
             edge_key
             for edge_key, core in chainer.cn.coresDict.items()

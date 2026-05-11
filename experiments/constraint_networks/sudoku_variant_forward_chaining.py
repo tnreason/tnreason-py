@@ -1,0 +1,390 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Callable, Dict, Iterable, Mapping, Tuple
+
+from experiments.alphareason.closure_engine import AlphaReasonClosureEngine
+
+
+Cell = Tuple[int, int]
+Domains = Dict[str, set[int]]
+BinaryPredicate = Callable[[int, int], bool]
+BinaryConstraint = Tuple[str, str, BinaryPredicate]
+
+
+def cell_key(row: int, col: int, num: int = 3) -> str:
+    r1, r2 = divmod(row, num)
+    c1, c2 = divmod(col, num)
+    return f"pos_{r1}_{r2}_{c1}_{c2}"
+
+
+def parse_cell_key(feature_key: str, num: int = 3) -> Cell | None:
+    parts = feature_key.split("_")
+    if len(parts) != 5 or parts[0] != "pos":
+        return None
+    return int(parts[1]) * num + int(parts[2]), int(parts[3]) * num + int(parts[4])
+
+
+def parse_atom_key(atom_key: str, num: int = 3) -> Tuple[str, int] | None:
+    parts = atom_key.split("_")
+    if len(parts) != 6 or parts[0] != "a":
+        return None
+    feature_key = f"pos_{parts[1]}_{parts[2]}_{parts[3]}_{parts[4]}"
+    return feature_key, int(parts[5])
+
+
+def all_cell_keys(num: int = 3) -> Tuple[str, ...]:
+    side = num**2
+    return tuple(cell_key(row, col, num=num) for row in range(side) for col in range(side))
+
+
+def sudoku_units(num: int = 3) -> Tuple[Tuple[str, ...], ...]:
+    side = num**2
+    units = []
+    for row in range(side):
+        units.append(tuple(cell_key(row, col, num=num) for col in range(side)))
+    for col in range(side):
+        units.append(tuple(cell_key(row, col, num=num) for row in range(side)))
+    for block_row in range(num):
+        for block_col in range(num):
+            units.append(
+                tuple(
+                    cell_key(block_row * num + r, block_col * num + c, num=num)
+                    for r in range(num)
+                    for c in range(num)
+                )
+            )
+    return tuple(units)
+
+
+def edge_keys(edges: Iterable[Tuple[Cell, Cell]], num: int = 3) -> Tuple[Tuple[str, str], ...]:
+    return tuple((cell_key(*first, num=num), cell_key(*second, num=num)) for first, second in edges)
+
+
+def white_dot_allowed(left: int, right: int) -> bool:
+    return abs(left - right) == 1
+
+
+def black_dot_allowed(left: int, right: int) -> bool:
+    left_digit = left + 1
+    right_digit = right + 1
+    return left_digit == 2 * right_digit or right_digit == 2 * left_digit
+
+
+def red_line_allowed(left: int, right: int) -> bool:
+    return left % 2 != right % 2
+
+
+@dataclass
+class SudokuVariantPropagationResult:
+    domains: Domains
+    contradiction: bool
+    iterations: int
+
+
+class SudokuVariantForwardChainer:
+    def __init__(
+        self,
+        num: int = 3,
+        white_dot_edges: Iterable[Tuple[Cell, Cell]] = (),
+        black_dot_edges: Iterable[Tuple[Cell, Cell]] = (),
+        parity_edges: Iterable[Tuple[Cell, Cell]] = (),
+        binary_constraints: Iterable[Tuple[Cell, Cell, BinaryPredicate]] = (),
+    ):
+        self.num = num
+        self.side = num**2
+        self.cell_keys = all_cell_keys(num=num)
+        self.units = sudoku_units(num=num)
+        self.binary_constraints: Tuple[BinaryConstraint, ...] = (
+            *((left, right, white_dot_allowed) for left, right in edge_keys(white_dot_edges, num=num)),
+            *((left, right, black_dot_allowed) for left, right in edge_keys(black_dot_edges, num=num)),
+            *((left, right, red_line_allowed) for left, right in edge_keys(parity_edges, num=num)),
+            *(
+                (cell_key(*left, num=num), cell_key(*right, num=num), allowed)
+                for left, right, allowed in binary_constraints
+            ),
+        )
+
+    def initial_domains(self, evidence: Mapping[str, int]) -> Domains:
+        domains = {feature_key: set(range(self.side)) for feature_key in self.cell_keys}
+        for key, value in evidence.items():
+            if value != 1:
+                continue
+            parsed_atom = parse_atom_key(key, num=self.num)
+            if parsed_atom is not None:
+                feature_key, digit = parsed_atom
+                if feature_key in domains:
+                    domains[feature_key] = {digit}
+                continue
+            if key in domains:
+                domains[key] = {int(value)}
+        for key, value in evidence.items():
+            if key in domains and value != 1:
+                domains[key] = {int(value)}
+        return domains
+
+    def propagate(self, evidence: Mapping[str, int]) -> SudokuVariantPropagationResult:
+        domains = self.initial_domains(evidence)
+        contradiction = False
+        iterations = 0
+        changed = True
+        while changed and not contradiction:
+            changed = False
+            iterations += 1
+
+            unit_changed, contradiction = self.propagate_units(domains)
+            changed = changed or unit_changed
+            if contradiction:
+                break
+
+            edge_changed, contradiction = self.propagate_binary_constraints(domains)
+            changed = changed or edge_changed
+
+        if any(not domain for domain in domains.values()):
+            contradiction = True
+        return SudokuVariantPropagationResult(domains, contradiction, iterations)
+
+    def propagate_units(self, domains: Domains) -> Tuple[bool, bool]:
+        changed = False
+        for unit in self.units:
+            assigned = {}
+            for feature_key in unit:
+                if len(domains[feature_key]) == 1:
+                    digit = next(iter(domains[feature_key]))
+                    if digit in assigned:
+                        return changed, True
+                    assigned[digit] = feature_key
+
+            for digit, assigned_key in assigned.items():
+                for feature_key in unit:
+                    if feature_key == assigned_key:
+                        continue
+                    if digit in domains[feature_key]:
+                        domains[feature_key].remove(digit)
+                        changed = True
+                        if not domains[feature_key]:
+                            return changed, True
+
+            for digit in range(self.side):
+                places = [feature_key for feature_key in unit if digit in domains[feature_key]]
+                if not places:
+                    return changed, True
+                if len(places) == 1 and len(domains[places[0]]) > 1:
+                    domains[places[0]] = {digit}
+                    changed = True
+        return changed, False
+
+    def propagate_binary_constraints(self, domains: Domains) -> Tuple[bool, bool]:
+        changed = False
+        for left, right, allowed in self.binary_constraints:
+            left_support = {
+                left_digit
+                for left_digit in domains[left]
+                if any(allowed(left_digit, right_digit) for right_digit in domains[right])
+            }
+            right_support = {
+                right_digit
+                for right_digit in domains[right]
+                if any(allowed(left_digit, right_digit) for left_digit in domains[left])
+            }
+            if not left_support or not right_support:
+                return changed, True
+            if left_support != domains[left]:
+                domains[left] = left_support
+                changed = True
+            if right_support != domains[right]:
+                domains[right] = right_support
+                changed = True
+        return changed, False
+
+
+class SudokuVariantForwardChainingClosureEngine(AlphaReasonClosureEngine):
+    def __init__(self, chainer: SudokuVariantForwardChainer | None = None, num: int = 3, **kwargs):
+        super().__init__(**kwargs)
+        self.chainer = chainer or SudokuVariantForwardChainer(num=num)
+
+    def close_constraint_network(self, task, evidence, active_inference_clusters):
+        result = self.chainer.propagate(evidence)
+        closed_evidence = dict(evidence)
+        target_assignments = {}
+        feature_supports = {}
+        feature_priors = {}
+        unresolved_features = []
+
+        for feature_key in task.available_action_feature_keys():
+            domain_size = task.feature_domain_sizes[feature_key]
+            supported = sorted(result.domains.get(feature_key, set(range(domain_size))))
+            feature_supports[feature_key] = tuple(supported)
+            feature_priors[feature_key] = self._distribution_from_supported(domain_size, supported)
+            if len(supported) == 1:
+                value_index = supported[0]
+                if feature_key in task.target_feature_keys:
+                    target_assignments[feature_key] = value_index
+                closed_evidence.update(task.assignment_to_evidence(feature_key, value_index))
+            elif len(supported) == 0:
+                result.contradiction = True
+            else:
+                unresolved_features.append((feature_key, supported))
+
+        consistency_ok = not result.contradiction
+        return self._build_state(
+            task=task,
+            evidence=closed_evidence,
+            active_inference_clusters=active_inference_clusters,
+            target_assignments=target_assignments,
+            feature_supports=feature_supports,
+            feature_priors=feature_priors,
+            unresolved_features=unresolved_features,
+            contradiction=result.contradiction,
+            consistency_ok=consistency_ok,
+            propagator=None,
+            message_count=result.iterations,
+        )
+
+
+def _support_pairs(core, left_color: str, right_color: str) -> frozenset[Tuple[int, int]]:
+    left_axis = list(core.colors).index(left_color)
+    right_axis = list(core.colors).index(right_color)
+    pairs = set()
+    values = getattr(core, "values", None)
+    if values is not None:
+        import numpy as np
+
+        for index in np.argwhere(np.asarray(values) != 0):
+            pairs.add((int(index[left_axis]), int(index[right_axis])))
+        return frozenset(pairs)
+
+    for value, assignment in core:
+        if value != 0:
+            pairs.add((int(assignment[left_color]), int(assignment[right_color])))
+    return frozenset(pairs)
+
+
+def _table_allowed(allowed_pairs: frozenset[Tuple[int, int]]) -> BinaryPredicate:
+    return lambda left, right, pairs=allowed_pairs: (left, right) in pairs
+
+
+class ConstraintNetworkSudokuVariantForwardChainer(SudokuVariantForwardChainer):
+    def __init__(self, core_dict: Mapping[str, object], num: int = 3):
+        self.core_dict = core_dict
+        binary_constraints = self._compile_binary_constraints(core_dict)
+        super().__init__(num=num, binary_constraints=binary_constraints)
+
+    def _compile_binary_constraints(
+        self,
+        core_dict: Mapping[str, object],
+    ) -> Tuple[Tuple[Cell, Cell, BinaryPredicate], ...]:
+        constraints = []
+        odd_indicator_links: Dict[str, Tuple[str, frozenset[Tuple[int, int]]]] = {}
+        odd_indicator_edges = []
+
+        for core in core_dict.values():
+            colors = list(getattr(core, "colors", ()))
+            if len(colors) != 2:
+                continue
+
+            pos_colors = [color for color in colors if parse_cell_key(color) is not None]
+            odd_colors = [color for color in colors if color.startswith("oddInd_")]
+
+            if len(pos_colors) == 2:
+                left, right = pos_colors
+                constraints.append(
+                    (
+                        parse_cell_key(left),
+                        parse_cell_key(right),
+                        _table_allowed(_support_pairs(core, left, right)),
+                    )
+                )
+            elif len(pos_colors) == 1 and len(odd_colors) == 1:
+                pos_color = pos_colors[0]
+                odd_color = odd_colors[0]
+                odd_indicator_links[odd_color] = (
+                    pos_color,
+                    _support_pairs(core, pos_color, odd_color),
+                )
+            elif len(odd_colors) == 2:
+                left_odd, right_odd = odd_colors
+                odd_indicator_edges.append(
+                    (left_odd, right_odd, _support_pairs(core, left_odd, right_odd))
+                )
+
+        constraints.extend(
+            self._compile_odd_indicator_constraints(odd_indicator_links, odd_indicator_edges)
+        )
+        return tuple(
+            constraint
+            for constraint in constraints
+            if constraint[0] is not None and constraint[1] is not None
+        )
+
+    def _compile_odd_indicator_constraints(
+        self,
+        odd_indicator_links: Mapping[str, Tuple[str, frozenset[Tuple[int, int]]]],
+        odd_indicator_edges: Iterable[Tuple[str, str, frozenset[Tuple[int, int]]]],
+    ) -> Tuple[Tuple[Cell, Cell, BinaryPredicate], ...]:
+        constraints = []
+        for left_odd, right_odd, odd_pairs in odd_indicator_edges:
+            if left_odd not in odd_indicator_links or right_odd not in odd_indicator_links:
+                continue
+            left_pos, left_pairs = odd_indicator_links[left_odd]
+            right_pos, right_pairs = odd_indicator_links[right_odd]
+            allowed_digit_pairs = frozenset(
+                (left_digit, right_digit)
+                for left_digit, left_odd_value in left_pairs
+                for right_digit, right_odd_value in right_pairs
+                if (left_odd_value, right_odd_value) in odd_pairs
+            )
+            constraints.append(
+                (
+                    parse_cell_key(left_pos),
+                    parse_cell_key(right_pos),
+                    _table_allowed(allowed_digit_pairs),
+                )
+            )
+        return tuple(constraints)
+
+
+class ConstraintNetworkSudokuVariantForwardChainingClosureEngine(AlphaReasonClosureEngine):
+    def __init__(self, num: int = 3, **kwargs):
+        super().__init__(**kwargs)
+        self.num = num
+
+    def close_constraint_network(self, task, evidence, active_inference_clusters):
+        core_dict = task.network_factory(evidence)
+        chainer = ConstraintNetworkSudokuVariantForwardChainer(core_dict, num=self.num)
+        result = chainer.propagate(evidence)
+        closed_evidence = dict(evidence)
+        target_assignments = {}
+        feature_supports = {}
+        feature_priors = {}
+        unresolved_features = []
+
+        for feature_key in task.available_action_feature_keys():
+            domain_size = task.feature_domain_sizes[feature_key]
+            supported = sorted(result.domains.get(feature_key, set(range(domain_size))))
+            feature_supports[feature_key] = tuple(supported)
+            feature_priors[feature_key] = self._distribution_from_supported(domain_size, supported)
+            if len(supported) == 1:
+                value_index = supported[0]
+                if feature_key in task.target_feature_keys:
+                    target_assignments[feature_key] = value_index
+                closed_evidence.update(task.assignment_to_evidence(feature_key, value_index))
+            elif len(supported) == 0:
+                result.contradiction = True
+            else:
+                unresolved_features.append((feature_key, supported))
+
+        consistency_ok = not result.contradiction
+        return self._build_state(
+            task=task,
+            evidence=closed_evidence,
+            active_inference_clusters=active_inference_clusters,
+            target_assignments=target_assignments,
+            feature_supports=feature_supports,
+            feature_priors=feature_priors,
+            unresolved_features=unresolved_features,
+            contradiction=result.contradiction,
+            consistency_ok=consistency_ok,
+            propagator=None,
+            message_count=result.iterations,
+        )
