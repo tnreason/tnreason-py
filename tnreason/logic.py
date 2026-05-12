@@ -107,9 +107,10 @@ class LogicCompiler:
             # For max-product, we use a simple loop-based contraction for small systems
             # In a real library, this would use a proper semiring-contractor.
             raise NotImplementedError("Advanced semirings require SemiringContractor.")
-        if semiring == "boolean":
+        elif semiring == "boolean":
             return float(np.einsum(equation, *operands) > 0)
-        raise ValueError(f"Unknown semiring: {semiring}")
+        else:
+            raise ValueError(f"Unknown semiring: {semiring}")
 
 
 class TTGadgets:
