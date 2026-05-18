@@ -1,3 +1,4 @@
+from demonstrations.sudoku.constraints.all_different import all_different_constraint, all_different_pair_constraints
 from demonstrations.sudoku.constraints.anti_king import anti_king_constraint, all_anti_king_constraints
 from demonstrations.sudoku.constraints.anti_knight import anti_knight_constraint, all_anti_knight_constraints
 from demonstrations.sudoku.constraints.arrow_sum import arrow_sum_constraint, arrow_sum_constraints
