@@ -51,20 +51,42 @@ def enforce_generalized_arc_consistency(core_dict) -> tuple[DomainDict, bool]:
 
 
 def add_singleton_domain_cores(core_dict, domains: DomainDict, prefix: str = "gac"):
+    return add_domain_cores(core_dict, domains, prefix=prefix, singleton_only=True)
+
+
+def add_domain_cores(
+    core_dict,
+    domains: DomainDict,
+    prefix: str = "domain",
+    singleton_only: bool = False,
+):
     updated = dict(core_dict)
     dim_dict = engine.get_dimDict(core_dict)
     for color, domain in domains.items():
-        if len(domain) != 1:
+        if color not in dim_dict:
+            continue
+        domain = tuple(sorted(set(int(value) for value in domain)))
+        if singleton_only and len(domain) != 1:
+            continue
+        if domain == tuple(range(dim_dict[color])):
             continue
         core_key = f"{prefix}_{color}"
         if core_key in updated:
             continue
-        updated[core_key] = representation.create_basis_core(
-            name=core_key,
-            shape=[dim_dict[color]],
-            colors=[color],
-            numberTuple=[domain[0]],
-        )
+        if len(domain) == 1:
+            updated[core_key] = representation.create_basis_core(
+                name=core_key,
+                shape=[dim_dict[color]],
+                colors=[color],
+                numberTuple=[domain[0]],
+            )
+        else:
+            updated[core_key] = engine.create_from_slice_iterator(
+                name=core_key,
+                shape=[dim_dict[color]],
+                colors=[color],
+                sliceIterator=[(1, {color: value}) for value in domain],
+            )
     return updated
 
 

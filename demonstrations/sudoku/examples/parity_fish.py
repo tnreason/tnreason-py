@@ -53,7 +53,6 @@ EDGE_MARKERS = (
     ("red_line", "r6c1", "r6c2"),
     ("red_line", "r6c2", "r5c3"),
     ("red_line", "r5c3", "r4c4"),
-    ("red_line", "r4c4", "r3c5"),
 )
 LINES = ()
 QUADRUPLES = ()

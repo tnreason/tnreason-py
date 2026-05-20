@@ -1,6 +1,7 @@
 from tnreason import engine, representation
 
 from ..constraint_propagation import (
+    add_domain_cores,
     add_singleton_domain_cores,
     add_cluster_summary_core,
     enforce_generalized_arc_consistency,
@@ -69,6 +70,27 @@ def test_add_singleton_domain_cores_adds_basis_cores():
     assert updated["gac_x"][{"x": 1}] == 1
     assert updated["gac_x"][{"x": 0}] == 0
     assert "gac_y" not in updated
+
+
+def test_add_domain_cores_adds_non_singleton_support_core():
+    core_dict = {
+        "x_domain": engine.create_from_slice_iterator(
+            colors=["x"],
+            shape=[3],
+            sliceIterator=[
+                (1, {"x": 0}),
+                (1, {"x": 1}),
+                (1, {"x": 2}),
+            ],
+        )
+    }
+
+    updated = add_domain_cores(core_dict, {"x": (0, 2)})
+
+    assert "domain_x" in updated
+    assert updated["domain_x"][{"x": 0}] == 1
+    assert updated["domain_x"][{"x": 1}] == 0
+    assert updated["domain_x"][{"x": 2}] == 1
 
 
 def test_add_cluster_summary_core_keeps_requested_colors():

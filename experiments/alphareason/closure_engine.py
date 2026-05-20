@@ -227,14 +227,38 @@ class AlphaReasonClosureEngine:
         evidence: Dict[str, int],
         active_inference_clusters: Dict[str, Tuple[str, ...]],
     ) -> AlphaReasonState:
-        contradiction = False
         core_dict = task.network_factory(evidence)
+        core_dict = self._prepare_constraint_network(core_dict, active_inference_clusters)
+        return self._close_prepared_constraint_network(
+            task=task,
+            evidence=evidence,
+            active_inference_clusters=active_inference_clusters,
+            core_dict=core_dict,
+        )
+
+    def _prepare_constraint_network(
+        self,
+        core_dict,
+        active_inference_clusters: Dict[str, Tuple[str, ...]],
+    ):
+        prepared = dict(core_dict)
         for cluster_key, open_colors in active_inference_clusters.items():
-            core_dict = add_cluster_summary_core(
-                core_dict,
+            prepared = add_cluster_summary_core(
+                prepared,
                 open_colors=open_colors,
                 name=f"summary_{cluster_key}",
             )
+        return prepared
+
+    def _close_prepared_constraint_network(
+        self,
+        task: AlphaReasonTask,
+        evidence: Dict[str, int],
+        active_inference_clusters: Dict[str, Tuple[str, ...]],
+        core_dict,
+    ) -> AlphaReasonState:
+        contradiction = False
+        core_dict = dict(core_dict)
         domains = {}
         try:
             domains, contradiction = enforce_generalized_arc_consistency(core_dict)
