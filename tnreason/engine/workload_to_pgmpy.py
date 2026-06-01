@@ -1,9 +1,9 @@
-from pgmpy.models import MarkovNetwork
+from pgmpy.models import DiscreteMarkovNetwork
 from pgmpy.factors.discrete import DiscreteFactor
 from pgmpy.inference import VariableElimination
 
 from tnreason.engine import workload_to_numpy as cor
-from tnreason.engine import creation_handling as ch
+from tnreason.engine import core_creation as ch
 
 class PgmpyVariableEliminator:
     """
@@ -11,7 +11,7 @@ class PgmpyVariableEliminator:
     Outputs by default a Numpy Core
     """
     def __init__(self, coreDict={}, openColors=[]):
-        self.model = MarkovNetwork()
+        self.model = DiscreteMarkovNetwork()
         self.add_factors_from_coresDict({key: ch.convert(coreDict[key], "NumpyCore") for key in coreDict})
         self.openColors = openColors
 

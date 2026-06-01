@@ -3,7 +3,24 @@ from tnreason.representation import suffixes as suf
 
 from tnreason import engine
 
+def create_at_most_one_constraints(constraintDict, coreType=None):
+    coreDict = dict()
+    for decVariable in constraintDict:
+        coreDict.update(create_at_most_one_constraint(constraintDict[decVariable], decVariable, coreType=coreType))
+    return coreDict
 
+def create_at_most_one_constraint(atomVariables, decVariable, coreType=None):
+    return {f"{atomVariable}_{decVariable}":
+                engine.create_from_slice_iterator(shape=[2, len(atomVariables) + 1],
+                                                  colors=[atomVariable, decVariable],
+                                                  sliceIterator=[(1, {atomVariable: 0}),
+                                                                 (-1, {atomVariable: 0, decVariable: i}),
+                                                                 (1, {atomVariable: 1, decVariable: i})
+                                                                 ])
+            for i, atomVariable in enumerate(atomVariables)}
+
+
+## To be called "create_exactly_one_constraint"
 def create_categorical_cores(categoricalsDict, coreType=None, addColorSuffixes=False):
     """
     Creates a tensor network representing the constraints of
@@ -17,10 +34,11 @@ def create_categorical_cores(categoricalsDict, coreType=None, addColorSuffixes=F
     return {k: v for catName in categoricalsDict for k, v in
             create_constraintCoresDict(categoricalsDict[catName], catName, coreType=coreType).items()}
 
+
 def create_constraintCoresDict(atomColors, catColor, coreType=None):
     return {catColor + "_" + atomColor + suf.atoCoreSuf:
-            create_single_atomization(catColor, len(atomColors), i, atomColor, coreType=coreType)[
-                catColor + "_" + atomColor + suf.atoCoreSuf] for i, atomColor in enumerate(atomColors)}
+                create_single_atomization(catColor, len(atomColors), i, atomColor, coreType=coreType)[
+                    catColor + "_" + atomColor + suf.atoCoreSuf] for i, atomColor in enumerate(atomColors)}
 
 
 def create_single_atomization(catColor, catDim, position, atomColor=None, coreType=None):
