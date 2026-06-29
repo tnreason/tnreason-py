@@ -10,8 +10,8 @@ def get_transitionIterator(t, dim=3, left_p=0.25, right_p=0.25, stay_p=0.5):
                                                             range(dim - 1)]
 
 
-def get_transitionCore(t, dim, left_p=0.25, right_p=0.25, stay_p=0.5, withDo=False):
-    if withDo:
+def get_transitionCore(t, dim, left_p=0.25, right_p=0.25, stay_p=0.5, withIntervention=False):
+    if withIntervention:
         return engine.create_from_slice_iterator(shape=[dim, dim, dim + 1],
                                                  colors=[f"X_{t}", f"X_{t - 1}", f"D_{t}"],
                                                  sliceIterator=iv.add_doVariable(f"D_{t}", f"X_{t}", dim,
@@ -35,7 +35,7 @@ def get_startCore(t, startPos, dim):
 
 
 def get_randomWalkCores(T, dim, left_p=0.25, right_p=0.25, stay_p=0.5, withIntervention=False):
-    return {**{f"transition_{t}": get_transitionCore(t, dim, left_p, right_p, stay_p, withDo=withIntervention) for t in
+    return {**{f"transition_{t}": get_transitionCore(t, dim, left_p, right_p, stay_p, withIntervention=withIntervention) for t in
                range(1, T)}, f"start": get_startCore(0, 0, dim)}
 
 
