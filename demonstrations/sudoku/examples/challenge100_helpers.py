@@ -99,17 +99,25 @@ def _box_id(coord, num):
 
 def _split_line_by_box(coords, num):
     coords = _drop_consecutive_duplicates(list(coords))
-    if len(coords) > 1 and coords[0] == coords[-1]:
+    is_closed_loop = len(coords) > 1 and coords[0] == coords[-1]
+    if is_closed_loop:
         coords = coords[:-1]
 
     segments = []
+    segment_boxes = []
     current_box = None
     for coord in coords:
         next_box = _box_id(coord, num)
         if next_box != current_box:
             segments.append([])
+            segment_boxes.append(next_box)
             current_box = next_box
         segments[-1].append(cell_var(coord, num=num))
+
+    if is_closed_loop and len(segments) > 1 and segment_boxes[0] == segment_boxes[-1]:
+        segments[0] = segments[-1] + segments[0]
+        segments.pop()
+
     return [segment for segment in segments if segment]
 
 

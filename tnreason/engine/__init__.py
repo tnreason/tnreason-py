@@ -8,5 +8,6 @@ from tnreason.engine.core_comparison import cores_equal, cores_close
 def get_dimDict(coreDict):
     dimDict = {}
     for coreKey in coreDict:
-        dimDict.update({color: coreDict[coreKey].shape[i] for i, color in enumerate(coreDict[coreKey].colors)})
+        dimDict.update({color: coreDict[coreKey].shape[i] 
+                        for i, color in enumerate(coreDict[coreKey].colors)})
     return dimDict
