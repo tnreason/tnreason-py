@@ -1,3 +1,5 @@
+"""Core comparison utilities."""
+
 import numpy as np
 
 
@@ -21,9 +23,7 @@ def _values_in_color_order(core, target_colors):
 
 
 def cores_equal(core0, core1):
-    """
-    Exact tensor equality, matching colors by name rather than by axis position.
-    """
+    """Exact tensor equality, matching colors by name rather than by axis position."""
     if not _same_named_shape(core0, core1):
         return False
 
@@ -40,9 +40,7 @@ def cores_equal(core0, core1):
 
 
 def cores_close(core0, core1, rtol=1e-9, atol=1e-9):
-    """
-    Approximate tensor equality for floating-point results of contractions.
-    """
+    """Approximate tensor equality for floating-point results of contractions."""
     if not _same_named_shape(core0, core1):
         return False
 
