@@ -13,5 +13,6 @@ from tnreason.engine.semirings import (
 def get_dimDict(coreDict):
     dimDict = {}
     for coreKey in coreDict:
-        dimDict.update({color: coreDict[coreKey].shape[i] for i, color in enumerate(coreDict[coreKey].colors)})
+        dimDict.update({color: coreDict[coreKey].shape[i] 
+                        for i, color in enumerate(coreDict[coreKey].colors)})
     return dimDict

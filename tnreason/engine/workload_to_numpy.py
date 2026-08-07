@@ -78,6 +78,26 @@ class NumpyCore(cb.TensorCore):
         self.values = np.einsum(subc.get_reorder_substring(self.colors, newColors), self.values)
         self.colors = newColors
 
+    def reduce_colors(self, newColors):
+        """Keep only specified colors, summing over all others (marginalisation).
+
+        Parameters
+        ----------
+        newColors : list of str
+            Colors to retain. All other dimensions are summed out.
+        """
+        if not newColors:
+            self.values = np.array([np.sum(self.values)])
+            self.colors = []
+            self.shape = [1]
+            return
+        drop_colors = [c for c in self.colors if c not in newColors]
+        if drop_colors:
+            axes = tuple(self.colors.index(c) for c in drop_colors)
+            self.values = np.sum(self.values, axis=axes)
+            self.colors = [c for c in self.colors if c in newColors]
+            self.shape = list(self.values.shape)
+
     def __add__(self, otherCore):
         if set(self.colors) != set(otherCore.colors):
             raise ValueError("Colors of summands {} and {} do not match!".format(self.name, otherCore.name))
