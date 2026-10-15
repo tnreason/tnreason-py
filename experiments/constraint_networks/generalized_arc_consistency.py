@@ -1,5 +1,5 @@
 from collections import defaultdict, deque
-from copy import copy
+from itertools import product
 from typing import Dict, Iterable, Tuple
 
 import numpy as np
@@ -70,7 +70,7 @@ def _supported_domain(core, color: str, domains: DomainDict) -> Tuple[int, ...]:
 
 def _slice_has_support(core, axis: int, value: int, domains: DomainDict) -> bool:
     values = getattr(core, "values", None)
-    if values is None:
+    if not isinstance(values, np.ndarray):
         return _slice_has_support_by_iteration(core, axis, value, domains)
 
     slices = []
@@ -88,14 +88,10 @@ def _slice_has_support(core, axis: int, value: int, domains: DomainDict) -> bool
 
 
 def _slice_has_support_by_iteration(core, axis: int, value: int, domains: DomainDict) -> bool:
-    color = core.colors[axis]
-    domain_sets = {domain_color: set(domain) for domain_color, domain in domains.items()}
-    for coordinate_value, assignment in copy(core):
-        if coordinate_value == 0:
-            continue
-        if assignment[color] != value:
-            continue
-        if all(assignment[domain_color] in domain_sets[domain_color] for domain_color in core.colors):
+    # Query realized coordinates: sparse slices may overlap or cancel.
+    slices = [(value,) if idx == axis else domains[color] for idx, color in enumerate(core.colors)]
+    for idx in product(*slices):
+        if core[dict(zip(core.colors, idx))] != 0:
             return True
     return False
 
