@@ -55,3 +55,23 @@ Already solved or contradictory roots do not need extra summaries.
 `inferenceClusters/CODEGEN_PROMPT.txt` contains a code-generation task for
 extending the standalone cluster library while keeping MAC and its benchmark
 adapters independent of Sudoku heuristics.
+
+## Standalone rule library
+
+The expanded [inference cluster library](inferenceClusters/README.md) describes
+finite rule patterns and checks their consequences by exact Boolean contraction
+of the original tensors. Select rule families explicitly through its registry;
+importing the library does not enable Sudoku heuristics in generic MAC.
+
+The comparison experiment accepts a Nikoli100 parquet dataset and writes a new
+local result directory:
+
+```bash
+python -m experiments.sudoku_rule_clusters \
+  --dataset /path/to/nikoli100.parquet \
+  --families locked_candidates basic_fish --limit 10
+```
+
+Reading parquet requires a pandas parquet engine such as PyArrow. See
+`python -m experiments.sudoku_rule_clusters --help` for scan, contraction, and
+search budgets.
