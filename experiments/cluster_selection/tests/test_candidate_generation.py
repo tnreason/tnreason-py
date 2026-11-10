@@ -311,3 +311,91 @@ def test_whole_nine_by_nine_default_list_contains_short_and_pair_sized_cycles():
         assert any(all(sum(color in cores[key].colors for key in candidate.core_keys) == 2
                        for color in {color for key in candidate.core_keys for color in cores[key].colors})
                    for candidate in cycles)
+
+
+def test_cyclic_mode_excludes_trees_and_dangling_expansions():
+    tree = {"ab": _core("a", "b"), "bc": _core("b", "c")}
+    assert ClusterCandidateGenerator(tree).generate(cyclic_only=True) == ()
+    cores = _triangle(tail=True)
+    candidates = ClusterCandidateGenerator(cores).generate(cyclic_only=True)
+    assert _has_cluster(candidates, ("ab", "bc", "ca"))
+    assert all("cd" not in candidate.core_keys for candidate in candidates)
+
+
+def test_cyclic_mode_covers_regions_beyond_the_first_eight_seeds():
+    cores = {f"{idx}_{key}": _core(*(f"{idx}_{color}" for color in key))
+             for idx in range(10) for key in ("ab", "bc", "ca")}
+    candidates = ClusterCandidateGenerator(cores, max_candidates=32).generate(cyclic_only=True)
+    assert len(candidates) == 10
+    assert {candidate.core_keys[0].split("_")[0] for candidate in candidates} == {str(idx) for idx in range(10)}
+    assert all(len(candidate.core_keys) == 3 for candidate in candidates)
+
+
+def test_cyclic_mode_joins_overlapping_cycles_and_is_deterministic():
+    cores = {"ab": _core("a", "b"), "bc": _core("b", "c"), "ca": _core("c", "a"),
+             "bd": _core("b", "d"), "da": _core("d", "a")}
+    generator = ClusterCandidateGenerator(cores, max_candidates=100)
+    candidates = generator.generate(cyclic_only=True)
+    assert _has_cluster(candidates, cores)
+    assert candidates == generator.generate(cyclic_only=True)
+    assert candidates == ClusterCandidateGenerator(dict(reversed(tuple(cores.items()))), max_candidates=100).generate(cyclic_only=True)
+    for candidate in candidates:
+        _assert_connected(cores, candidate)
+        scopes = [set(cores[key].colors) for key in candidate.core_keys]
+        assert sum(map(len, scopes)) - len(scopes) - len(set().union(*scopes)) + 1 > 0
+    assert ClusterCandidateGenerator(cores, max_work=1).generate(cyclic_only=True) == ()
+
+
+def test_cyclic_mode_handles_hypercores_parallel_cores_and_fixed_colors():
+    cores = {"abc": _core("a", "b", "c"), "abd": _core("a", "b", "d")}
+    generator = ClusterCandidateGenerator(cores)
+    assert _has_cluster(generator.generate(cyclic_only=True), cores)
+    assert generator.generate({"a": (0,)}, cyclic_only=True) == ()
+    parallel = {"first": _core("a", "b"), "second": _core("a", "b")}
+    assert _has_cluster(ClusterCandidateGenerator(parallel).generate(cyclic_only=True), parallel)
+    assert generator.generate(max_candidates=0, cyclic_only=True) == ()
+
+
+def test_cyclic_mode_preserves_eight_core_sudoku_pairs_without_trees():
+    positions = ("pos_0_0_0_0", "pos_0_0_0_1")
+    units = ("row_0_0_0", "row_1_0_0")
+    atoms = ("a_0_0_0_0_0", "a_0_0_0_0_1", "a_0_0_0_1_0", "a_0_0_0_1_1")
+    cores = _sudoku_motif(2, positions + units, atoms)
+    candidates = ClusterCandidateGenerator(cores).generate(cyclic_only=True)
+    assert _has_cluster(candidates, cores, positions + units)
+    assert all(len(candidate.core_keys) <= 10 and len(candidate.open_colors) <= 4 for candidate in candidates)
+
+
+def test_nested_generation_preserves_real_proposal_prefixes_and_legacy_first_stage():
+    cores = {a + b: _core(a, b) for a, b in combinations("abcdefg", 2)}
+    pools = {}
+    for limit in (32, 50, 64, 128, 256):
+        largest = 1 << max(5, (limit - 1).bit_length())
+        generator = ClusterCandidateGenerator(cores, max_candidates=limit, max_steps=256 * largest,
+                                              max_cores=8, max_cycle_length=4, max_open_colors=2)
+        pools[limit] = generator.generate_nested(cyclic_only=True, compact_domains=True)
+        assert len(pools[limit]) == limit
+        assert len(set(_signatures(pools[limit]))) == limit
+        assert generator.max_steps == 256 * largest
+        if limit == 32:
+            assert pools[limit] == generator.generate(cyclic_only=True, compact_domains=True)
+    for lower, upper in ((32, 64), (50, 64), (64, 128), (128, 256)):
+        assert pools[lower] == pools[upper][:lower]
+
+
+def test_nested_zero_count_and_exception_restore_original_budget():
+    generator = ClusterCandidateGenerator(_triangle(), max_candidates=64, max_steps=16384)
+    assert generator.generate_nested(max_candidates=0, cyclic_only=True) == ()
+    assert generator.max_steps == 16384
+    with pytest.raises(KeyError):
+        generator.generate_nested({"unknown": (0,)}, cyclic_only=True)
+    assert generator.max_steps == 16384
+    assert generator.generate_nested(max_candidates=1, cyclic_only=True) == generator.generate_nested(cyclic_only=True)[:1]
+    assert generator.max_steps == 16384
+
+
+@pytest.mark.parametrize("limit", [True, False, -1, 1.5, "32"])
+def test_nested_generation_rejects_invalid_requested_counts(limit):
+    generator = ClusterCandidateGenerator(_triangle())
+    with pytest.raises(ValueError, match="max_candidates must be a nonnegative integer"):
+        generator.generate_nested(max_candidates=limit)

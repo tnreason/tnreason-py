@@ -4,14 +4,14 @@ import sys
 from copy import deepcopy
 import numpy as np
 import pytest
-from experiments.cluster_selection import collect as collector
+from experiments.cluster_selection.supervised import collect as collector
 from experiments.constraint_networks.constraint_networks import ConstraintNetwork
 from experiments.constraint_networks.sudoku_tests.standard_constraints import get_sudoku_constraint_network
 from tnreason.engine.workload_to_numpy import NumpyCore
 
 torch = pytest.importorskip("torch")
-from experiments.cluster_selection.model import Predictor, load
-from experiments.cluster_selection.train import evaluate, fit
+from experiments.cluster_selection.supervised.model import Predictor, load
+from experiments.cluster_selection.supervised.train import evaluate, fit
 
 
 @pytest.fixture(autouse=True)
@@ -43,6 +43,58 @@ def _snapshot(state):
             frozenset(state._added_core_keys), frozenset(state._changed_colors),
             tuple(state._queue), frozenset(state._queued), state.on_closure,
             tuple((id(value), tuple(value)) for value in state._domain_tensors.values()))
+
+
+def _branch_data():
+    from experiments.cluster_selection.data import network_data
+    network = ConstraintNetwork({key: NumpyCore(values=~np.eye(3, dtype=bool), colors=list(key))
+                                 for key in ("ab", "cd")}, maintain_indices=True)
+    return dict(version=1, network=network_data(network), reward_colors=list("abcd"), samples=[],
+                initial_domains=[{"a": [0]}, {"a": [1]}], train_indices=[0], validation_indices=[1])
+
+
+def test_training_branch_preparation_is_closed_reproducible_and_train_only():
+    from experiments.cluster_selection.reinforcement.prepare import prepare
+    from experiments.cluster_selection.reinforcement.train import _state
+    data = _branch_data()
+    before = deepcopy(data)
+    result = prepare(data, states_per_puzzle=8, nodes=60, seed=7)
+    assert result == prepare(data, states_per_puzzle=8, nodes=60, seed=7)
+    assert data == before
+    assert result["network"] == before["network"]
+    assert result["train_indices"] == [0] and result["validation_indices"] == [1]
+    assert len(result["samples"]) == 8
+    assert len({tuple(map(tuple, sample["domains"])) for sample in result["samples"]}) == 8
+    assert any(sample["level"] > 0 for sample in result["samples"])
+    network = _state(result).constraint_network
+    for sample in result["samples"]:
+        assert sample["puzzle"] == 0 and not sample["candidates"]
+        domains = dict(zip(result["network"]["colors"], map(tuple, sample["domains"])))
+        state = network.create_mac_state(domains)
+        assert state.propagate() and not state.is_solved()
+        assert state.snapshot_domains() == domains and state.domains["a"] == (0,)
+    metadata = result["branch_preparation"][-1]
+    assert metadata["new_states"] == 8 and metadata["root_states"] == 1
+    assert 0 < metadata["nodes"] <= 60
+    again = prepare(result, states_per_puzzle=8, nodes=10, seed=7)
+    assert again["samples"][:8] == result["samples"]
+    assert len({tuple(map(tuple, sample["domains"])) for sample in again["samples"]}) == len(again["samples"])
+
+
+@pytest.mark.parametrize("change", ["overlap", "missing_split", "validation_sample", "identical_roots"])
+def test_training_branch_preparation_rejects_exposure_errors(change):
+    from experiments.cluster_selection.reinforcement.prepare import prepare
+    data = _branch_data()
+    if change == "overlap":
+        data["train_indices"] = [0, 1]
+    elif change == "missing_split":
+        del data["validation_indices"]
+    elif change == "validation_sample":
+        data["samples"] = [dict(puzzle=1, domains=[[1], [0, 2], [0, 1, 2], [0, 1, 2]])]
+    else:
+        data["initial_domains"][1] = data["initial_domains"][0]
+    with pytest.raises(ValueError):
+        prepare(data, states_per_puzzle=2, nodes=3)
 
 
 def test_collection_preserves_each_trial_and_stores_static_data_once(monkeypatch):
@@ -195,7 +247,8 @@ def test_tiny_training_checkpoint_and_offline_evaluation(tmp_path):
 
 def test_collection_is_torch_free_and_cli_round_trip(tmp_path):
     clean = subprocess.run([sys.executable, "-B", "-c",
-        "import sys; import experiments.cluster_selection.collect; assert 'torch' not in sys.modules"],
+        "import sys; import experiments.cluster_selection.supervised.collect; "
+        "import experiments.cluster_selection.reinforcement; assert 'torch' not in sys.modules"],
         capture_output=True, text=True, timeout=30)
     assert clean.returncode == 0, clean.stderr
     puzzles, dataset, checkpoint = (tmp_path / name for name in ("puzzles.txt", "data.json", "model.pt"))
@@ -206,7 +259,7 @@ def test_collection_is_torch_free_and_cli_round_trip(tmp_path):
         ["train", str(dataset), "--checkpoint", str(checkpoint)],
     ]
     for module, *args in commands:
-        result = subprocess.run([sys.executable, "-B", "-m", f"experiments.cluster_selection.{module}", *args],
+        result = subprocess.run([sys.executable, "-B", "-m", f"experiments.cluster_selection.supervised.{module}", *args],
                                 capture_output=True, text=True, timeout=60)
         assert result.returncode == 0, result.stderr
     assert dataset.exists() and checkpoint.exists()

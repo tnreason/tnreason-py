@@ -1,4 +1,4 @@
-"""Supervised cluster prediction; evaluation times are rollback-inclusive proxies."""
+"""Train or test supervised cluster prediction; costs are rollback-inclusive proxies."""
 import argparse
 import json
 from math import log, log1p

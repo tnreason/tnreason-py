@@ -1,9 +1,10 @@
-"""Bounded structural proposals; domains guide selection, not tensor sizes."""
+"""Bounded structural proposals, with optional domain-compacted cost estimates."""
 from collections import deque
 from hashlib import sha1
 from itertools import zip_longest
 from math import prod
 from numbers import Integral
+from types import SimpleNamespace
 from experiments.constraint_networks.constraint_networks import ConstraintNetwork
 from .candidate_evaluation_tnreason import SummaryClusterCandidate
 from .contraction_cost import estimate_candidate_cost
@@ -14,7 +15,7 @@ class ClusterCandidateGenerator:
 
     Accept a ConstraintNetwork or core dictionary. No cores are contracted or
     mutated. Recreate after changing core keys, colors, or shapes. Costs use
-    actual dense dimensions, even when domains contain fewer allowed values.
+    actual dense dimensions by default; compact_domains opts into sliced axes.
     Default outputs favor non-Boolean colors; open_colors overrides this pool.
     Traversal and list sizes are bounded, so proposals are not exhaustive.
 
@@ -44,13 +45,50 @@ class ClusterCandidateGenerator:
                           for color, keys in self.by_color.items()}
         self._costs = {}
 
-    def generate(self, domains=None, *, changed_colors=None, open_colors=None, max_candidates=None):
+    def generate_nested(self, domains=None, *, max_candidates=None, **options):
+        """Preserve earlier proposals while doubling generation effort.
+
+        Stages request 32, 64, ... candidates through the first power of two
+        covering the requested count. max_steps is the largest stage's budget;
+        earlier budgets scale proportionally. Matching stage budgets preserve
+        prefixes across different requested counts, including counts below 32.
+        """
+        limit = self.max_candidates if max_candidates is None else max_candidates
+        if isinstance(limit, bool) or not isinstance(limit, Integral) or limit < 0:
+            raise ValueError("max_candidates must be a nonnegative integer")
+        if not limit:
+            return ()
+        last = 32
+        while last < limit:
+            last *= 2
+        previous_steps, quota, result, seen = self.max_steps, 32, [], set()
+        try:
+            while quota <= last:
+                self.max_steps = max(1, previous_steps * quota // last)
+                for candidate in self.generate(domains, max_candidates=quota, **options):
+                    signature = candidate.core_keys, candidate.open_colors
+                    if signature not in seen:
+                        seen.add(signature)
+                        result.append(candidate)
+                    if len(result) >= quota:
+                        break
+                quota *= 2
+        finally:
+            self.max_steps = previous_steps
+        return tuple(result[:limit])
+
+    def generate(self, domains=None, *, changed_colors=None, open_colors=None, max_candidates=None,
+                 cyclic_only=False, compact_domains=False):
         """Return independent candidates, without evaluating their pruning gain.
 
         Supplied domains may be partial. Singleton colors do not act as
         traversal bridges. changed_colors restricts seed colors, while optional
         open_colors names eligible outputs (not necessarily all retained).
         Distinct cycle lengths, trees, and expanded loops share the list budget.
+        cyclic_only uses broader, distance-pruned search and diverse cycles or
+        joined cycles, without trees or dangling tree expansions.
+        compact_domains estimates sliced input axes, while the temporary output
+        must still fit its original dimensions for GAC.
         """
         limit = self.max_candidates if max_candidates is None else max_candidates
         if isinstance(limit, bool) or not isinstance(limit, Integral) or limit < 0:
@@ -91,17 +129,34 @@ class ClusterCandidateGenerator:
         lengths = range(2, min(self.max_cores, self.max_cycle_length) + 1)
         # Separate length budgets prevent plentiful short cycles hiding longer ones.
         quota = self.max_steps // (2 * max(1, len(lengths)))
-        seeds = anchors[:8]
+        seeds = anchors if cyclic_only else anchors[:8]
+        distances = {}
+        if cyclic_only:
+            for start in seeds:
+                distance, queue = {start: 0}, deque((start,))
+                while queue:
+                    color = queue.popleft()
+                    if distance[color] >= self.max_cycle_length:
+                        continue
+                    for _, other in adjacency[color]:
+                        if other not in distance:
+                            distance[other] = distance[color] + 1
+                            queue.append(other)
+                distances[start] = distance
         for length in lengths:
             found = set()
             for start in seeds:
-                remaining = quota // len(seeds)
+                budget = self.max_steps * length // (2 * sum(lengths)) if cyclic_only else quota
+                remaining = budget // len(seeds)
                 stack = [(start, (), frozenset((start,)))]
                 while stack and remaining:
                     color, keys, visited = stack.pop()
                     closing = len(keys) + 1 == length
                     for key, other in reversed(adjacency[color]):
                         if closing and other != start:
+                            continue
+                        if cyclic_only and (key in keys or (other in visited and other != start)
+                                            or distances[start].get(other, length + 1) > length - len(keys) - 1):
                             continue
                         if not remaining:
                             break
@@ -122,11 +177,23 @@ class ClusterCandidateGenerator:
         def priority(keys):
             return (min(rank(color) for color in scope(keys)), len(keys), keys)
 
-        cycle_seeds = sorted(set().union(*families), key=priority)[:2 * limit]
-        single_seeds = sorted({(key,) for color in anchors for key in self.by_color[color]}, key=priority)[:2 * limit]
+        cycle_seeds = (list(dict.fromkeys(keys for row in zip_longest(*(sorted(family, key=priority) for family in families))
+                                         for keys in row if keys is not None)) if cyclic_only else
+                       sorted(set().union(*families), key=priority))[:2 * limit]
+        single_seeds = [] if cyclic_only else sorted({(key,) for color in anchors for key in self.by_color[color]}, key=priority)[:2 * limit]
         queue, seen = deque(cycle_seeds + single_seeds), set(cycle_seeds + single_seeds)
         growth = [set(), set(), set()]
-        while queue and steps < self.max_steps:
+        if cyclic_only:
+            for idx, left in enumerate(cycle_seeds):
+                for right in cycle_seeds[:idx]:
+                    if steps >= self.max_steps:
+                        break
+                    steps += 1
+                    joined = tuple(sorted(set(left) | set(right)))
+                    if (max(len(left), len(right)) < len(joined) <= self.max_cores
+                            and scope(left) & scope(right) & active):
+                        growth[2].add(joined)
+        while not cyclic_only and queue and steps < self.max_steps:
             keys = queue.popleft()
             if len(keys) >= self.max_cores:
                 continue
@@ -146,12 +213,40 @@ class ClusterCandidateGenerator:
                 growth[min(cycles, 2)].add(extended)
         families.extend(growth)
 
+        def proposals():
+            if not cyclic_only:
+                yield from zip_longest(*(sorted(family, key=priority) for family in families))
+                return
+            pools = [sorted(family, key=priority)[:4 * limit] for family in families]
+            uses = {}
+            while any(pools):
+                row = []
+                for pool in pools:
+                    keys = min(pool, key=lambda keys: (sum(uses.get(key, 0) for key in keys) / len(keys), priority(keys))) if pool else None
+                    if keys is not None:
+                        pool.remove(keys)
+                        for key in keys:
+                            uses[key] = uses.get(key, 0) + 1
+                    row.append(keys)
+                yield row
+
         result, emitted = [], set()
-        for row in zip_longest(*(sorted(family, key=priority) for family in families)):
+        for row in proposals():
             for keys in row:
                 if keys is None:
                     continue
-                output = tuple(sorted(sorted(scope(keys) & eligible, key=rank)[:self.max_open_colors]))
+                outputs = scope(keys) & eligible
+                if cyclic_only:
+                    outputs &= active
+                ranked = sorted(outputs, key=rank)
+                if compact_domains:
+                    affordable, output_size = [], 1
+                    for color in ranked:
+                        if len(affordable) < self.max_open_colors and output_size * self.dimensions[color] <= self.max_size:
+                            affordable.append(color)
+                            output_size *= self.dimensions[color]
+                    ranked = affordable
+                output = tuple(sorted(ranked[:self.max_open_colors]))
                 signature = keys, output
                 if not output or signature in emitted or all(sizes[color] == 1 for color in output):
                     continue
@@ -159,11 +254,15 @@ class ClusterCandidateGenerator:
                 if prod(self.dimensions[color] for color in output) > self.max_size:
                     continue
                 candidate = SummaryClusterCandidate("cluster_" + sha1(repr(signature).encode()).hexdigest(), keys, output)
-                if signature not in self._costs:
+                cost_key = (signature, tuple(sizes[color] for color in sorted(scope(keys)))) if compact_domains else signature
+                if cost_key not in self._costs:
                     if len(self._costs) >= self.max_steps:
                         self._costs.pop(next(iter(self._costs)))
-                    self._costs[signature] = estimate_candidate_cost(self.cores, candidate)
-                cost = self._costs[signature]
+                    inputs = ({key: SimpleNamespace(colors=self.cores[key].colors,
+                                                   shape=tuple(sizes[color] for color in self.cores[key].colors))
+                               for key in keys} if compact_domains else self.cores)
+                    self._costs[cost_key] = estimate_candidate_cost(inputs, candidate)
+                cost = self._costs[cost_key]
                 if cost.work <= self.max_work and cost.max_size <= self.max_size:
                     result.append(candidate)
                     if len(result) == limit:

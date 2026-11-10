@@ -1,5 +1,7 @@
-"""Shape-only contraction planning; zero masks do not reduce axis sizes."""
+"""Structural treewidth and shape-only contraction planning; masks do not shrink axes."""
 from dataclasses import dataclass
+from collections import Counter
+from heapq import heapify, heappop, heappush
 from itertools import combinations
 from math import prod
 from numbers import Integral
@@ -11,6 +13,26 @@ class ContractionEstimate:
     max_size: int
     output_size: int
     path: tuple[tuple[int, ...], ...]
+
+
+def estimate_treewidth(core_dict, candidate):
+    """Min-fill upper bound on the selected cores' primal-graph treewidth.
+
+    Variables sharing a core form a clique. This is unweighted graph width,
+    not contraction width: dimensions, masks and chosen outputs do not affect it.
+    Scalar-only clusters have width zero. No tensors are contracted or modified.
+    """
+    from networkx import Graph
+    from networkx.algorithms.approximation import treewidth_min_fill_in
+
+    if not candidate.core_keys or len(set(candidate.core_keys)) != len(candidate.core_keys):
+        raise ValueError("Candidate needs nonempty, distinct core keys")
+    scopes = [set(core_dict[key].colors) for key in candidate.core_keys]
+    graph = Graph()
+    graph.add_nodes_from(sorted(set().union(*scopes)))
+    for scope in scopes:
+        graph.add_edges_from(combinations(sorted(scope), 2))
+    return max(0, treewidth_min_fill_in(graph)[0])
 
 
 def estimate_candidate_cost(core_dict, candidate):
@@ -55,16 +77,37 @@ def estimate_candidate_cost(core_dict, candidate):
     if len(scopes) == 1:
         # A unary path also handles reduction/reordering of a single input.
         return ContractionEstimate(size(scopes[0]), max_size, output_size, ((0,),))
-    def choice(pair):
-        union = scopes[pair[0]] | scopes[pair[1]]
-        retained = union & open_set.union(*(scope for idx, scope in enumerate(scopes) if idx not in pair))
-        return size(retained), size(union), *pair, retained
+    scopes = dict(enumerate(scopes))
+    occurrences = Counter(color for scope in scopes.values() for color in scope)
 
+    def choice(left, right):
+        a, b = scopes[left], scopes[right]
+        union = a | b
+        retained = frozenset(color for color in union if color in open_set or
+                             occurrences[color] > (color in a) + (color in b))
+        return size(retained), size(union), left, right, retained
+
+    heap = [choice(left, right) for left, right in combinations(scopes, 2)]
+    heapify(heap)
+    fresh = len(scopes)
     while len(scopes) > 1:
-        intermediate_size, step_work, left, right, retained = min(map(choice, combinations(range(len(scopes)), 2)), key=lambda c: c[:4])
-        path.append((left, right))
+        while True:
+            intermediate_size, step_work, left, right, retained = heappop(heap)
+            if left in scopes and right in scopes:
+                break
+        # Monotone tensor IDs preserve the original list's order and tie breaks.
+        positions = {key: idx for idx, key in enumerate(scopes)}
+        path.append((positions[left], positions[right]))
+        for key in (left, right):
+            occurrences.subtract(scopes.pop(key))
+        scopes[fresh] = retained
+        occurrences.update(retained)
         work += step_work
         max_size = max(max_size, intermediate_size)
-        scopes = [scope for idx, scope in enumerate(scopes) if idx not in (left, right)]
-        scopes.append(retained)
+        # Outside merges preserve whether two surviving scopes have another
+        # owner of a shared color. Their scores remain valid in the heap.
+        for key in scopes:
+            if key != fresh:
+                heappush(heap, choice(key, fresh))
+        fresh += 1
     return ContractionEstimate(work, max(max_size, output_size), output_size, tuple(path))

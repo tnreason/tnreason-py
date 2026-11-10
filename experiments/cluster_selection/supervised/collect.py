@@ -3,26 +3,11 @@ import argparse
 import json
 from hashlib import blake2b
 from pathlib import Path
-import numpy as np
 from experiments.constraint_networks.constraint_networks import ConstraintNetwork
 from experiments.constraint_networks.sudoku_tests.standard_constraints import get_sudoku_constraint_network
-from .candidate_generation import ClusterCandidateGenerator
-from .candidate_evaluation_mac import evaluate_candidate
-
-
-def network_data(network):
-    """Raw ordered tensor data, not neural features; store once per dataset."""
-    colors = list(network.dimension_dict)
-    idx = {color: i for i, color in enumerate(colors)}
-    cores = []
-    for key, core in network.coresDict.items():
-        values = getattr(core, "values", None)
-        support = values != 0 if isinstance(values, np.ndarray) else np.array([
-            core[dict(zip(core.colors, coordinate))] != 0 for coordinate in np.ndindex(tuple(core.shape))
-        ]).reshape(core.shape)
-        cores.append(dict(key=key, colors=[idx[color] for color in core.colors],
-                          shape=[int(dim) for dim in core.shape], values=support.astype(bool).ravel().tolist()))
-    return dict(colors=colors, dimensions=[int(network.dimension_dict[color]) for color in colors], cores=cores)
+from ..candidate_generation import ClusterCandidateGenerator
+from ..candidate_evaluation_mac import evaluate_candidate
+from ..data import network_data
 
 
 def collect(network, initial_domains, *, reward_colors=None, max_states=100, states_per_puzzle=8,

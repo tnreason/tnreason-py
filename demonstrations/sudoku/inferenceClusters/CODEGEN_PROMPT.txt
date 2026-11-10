@@ -1,0 +1,87 @@
+Extend the standalone Sudoku inference-cluster library in this checkout.
+
+The objective is a broad, documented translation of discoverable Sudoku solving
+rules into tnreason tensor-network clusters, so later experiments can explicitly
+choose which clusters to use. This task implements the library and its focused
+tests. It must not choose the user's eventual MAC integration or experiment policy.
+
+Inspect first:
+- demonstrations/sudoku/inferenceClusters/
+- demonstrations/sudoku/constraints/sudoku_constraints.py
+- experiments/constraint_networks/constraint_networks.py
+- experiments/constraint_networks/mac.py
+- experiments/constraint_networks/tests/test_sudoku_mac_clusters.py
+- experiments/constraint_networks/tests/test_sudoku_locked_clusters.py
+- experiments/cluster_selection/candidate_evaluation_mac.py
+- experiments/cluster_selection/contraction_cost.py
+
+Keep generic MAC independent of Sudoku. Do not add Sudoku imports, automatic
+detectors, rule-specific branches or defaults to generic MAC. Do not restore
+pair/locked-candidate environment settings, add advanced benchmark settings,
+change existing benchmark behavior, or automatically register or enable rules.
+Preserve existing standalone helpers for explicit use. New functionality must
+be callable independently of a MAC solver or policy.
+
+Research and catalogue the Sudoku rule families you can find using authoritative
+published explanations. Record the source URL, exact preconditions, intended
+elimination, cluster construction and implementation status for each rule. Do
+not restrict scope to the initial list below or claim universal coverage from
+a finite list. Group equivalent names and parameterized special cases.
+
+Cover singles and locked candidates; generalized naked/hidden subsets; basic,
+finned and sashimi fish; wings; coloring, chains and loops; and almost-locked-set
+methods where justified. Include named special cases such as pairs, triples,
+quads, X-Wing, Swordfish, Jellyfish, XY-Wing and XYZ-Wing. Identify other families
+found during research. Make rules requiring uniqueness or variant-specific
+axioms explicit; do not silently apply them to ordinary constraint networks.
+For any rule left unsupported, state its exact missing assumption or technical
+obstacle, and document the remaining work instead of silently omitting it.
+
+Implement reusable, parameterized cluster generators resembling the existing
+ones. Separate rule detection and cluster description from contraction and
+application. A description should identify original tensor keys, participating
+variables, eliminated/internal variables, retained output variables, and any
+current-domain inputs or extra assumptions. Reuse existing candidate types
+where they fit rather than creating a second incompatible representation.
+Expose explicit per-rule or per-family calls and an optional caller-selected
+registry. There must be no detector execution or solver modification on import.
+
+Derive eliminations by exact Boolean-support contraction of the selected
+original tensors and, where appropriate, current-domain indicators. Hand-coded
+Sudoku deductions must not replace the tensor computation. Do not call a search
+solver or look up a completed solution to produce eliminations. Preserve
+zero-based digits and the existing coordinate encoding; num=2 denotes 4x4 and
+num=3 denotes 9x9. Support transposed and symmetric patterns where applicable.
+
+Preserve all assignments satisfying the declared constraints and assumptions.
+Respect realized nonzero support for signed and sparse tensors. Do not mutate
+the input network or domains. Domain-free summaries may be cached for matching
+original constraints. Domain-dependent summaries must be scoped to their exact
+input domains; never leak them across sibling branches or new puzzles. Document
+how an external caller can apply results through existing generic MAC facilities
+without implementing that policy inside MAC or the benchmark adapter.
+
+Make pattern bounds, chain lengths, contraction work, intermediate/output sizes
+and cache limits explicit and configurable. Bound detection as well as tensor
+allocation. Eliminate local degree-two Boolean variables early or execute an
+efficient verified contraction path; avoid an unoptimized monolithic einsum.
+Use smaller output projections or domain compaction when needed. Distinguish a
+recognized rule from a cluster skipped because it exceeds an execution budget.
+No unbounded scan or search may be hidden in a detector.
+
+Test soundness with exact support checks on small clusters and independently
+constructed fixtures. For every implemented family, demonstrate the expected
+elimination and an invalid near-pattern that must not eliminate it. When the
+deduction adds power beyond ordinary GAC, demonstrate that explicitly. For
+rules already subsumed by GAC, document that equivalence. Cover transposes,
+unsupported assumptions, contradictions, input immutability, repeated use with
+different domains and backtracking-safe use through the generic interface.
+Validate that generic MAC remains unaffected unless a caller supplies clusters.
+Run relevant existing and new tests.
+
+Provide a coverage table with implemented, equivalent-to-GAC, assumption-gated
+and unsupported rules, source links, exact cluster definitions and cost bounds.
+Document standalone detection/contraction examples and a separate opt-in example
+using a caller-selected rule set with MAC. Do not automatically run these rules
+in existing tests or benchmarks. Report actual completed coverage, tests and
+remaining limitations without describing unimplemented rules as implemented.

@@ -22,6 +22,10 @@ We further apply the algorithms on the [Sudoku-Bench Dataset](https://huggingfac
 
 ## Optional Sudoku clusters for MAC
 
+Generic MAC and the benchmark MAC adapters do not automatically select Sudoku
+clusters. The helpers below are separate, explicit experiment utilities. Use
+`network.solve_mac(domains=domains)` for generic MAC without these helpers.
+
 For a `ConstraintNetwork` using the standard categorical Sudoku encoding:
 
 ```python
@@ -47,3 +51,7 @@ cached tensors can be reused in later branches. Original cores remain unchanged;
 generic MAC has no Sudoku rules.
 Pairs first appearing later in search are not selected automatically.
 Already solved or contradictory roots do not need extra summaries.
+
+`inferenceClusters/CODEGEN_PROMPT.txt` contains a code-generation task for
+extending the standalone cluster library while keeping MAC and its benchmark
+adapters independent of Sudoku heuristics.

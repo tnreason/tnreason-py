@@ -1,0 +1,32 @@
+# Shared-filesystem job. Set repo_root and python_exec at submission:
+# condor_submit repo_root=/shared/tnreason-py python_exec=/shared/gpu-env/bin/python qlearn_gpu.sub
+# The repository, development dataset, warm-start checkpoint and environment
+# must be readable at these same paths on execute nodes.
+universe = vanilla
+initialdir = $(repo_root)
+executable = $(python_exec)
+transfer_executable = False
+should_transfer_files = NO
+
+data_file = $(repo_root)/experiments/cluster_selection/reinforcement/results/useful_clusters_20261021/expanded_development.json
+warm_start = $(checkpoint_path:experiments/cluster_selection/reinforcement/results/useful_clusters_20261021/hard_validation/selected_trained.frozen.pt)
+results_dir = $(repo_root)/experiments/cluster_selection/reinforcement/results
+run_dir = $(results_dir)/q_gpu_$(ClusterId)_$(ProcId)
+arguments = "-u -m experiments.cluster_selection.reinforcement.qlearn '$(data_file)' --output '$(run_dir)/policy.pt' --initial-checkpoint '$(warm_start)' --device cuda --seed $(run_seed:0) --epochs 8 --puzzles-per-epoch 49 --max-cores 64 --teacher-probes 40 --teacher-mutations 16 --cluster-attempts 512 --search-nodes 10000 --validation-seconds 600"
+
+request_gpus = 1
+request_cpus = 1
+request_memory = 16GB
+request_disk = 2GB
+# Preserve library paths from an activated cluster environment. HTCondor sets
+# CUDA_VISIBLE_DEVICES; do not import a submit-host GPU assignment.
+getenv = PATH, LD_LIBRARY_PATH
+environment = "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1"
+
+output = $(results_dir)/q_gpu_$(ClusterId)_$(ProcId).out
+error = $(results_dir)/q_gpu_$(ClusterId)_$(ProcId).err
+log = $(results_dir)/q_gpu_$(ClusterId)_$(ProcId).log
+stream_output = True
+stream_error = True
+on_exit_hold = (ExitBySignal =?= True) || (ExitCode =!= 0)
+queue 1

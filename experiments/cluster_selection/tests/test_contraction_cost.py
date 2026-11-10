@@ -1,8 +1,12 @@
+from collections import Counter
+from itertools import combinations
+from math import prod
+from random import Random
 from types import SimpleNamespace
 import numpy as np
 import pytest
 from experiments.cluster_selection.candidate_evaluation_tnreason import SummaryClusterCandidate
-from experiments.cluster_selection.contraction_cost import estimate_candidate_cost
+from experiments.cluster_selection.contraction_cost import ContractionEstimate, estimate_candidate_cost, estimate_treewidth
 
 
 def _core(colors, shape, value=1):
@@ -106,3 +110,85 @@ def test_inconsistent_dimensions_are_rejected():
     cores = {"ab": _core(("a", "b"), (2, 2)), "bc": _core(("b", "c"), (9, 2))}
     with pytest.raises(ValueError):
         estimate_candidate_cost(cores, _candidate(cores, ("a",)))
+
+
+@pytest.mark.parametrize("scopes,width", [([()], 0), ([("a",)], 0),
+    ([tuple(key) for key in ("ab", "bc", "cd")], 1),
+    ([tuple(key) for key in ("ab", "bc", "cd", "da")], 2),
+    ([tuple(key) for key in ("ab", "ac", "ad", "bc", "bd", "cd")], 3),
+    ([("a", "b", "c", "d")], 3), ([("a", "b"), ("c", "d")], 1)])
+def test_treewidth_of_scalar_isolate_tree_cycle_clique_and_disconnected_graph(scopes, width):
+    cores = {str(idx): SimpleNamespace(colors=scope) for idx, scope in enumerate(scopes)}
+    assert estimate_treewidth(cores, _candidate(cores, ())) == width
+
+
+def test_treewidth_is_graph_only_and_independent_of_core_axis_and_output_order():
+    dims = dict(a=2, b=9, c=2, d=9)
+    cores = {key: _core(tuple(key), tuple(dims[color] for color in key)) for key in ("ab", "bc", "cd")}
+    before = {key: core.values.copy() for key, core in cores.items()}
+    assert estimate_treewidth(cores, _candidate(cores, "abcd")) == 1
+    reordered = {key: SimpleNamespace(colors=tuple(reversed(core.colors))) for key, core in reversed(tuple(cores.items()))}
+    assert estimate_treewidth(reordered, _candidate(reordered, ())) == 1
+    for key, values in before.items():
+        np.testing.assert_array_equal(cores[key].values, values)
+
+
+@pytest.mark.parametrize("keys", [(), ("ab", "ab")])
+def test_treewidth_rejects_invalid_core_sets(keys):
+    with pytest.raises(ValueError):
+        estimate_treewidth({"ab": _core("ab", (2, 2))}, _candidate(keys, ()))
+
+
+def _original_greedy_cost(cores, candidate):
+    """Original exhaustive pair rescoring, independent of heap state and IDs."""
+    dims = {color: dim for key in candidate.core_keys
+            for color, dim in zip(cores[key].colors, cores[key].shape)}
+    scopes = [frozenset(cores[key].colors) for key in candidate.core_keys]
+    size = lambda scope: prod(dims[color] for color in scope)
+    opened = set(candidate.open_colors)
+    maximum, work, path = max(map(size, scopes)), 0, []
+    output = size(opened)
+    if len(scopes) == 1:
+        return ContractionEstimate(size(scopes[0]), maximum, output, ((0,),))
+    while len(scopes) > 1:
+        counts = Counter(color for scope in scopes for color in scope)
+        choices = []
+        for left, right in combinations(range(len(scopes)), 2):
+            a, b = scopes[left], scopes[right]
+            union = a | b
+            retained = frozenset(color for color in union if color in opened or
+                                 counts[color] > (color in a) + (color in b))
+            choices.append((size(retained), size(union), left, right, retained))
+        intermediate, cost, left, right, retained = min(choices, key=lambda row: row[:4])
+        path.append((left, right))
+        work += cost
+        maximum = max(maximum, intermediate)
+        scopes = [scope for idx, scope in enumerate(scopes) if idx not in (left, right)] + [retained]
+    return ContractionEstimate(work, max(maximum, output), output, tuple(path))
+
+
+def test_heap_path_matches_original_greedy_on_random_hypergraphs_and_exact_ties():
+    rng = Random(20261030)
+    coverage = set()
+    for case in range(200):
+        dimensions = {f"x{idx}": rng.choice((1, 1, 2, 3, 5)) for idx in range(rng.randrange(15))}
+        cores = {}
+        for idx in range(rng.randrange(1, 25)):
+            colors = tuple(rng.sample(list(dimensions), rng.randrange(min(6, len(dimensions)) + 1)))
+            cores[str(idx)] = SimpleNamespace(colors=colors, shape=tuple(dimensions[color] for color in colors))
+            coverage.update({"scalar"} if not colors else {"hyperedge"} if len(colors) > 2 else set())
+        keys = list(cores)
+        rng.shuffle(keys)
+        colors = sorted(set().union(*(set(core.colors) for core in cores.values())))
+        output = tuple(rng.sample(colors, rng.randrange(len(colors) + 1)))
+        candidate = _candidate(keys, output)
+        assert estimate_candidate_cost(cores, candidate) == _original_greedy_cost(cores, candidate), case
+        if not output:
+            coverage.add("empty_output")
+        if len(cores) == 1:
+            coverage.add("single_core")
+        if set(output) == set(colors):
+            coverage.add("all_outputs")
+        if 1 in dimensions.values():
+            coverage.add("singleton")
+    assert coverage == {"scalar", "hyperedge", "empty_output", "single_core", "all_outputs", "singleton"}

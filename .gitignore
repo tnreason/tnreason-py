@@ -1,5 +1,7 @@
 *.pyc
 *.DS_Store
+__pycache__/
+.pytest_cache/
 
 tests/*
 dist/*
@@ -23,3 +25,14 @@ demonstrations/sudoku/sudoku_bench/sample_data/hf_sudoku_dataset/*
 demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet
 demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet.jsonl
 demonstrations/sudoku/sudoku_bench/sample_data/alphareason_prepared_unsolved.parquet.tmp
+
+# Local experiment archives and generated training outputs.
+/HANDOFF_*.md
+/experiments/cluster_selection/results/
+/experiments/cluster_selection/reinforcement/results/
+/experiments/cluster_selection/**/*.pt
+/experiments/cluster_selection/**/*.pth
+/experiments/cluster_selection/**/*.ckpt
+/experiments/cluster_selection/**/*.out
+/experiments/cluster_selection/**/*.err
+/experiments/cluster_selection/**/*.log

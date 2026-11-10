@@ -178,19 +178,21 @@ class ConstraintNetworkState:
                                     self.contradiction, self.contradiction_reason))
         return self.decision_level
 
-    def pop_level(self) -> int:
-        """Restore the latest search level."""
+    def pop_level(self, *, keep_domains=False) -> int:
+        """Undo additions; optionally retain domains, contradiction and their trail."""
         if not self._level_markers:
             raise RuntimeError("Cannot pop MAC state below the root decision level.")
 
-        trail_size, core_size, queue, self.contradiction, self.contradiction_reason = self._level_markers.pop()
+        trail_size, core_size, queue, contradiction, reason = self._level_markers.pop()
+        if not keep_domains:
+            self.contradiction, self.contradiction_reason = contradiction, reason
         removed = set(self._temporary_core_keys[core_size:])
         for key in removed:
             for color in self._cores.pop(key).colors:
                 self._core_keys_by_color[color] = tuple(key for key in self._core_keys_by_color[color] if key not in removed)
             self._contractions.pop(key, None)
         del self._temporary_core_keys[core_size:]
-        while len(self._trail) > trail_size:
+        while not keep_domains and len(self._trail) > trail_size:
             color, old_domain = self._trail.pop()
             self._domains[color] = old_domain
             self._domain_tensors[color].fill(False)
@@ -198,8 +200,8 @@ class ConstraintNetworkState:
             if self.on_closure is not None:
                 self._changed_colors.add(color)
 
-        self._queue = deque(queue)
-        self._queued = set(queue)
+        self._queue = deque(key for key in self._queue if key not in removed) if keep_domains else deque(queue)
+        self._queued = set(self._queue)
         return self.decision_level
 
     def assign(self, color: str, value: int) -> bool:
