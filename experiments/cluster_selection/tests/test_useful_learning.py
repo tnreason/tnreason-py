@@ -528,6 +528,122 @@ def test_target_first_teacher_loss_credits_goals_and_only_compatible_core_contin
     assert (seed.grad[[1, 2]] < 0).all() and (seed.grad[[0, 3]] > 0).all()
 
 
+def test_greedy_imitation_concentrates_split_teacher_mass_on_one_supported_action(monkeypatch):
+    data = _data()
+    model = Policy(data["network"], width=8, rounds=1, contextual=True, target_first=True,
+                   max_cores=3, max_open_colors=3, min_active=2, cyclic_only=True, heuristic_candidates=0)
+    teachers = [(_candidate(), dict(pruned_outputs=("a",))),
+                (SummaryClusterCandidate("other", ("uv", "vw", "uw"), ("u",)),
+                 dict(pruned_outputs=("u",)))]
+    actions = model.actions([], [], False, [2] * len(model.network["colors"]))
+    probabilities = torch.full((len(actions),), 1e-5)
+    supported = actions.index(("open", model.color_idx["a"]))
+    other = actions.index(("open", model.color_idx["u"]))
+    unverified = actions.index(("open", model.color_idx["b"]))
+    probabilities[[supported, other, unverified]] = torch.tensor([.32, .30, .38])
+    logits = probabilities.log().requires_grad_()
+
+    def scored_actions(encoded, sizes, keys, opened, output_phase, beta):
+        legal = model.actions(keys, opened, output_phase, sizes)
+        scores = logits if not keys and not opened else torch.zeros(len(legal))
+        return legal, torch.distributions.Categorical(logits=scores)
+
+    monkeypatch.setattr(model, "distribution", scored_actions)
+    distribution = torch.distributions.Categorical(logits=logits)
+    assert distribution.probs[[supported, other]].sum() > distribution.probs[unverified]
+    assert int(model._greedy_choice(actions, distribution)) == unverified
+    ordinary = learn.teacher_loss(model, data["initial_domains"][0], teachers, Random(3))
+    ordinary.backward()
+    assert logits.grad[supported] < 0 and logits.grad[other] < 0
+    logits.grad = None
+    before = logits.detach().clone()
+    loss = learn.teacher_loss(model, data["initial_domains"][0], teachers, Random(3), greedy=True)
+    loss.backward()
+    assert logits.grad[supported] < 0
+    assert logits.grad[other] > 0  # Concentrate rather than distribute probability over both goals.
+    assert logits.grad[unverified] > 0
+    updated = logits.detach() - logits.grad
+    assert updated[supported] - updated[unverified] > before[supported] - before[unverified]
+    first_gradient = logits.grad.clone()
+    logits.grad = None
+    reversed_loss = learn.teacher_loss(model, data["initial_domains"][0], teachers[::-1], Random(9), greedy=True)
+    reversed_loss.backward()
+    torch.testing.assert_close(loss, reversed_loss, rtol=0, atol=0)
+    torch.testing.assert_close(logits.grad, first_gradient, rtol=0, atol=0)
+
+
+def test_greedy_imitation_keeps_a_measured_completion_through_targets_cores_and_outputs(monkeypatch):
+    closing = np.ones((4, 4), dtype=bool)
+    closing[1, 1] = False
+    network = ConstraintNetwork({key: NumpyCore(values=values.copy(), colors=list(key)) for key, values in (
+        ("ab", np.eye(4, dtype=bool)), ("bc", np.eye(4, dtype=bool)), ("ac", closing),
+        ("bd", np.eye(4, dtype=bool)), ("ad", closing))}, maintain_indices=True)
+    state = network.create_mac_state({color: (0, 1) for color in "abcd"})
+    assert state.propagate()
+    teachers = [(SummaryClusterCandidate("abc", ("ab", "bc", "ac"), ("a", "c")),
+                 dict(pruned_outputs=("a",))),
+                (SummaryClusterCandidate("abd", ("ab", "bd", "ad"), ("d",)),
+                 dict(pruned_outputs=("d",)))]
+    model = Policy(network_data(network), width=8, rounds=1, contextual=True, target_first=True,
+                   compact_domains=True, max_cores=3, max_open_colors=3, min_active=2,
+                   cyclic_only=True, heuristic_candidates=0)
+    before = _snapshot(state)
+    visited = []
+
+    def misleading_actions(encoded, sizes, keys, opened, output_phase, beta):
+        visited.append((tuple(keys), tuple(opened), output_phase))
+        actions = model.actions(keys, opened, output_phase, sizes)
+        preferences = {("open", model.color_idx["a"]): 2.,
+                       ("open", model.color_idx["d"]): 1.,
+                       ("open", model.color_idx["c"]): 100.,
+                       ("core", model.key_idx["ad"]): 100.,
+                       ("core", model.key_idx["ac"]): 2.,
+                       ("core", model.key_idx["ab"]): 1.,
+                       ("finish", -1): 100.}
+        return actions, torch.distributions.Categorical(
+            logits=torch.tensor([preferences.get(action, 0.) for action in actions]))
+
+    monkeypatch.setattr(model, "distribution", misleading_actions)
+    loss = learn.teacher_loss(model, state.domains, teachers, Random(3), greedy=True)
+    assert torch.isfinite(loss)
+    a, c = model.color_idx["a"], model.color_idx["c"]
+    ac, ab, bc = (model.key_idx[key] for key in ("ac", "ab", "bc"))
+    # c is retained but not a useful target; ad belongs only to the other
+    # teacher; neither can replace a supported next action in this construction.
+    assert visited == [((), (), False), ((), (a,), False), ((ac,), (a,), False),
+                       ((ac, ab), (a,), False), ((ac, ab, bc), (a,), False),
+                       ((ac, ab, bc), (a,), True), ((ac, ab, bc), (a, c), True)]
+    trace = [("open", a), ("core", ac), ("core", ab), ("core", bc),
+             ("finish", -1), ("open", c), ("finish", -1)]
+    monkeypatch.undo()
+    candidate, _, _, replay = model.rollout(state.domains, trace=trace, beta=0.)
+    assert replay == trace
+    assert learn._signature(candidate) == learn._signature(teachers[0][0])
+    result = evaluate_candidate(state, candidate, compact_domains=True)
+    assert result.removed_domain_values == 4
+    assert _snapshot(state) == before
+
+
+def test_explicit_default_imitation_preserves_loss_gradients_and_rng():
+    data = _data()
+    model = Policy(data["network"], width=8, rounds=1, contextual=True, target_first=True,
+                   max_cores=3, max_open_colors=3, min_active=2, cyclic_only=True, heuristic_candidates=0)
+    teachers = [(_candidate(), dict(pruned_outputs=("a",)))]
+    default_rng, explicit_rng = Random(9), Random(9)
+    default = learn.teacher_loss(model, data["initial_domains"][0], teachers, default_rng)
+    default.backward()
+    gradients = {name: parameter.grad.clone() for name, parameter in model.named_parameters()
+                 if parameter.grad is not None}
+    model.zero_grad(set_to_none=True)
+    explicit = learn.teacher_loss(model, data["initial_domains"][0], teachers, explicit_rng, greedy=False)
+    explicit.backward()
+    torch.testing.assert_close(default, explicit, rtol=0, atol=0)
+    assert default_rng.getstate() == explicit_rng.getstate()
+    for name, parameter in model.named_parameters():
+        if name in gradients:
+            torch.testing.assert_close(parameter.grad, gradients[name], rtol=0, atol=0)
+
+
 def test_target_labels_use_actual_pruned_outputs_while_retaining_the_full_summary(monkeypatch):
     data = _data()
     _, original, _, _ = learn.training_states(data, [0], [1])
@@ -980,11 +1096,14 @@ def test_reordered_structural_teacher_is_not_reported_as_novel(tmp_path, monkeyp
     assert row["novel"] == row["useful_novel"] == row["useful_unseen"] == 0
 
 
-@pytest.mark.parametrize("target_first,search_nodes,on_policy_imitation", [
-    (False, 0, False), (True, 0, False), (True, 100, False), (True, 0, True)])
+@pytest.mark.parametrize("target_first,search_nodes,on_policy_imitation,greedy_imitation,decoder", [
+    (False, 0, False, False, "depth_first"), (True, 0, False, False, "depth_first"),
+    (True, 100, False, False, "depth_first"), (True, 0, True, False, "depth_first"),
+    (True, 100, False, True, "discrepancy")])
 def test_tiny_training_measures_teachers_collects_updated_domains_and_saves_loadable_checkpoints(tmp_path, monkeypatch,
                                                                                              target_first, search_nodes,
-                                                                                             on_policy_imitation):
+                                                                                             on_policy_imitation,
+                                                                                             greedy_imitation, decoder):
     monkeypatch.setattr(learn, "causal_candidates", lambda *a, **k: pytest.fail("Default fit must not probe"))
     data = _data()
     base, state, pools, validation = learn.training_states(data, [0], [1])
@@ -995,7 +1114,8 @@ def test_tiny_training_measures_teachers_collects_updated_domains_and_saves_load
         rollouts=2, teacher_candidates=8, teacher_mutations=0, steps=1, warmup=2,
         train_indices=[0], validation_indices=[1], validation_seconds=2., max_cores=3,
         max_open_colors=3, max_work=10_000, max_size=256, target_first=target_first,
-        search_nodes=search_nodes, search_seconds=2., on_policy_imitation=on_policy_imitation)
+        search_nodes=search_nodes, search_seconds=2., on_policy_imitation=on_policy_imitation,
+        greedy_imitation=greedy_imitation, decoder=decoder)
     assert len(history) == 2 and all(row["updates"] == 1 for row in history)
     assert all("teacher_probe_assumptions" not in row for row in history)
     assert all(torch.isfinite(value).all() for value in model.state_dict().values())
@@ -1024,8 +1144,12 @@ def test_tiny_training_measures_teachers_collects_updated_domains_and_saves_load
         assert checkpoint["cost_metric"] == "conditioned_contraction_work"
         assert checkpoint["training"]["method"] == "immediate_construction"
         assert checkpoint["training"]["train_puzzles"] == [0]
+        assert checkpoint["training"]["greedy_imitation"] == greedy_imitation
+        assert checkpoint["config"].get("decoder", "depth_first") == decoder
         if checkpoint["history"]:
             assert checkpoint["training"]["on_policy_imitation"] == on_policy_imitation
+            assert checkpoint["training"]["teacher_objective"] == (
+                "greedy_supported_action" if greedy_imitation else "legal_continuation_mass")
         assert load(checkpoint_path).beta == runtime.load(checkpoint_path).beta == 0.
     initial = load(path.with_stem("useful.initial"))
     assert any(not torch.equal(value, initial.state_dict()[key]) for key, value in model.state_dict().items())

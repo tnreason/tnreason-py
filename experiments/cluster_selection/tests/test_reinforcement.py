@@ -318,6 +318,95 @@ def _construction_predictor(network, propose):
                            config=dict(max_work=1_000_000, max_size=100_000))
 
 
+def test_ensemble_interleaves_distinct_clusters_and_shares_decoder_budget():
+    network, _, (first, second, third) = _construction_state()
+    fourth = SummaryClusterCandidate("noop", ("q",), ("q",))
+    limits, members = [], {}
+    for name, candidates in (("teacher", (first, second)), ("reinforce", (first, third)), ("q", (fourth,))):
+        model = _construction_predictor(network, None)
+        def proposals(domains, *, max_candidates, max_steps, name=name, candidates=candidates):
+            limits.append((name, max_candidates, max_steps))
+            return iter(candidates)
+        model.proposals = proposals
+        members[name] = model
+    ensemble = runtime.ConstructionEnsemble(members)
+    actual = [(ensemble.last_source, candidate) for candidate in ensemble.proposals({}, max_candidates=10)]
+    assert actual == [("teacher", first), ("q", fourth), ("teacher", second), ("reinforce", third)]
+    assert limits == [("teacher", 10, 2731), ("reinforce", 10, 2731), ("q", 10, 2730)]
+    ensemble = runtime.ConstructionEnsemble(members)
+    assert list(ensemble.proposals({}, max_candidates=2)) == [first, fourth]
+
+
+def test_ensemble_restarts_on_pruning_rotates_members_and_preserves_backtracking(monkeypatch):
+    network, state, candidates = _construction_state()
+    snapshots, applied, members = [], [], {}
+    for name, candidate in zip(("teacher", "reinforce", "q"), candidates):
+        model = _construction_predictor(network, None)
+        def proposals(domains, *, max_candidates, max_steps, name=name, candidate=candidate):
+            snapshots.append((name, dict(domains)))
+            yield candidate
+            pytest.fail("Pruning must abandon every old construction iterator")
+        model.proposals = proposals
+        members[name] = model
+    ensemble = runtime.ConstructionEnsemble(members)
+    apply = runtime.apply_candidate
+    def record(state, candidate, prepared):
+        applied.append(ensemble.last_source)
+        return apply(state, candidate, prepared)
+    monkeypatch.setattr(runtime, "apply_candidate", record)
+    runtime.attach(state, ensemble, max_candidates=3)
+    original, topology = state.snapshot_domains(), tuple(state._cores)
+    state.push_level()
+    assert state.propagate()
+    assert applied == ["teacher", "reinforce", "q"]
+    assert snapshots[0][1] == original
+    assert snapshots[1][1]["a"] == snapshots[1][1]["d"] == (1,)
+    assert snapshots[1][1]["u"] == (0, 1) and snapshots[2][1]["u"] == (1,)
+    assert state.domains["x"] == (1,) and state.on_closure.statistics["selected"] == 3
+    assert tuple(state._cores) == topology and not state._temporary_core_keys
+    state.pop_level()
+    assert state.snapshot_domains() == original and state.decision_level == 0
+
+
+def test_ensemble_rejections_and_duplicates_leave_shared_contraction_slots_available():
+    network = ConstraintNetwork(dict(q=NumpyCore(values=np.ones(3), colors=["q"]),
+        r=NumpyCore(values=np.ones(3), colors=["r"]),
+        xy=NumpyCore(values=np.ones((3, 3)), colors=["x", "y"])))
+    state = network.create_mac_state()
+    expensive = SummaryClusterCandidate("expensive", ("xy",), ("x",))
+    first, second = (SummaryClusterCandidate(color, (color,), (color,)) for color in ("q", "r"))
+    members = {}
+    for name, candidates in (("teacher", (expensive, first)), ("reinforce", (first, second)), ("q", (first,))):
+        model = _construction_predictor(network, None)
+        model.config["max_work"] = 3
+        model.proposals = lambda domains, candidates=candidates, **kwargs: iter(candidates)
+        members[name] = model
+    runtime.attach(state, runtime.ConstructionEnsemble(members), max_candidates=2)
+    assert state.propagate()
+    statistics = state.on_closure.statistics
+    assert statistics["selected"] == 2 and statistics["rejected"] == 1
+    assert statistics["candidates"] == 3 and statistics["useful"] == 0
+    assert not state._temporary_core_keys
+
+
+@pytest.mark.parametrize("change", ["network", "kind", "max_cores", "max_open_colors", "max_work",
+                                    "max_size", "compact_domains", "max_total_work"])
+def test_ensemble_requires_compatible_construction_members(change):
+    network = _network()
+    first, second = (_construction_predictor(network, None) for _ in range(2))
+    first.proposals = second.proposals = lambda *args, **kwargs: iter(())
+    if change == "network":
+        second.network = network_data(_network(odd=True))
+    elif change == "kind":
+        second.kind = "supervised"
+    else:
+        second.config[change] = 7
+    with pytest.raises(ValueError):
+        runtime.ConstructionEnsemble(dict(first=first, second=second))
+    with pytest.raises(ValueError, match="at least one member"):
+        runtime.ConstructionEnsemble({})
+
+
 def test_runtime_reselects_after_each_useful_closure_and_stops_at_first_no_information():
     network, state, (first, second, later) = _construction_state()
     noop = SummaryClusterCandidate("noop", ("q",), ("q",))
@@ -418,6 +507,20 @@ def test_runtime_batch_legacy_stop_rule_remains_available():
     predictor.proposals = lambda *a, **k: pytest.fail("Legacy inference uses greedy propose")
     runtime.attach(state, predictor, stop_on_noop=True)
     assert state.propagate() and state.on_closure.statistics["selected"] == 1
+
+
+def test_runtime_single_proposal_respects_application_allowance():
+    network, state, (first, second, later) = _construction_state()
+    choices = iter((first, second, later))
+    runtime.attach(state, _construction_predictor(network, lambda domains: next(choices)), max_candidates=1)
+    before = state.snapshot_domains()
+    state.push_level()
+    assert state.propagate()
+    assert state.on_closure.statistics["selected"] == state.on_closure.statistics["useful"] == 1
+    assert state.domains["a"] == (1,) and state.domains["u"] == (0, 1)
+    assert not state._temporary_core_keys
+    state.pop_level()
+    assert state.snapshot_domains() == before
 
 
 def test_runtime_cached_local_result_stops_reselection_and_replays_after_backtracking(monkeypatch):
@@ -770,7 +873,8 @@ def test_experiment_rejects_partial_or_invalid_solver_assignments(monkeypatch, a
     assert row["status"] == "invalid" and not row["solved"] and not row["valid"]
 
 
-def test_experiment_cli_exclusive_output_and_overlap_uses_domains_instead_of_ids(tmp_path):
+@pytest.mark.parametrize("decoder", ["depth_first", "discrepancy"])
+def test_experiment_cli_exclusive_output_and_overlap_uses_domains_instead_of_ids(tmp_path, decoder):
     raw = network_data(_network())
     model = Policy(raw, width=8, rounds=1, max_cores=3)
     model.reward_colors = ["a"]
@@ -785,12 +889,13 @@ def test_experiment_cli_exclusive_output_and_overlap_uses_domains_instead_of_ids
     command = [sys.executable, "-B", "-m", "experiments.cluster_selection.reinforcement.experiment",
                str(evaluation), "--training-data", str(training), "--checkpoint", str(checkpoint),
                "--output", str(output), "--indices", "0", "--nodes", "20", "--seconds", "10",
-               "--total-work", "100000"]
+               "--total-work", "100000", "--decoder", decoder]
     result = subprocess.run(command, capture_output=True, text=True, timeout=60)
     assert result.returncode == 0, result.stderr
     rows = [json.loads(line) for line in output.read_text().splitlines()]
     assert rows[0]["exact_training_overlap"] == 0 and rows[0]["threads"] == 1
     assert rows[0]["total_work_budget"] == 100000
+    assert rows[0]["config"]["decoder"] == decoder
     assert {row["mode"] for row in rows[1:]} == {"plain", "trained", "untrained", "prior", "first", "heuristic"}
     assert all(row["status"] == "solved" and row["valid"] and row["targets"]["a"] == 1 for row in rows[1:])
     assert all(row["work"]["estimated_work"] <= 100000 for row in rows[1:])

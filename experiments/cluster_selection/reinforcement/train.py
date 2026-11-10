@@ -1,4 +1,8 @@
-"""REINFORCE with a min-fill treewidth penalty; candidate labels are ignored."""
+"""Legacy treewidth-penalty REINFORCE; use learn.py for current actor training.
+
+The state/closure/checkpoint helpers here are shared by the current learners.
+Keep this trainer for reproducing earlier experiments and checkpoints.
+"""
 import argparse
 from contextlib import contextmanager
 import json

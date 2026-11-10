@@ -298,11 +298,13 @@ def fit(data, *, output, epochs=8, width=32, rounds=2, lr=.0003, seed=0, puzzles
         # Deployment loads checkpoints on CPU; validate those same numerical
         # decisions and keep the sequential MAC controller off the training GPU.
         validator = model if training_device.type == "cpu" else deepcopy(model).cpu().eval()
+        print(f"validation root propagation: {len(validation)} puzzles", flush=True)
         result = evaluate_roots(state.constraint_network, validation, validator, seconds=validation_seconds,
                                 total_work=max_total_work, cluster_attempts=cluster_attempts)
         compact = {key: value for key, value in result.items() if key != "rows"}
         if compact["contradictions"] and "puzzles" in data:
             raise AssertionError("Validation contraction contradicted a known satisfiable puzzle")
+        print(f"validation greedy constructions: {len(validation)} puzzles", flush=True)
         greedy = []
         for domains in validation:
             probe = state.constraint_network.create_mac_state(domains)
@@ -310,9 +312,14 @@ def fit(data, *, output, epochs=8, width=32, rounds=2, lr=.0003, seed=0, puzzles
                 greedy.append(measure(validator, probe, validator.propose(probe.domains), objective="pruning"))
         compact.update(greedy_trials=len(greedy), greedy_useful=sum(row["useful"] for row in greedy),
                        greedy_reward=sum(row["reward"] for row in greedy) / max(1, len(greedy)))
-        rows = [solve(state.constraint_network, domains, "trained", validator, nodes=search_nodes,
-                      seconds=validation_seconds, total_work=max_total_work, cluster_attempts=cluster_attempts)
-                for domains in validation]
+        print(f"validation DFS: {len(validation)} puzzles", flush=True)
+        rows = []
+        for index, domains in enumerate(validation, 1):
+            row = solve(state.constraint_network, domains, "trained", validator, nodes=search_nodes,
+                        seconds=validation_seconds, total_work=max_total_work, cluster_attempts=cluster_attempts)
+            rows.append(row)
+            print(f"validation DFS {index}/{len(validation)}: {row['status']}, nodes {row['nodes']}",
+                  flush=True)
         if any(row["status"] == "invalid" or "puzzles" in data and row["status"] == "unsat" for row in rows):
             raise AssertionError("Invalid validation search outcome")
         complete = sum(row["status"] in {"solved", "unsat"} for row in rows)
@@ -508,6 +515,8 @@ def main():
         parser.add_argument("--" + key.replace("_", "-"), type=type(default), default=default,
                             help=help_text.get(key))
     parser.add_argument("--initial-checkpoint", type=Path)
+    parser.add_argument("--decoder", choices=("depth_first", "discrepancy", "sampling", "sampling_grow"), default="depth_first",
+                        help="Inference decoding; Q sampling modes are experimental and leave Q training actions unchanged")
     parser.add_argument("--nested-teacher", action="store_true",
                         help="Keep structural proposal prefixes while expanding doubling stages from 32 candidates")
     parser.add_argument("--teacher-max-steps", type=int,

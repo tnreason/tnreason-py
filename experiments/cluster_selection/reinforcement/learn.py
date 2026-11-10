@@ -333,9 +333,14 @@ def curriculum_prefix(model, domains, teachers, epoch, epochs, rng):
     return trace[:ceil(core_phase * (1 - epoch / duration))]
 
 
-def teacher_loss(model, domains, teachers, rng):
-    """Credit any legal continuation toward a measured useful construction."""
-    trace = _teacher_trace(model, domains, rng.choice(teachers), rng)
+def teacher_loss(model, domains, teachers, rng, *, greedy=False):
+    """Imitate measured constructions, optionally following the best supported path.
+
+    The default credits total compatible probability along a random teacher
+    trace. Greedy imitation concentrates on one executable continuation at each
+    prefix; actions outside the finite teacher pool remain unverified.
+    """
+    trace = None if greedy else _teacher_trace(model, domains, rng.choice(teachers), rng)
     targets = [(set(model.key_idx[key] for key in item.core_keys),
                 set(model.color_idx[color] for color in item.open_colors),
                 set(model.color_idx[color] for color in metrics.get("pruned_outputs", item.open_colors)))
@@ -343,7 +348,8 @@ def teacher_loss(model, domains, teachers, rng):
     encoded = model.encode(domains)
     sizes = [len(domains[color]) for color in model.network["colors"]]
     keys, opened, output_phase, losses = [], [], False, []
-    for action in trace:
+    steps = len(trace) if trace is not None else model.config["max_cores"] + model.config["max_open_colors"] + 3
+    for step in range(steps):
         actions, distribution = model.distribution(encoded, sizes, keys, opened, output_phase, 0.)
         valid = set()
         choosing_target = model.config.get("target_first") and not keys and not opened and not output_phase
@@ -362,9 +368,17 @@ def teacher_loss(model, domains, teachers, rng):
                 following = [("core", key) for key in cores - set(keys)]
             valid.update(following or [("finish", -1)])
         indices = [idx for idx, item in enumerate(actions) if item in valid]
-        if not indices or action not in valid:
+        if not indices:
             raise AssertionError("Measured teacher has no valid continuation")
-        losses.append(-distribution.logits[indices].logsumexp(0))
+        if greedy:
+            choice = indices[int(distribution.logits[indices].detach().argmax())]
+            action = actions[choice]
+            losses.append(-distribution.logits[choice])
+        else:
+            action = trace[step]
+            if action not in valid:
+                raise AssertionError("Measured teacher has no valid continuation")
+            losses.append(-distribution.logits[indices].logsumexp(0))
         kind, idx = action
         if kind == "core":
             keys.append(idx)
@@ -372,6 +386,8 @@ def teacher_loss(model, domains, teachers, rng):
             opened.append(idx)
         elif not output_phase:
             output_phase = True
+        elif greedy:
+            break
     # The one starting decision must not vanish among many easier continuation
     # and output decisions as affordable clusters grow.
     return (losses[0] + torch.stack(losses[1:]).mean()) / 2
@@ -523,7 +539,7 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
         validation_seconds=5., max_total_work=5_000_000, train_indices=None,
         validation_indices=None, curriculum=True, initial_checkpoint=None, search_nodes=0,
         search_seconds=10., on_policy_imitation=False, transfer_weights=False, teacher_probes=0,
-        completion_value_imitation=False, objective="mixed", cluster_attempts=32,
+        completion_value_imitation=False, greedy_imitation=False, objective="mixed", cluster_attempts=32,
         device="cpu", validation_interval=1, checkpoint_every=0, progress_every=100,
         teacher_cache_size=256, cycle_puzzles=False, teacher_max_steps=None, nested_teacher=False, **limits):
     """Positive measured-trace warm-up, then immediate REINFORCE on fresh samples."""
@@ -536,7 +552,7 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
             or any(not isinstance(value, int) or isinstance(value, bool) or value < 0
                    for value in (puzzles_per_epoch, teacher_cache_size))
             or not isinstance(progress_every, int) or isinstance(progress_every, bool) or progress_every < 1
-            or not isinstance(cycle_puzzles, bool)
+            or not isinstance(cycle_puzzles, bool) or not isinstance(greedy_imitation, bool)
             or max_total_work is not None and (not isinstance(max_total_work, int)
                 or isinstance(max_total_work, bool) or max_total_work < 1)
             or not isinstance(cluster_attempts, int) or isinstance(cluster_attempts, bool) or cluster_attempts < 1
@@ -566,6 +582,8 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
         raise ValueError("On-policy imitation requires target-first construction")
     if completion_value_imitation and (on_policy_imitation or not limits.get("target_first")):
         raise ValueError("Completion-value imitation requires target-first construction and excludes repair imitation")
+    if greedy_imitation and (on_policy_imitation or completion_value_imitation):
+        raise ValueError("Greedy imitation excludes repair and completion-value imitation")
     if transfer_weights and (initial_checkpoint is None or not limits.get("value_encoding")):
         raise ValueError("Cross-network transfer requires value encoding and an initialization checkpoint")
     base, state, pools, validation = training_states(data, train_indices, validation_indices, progress_every)
@@ -632,52 +650,51 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
         if snapshot in cache:
             positives, structural, measured = cache[snapshot]
             return positives, 0, structural, measured
-        if snapshot not in cache:
-            proposals = list(generate(state.domains, cyclic_only=True,
-                                      compact_domains=model.config["compact_domains"]))
-            totals["teacher_structural_calls"] += 1
-            totals["teacher_structural_candidates"] += len(proposals)
-            structural_proposals = {_signature(candidate) for candidate in proposals}
-            if teacher_probes:
-                began = perf_counter()
-                proposals.extend(causal_candidates(state, model.reward_colors, rng, teacher_probes,
-                                                   max_cores=model.config["max_cores"]))
-                totals["teacher_probe_seconds"] += perf_counter() - began
-                totals["teacher_probe_candidates"] += len(proposals) - len(structural_proposals)
-                totals["teacher_probe_assumptions"] += min(teacher_probes, sum(len(state.domains[color])
-                    for color in model.reward_colors if len(state.domains[color]) > 1))
-            scored, signatures = [], set()
-            with torch.no_grad():
-                for candidate in proposals:
-                    if _signature(candidate) in signatures:
-                        continue
-                    try:
-                        model.candidate_trace(candidate, state.domains)
-                    except ValueError:
-                        continue
-                    metrics = measure(model, state, candidate, cost_weight=cost_weight,
-                                      known_satisfiable=sample["known_satisfiable"], work_budget=remaining_work,
-                                      search=search, objective=objective)
-                    signatures.add(_signature(candidate))
-                    scored.append((candidate, metrics))
-                structural = signatures & structural_proposals
-                totals["teacher_structural_useful"] += sum(metrics["useful"] for candidate, metrics in scored
-                    if _signature(candidate) in structural)
-                seeds = [candidate for candidate, metrics in scored if metrics["useful"]] or proposals
-                if seeds:
-                    for candidate in mutations(model, state, seeds, rng, teacher_mutations):
-                        signature = _signature(candidate)
-                        if signature not in signatures:
-                            metrics = measure(model, state, candidate, cost_weight=cost_weight,
-                                              known_satisfiable=sample["known_satisfiable"], work_budget=remaining_work,
-                                              search=search, objective=objective)
-                            scored.append((candidate, {**metrics, "novel": 1}))
-                            signatures.add(signature)
-            positives = _positive_teachers(scored, search is not None, objective=objective)
-            if teacher_cache_size and len(cache) >= teacher_cache_size:
-                cache.pop(next(iter(cache)))
-            cache[snapshot] = positives, structural, set(signatures)
-        positives, structural, measured = cache[snapshot]
+        proposals = list(generate(state.domains, cyclic_only=True,
+                                  compact_domains=model.config["compact_domains"]))
+        totals["teacher_structural_calls"] += 1
+        totals["teacher_structural_candidates"] += len(proposals)
+        structural_proposals = {_signature(candidate) for candidate in proposals}
+        if teacher_probes:
+            began = perf_counter()
+            proposals.extend(causal_candidates(state, model.reward_colors, rng, teacher_probes,
+                                               max_cores=model.config["max_cores"]))
+            totals["teacher_probe_seconds"] += perf_counter() - began
+            totals["teacher_probe_candidates"] += len(proposals) - len(structural_proposals)
+            totals["teacher_probe_assumptions"] += min(teacher_probes, sum(len(state.domains[color])
+                for color in model.reward_colors if len(state.domains[color]) > 1))
+        scored, signatures = [], set()
+        with torch.no_grad():
+            for candidate in proposals:
+                if _signature(candidate) in signatures:
+                    continue
+                try:
+                    model.candidate_trace(candidate, state.domains)
+                except ValueError:
+                    continue
+                metrics = measure(model, state, candidate, cost_weight=cost_weight,
+                                  known_satisfiable=sample["known_satisfiable"], work_budget=remaining_work,
+                                  search=search, objective=objective)
+                signatures.add(_signature(candidate))
+                scored.append((candidate, metrics))
+            structural = signatures & structural_proposals
+            totals["teacher_structural_useful"] += sum(metrics["useful"] for candidate, metrics in scored
+                if _signature(candidate) in structural)
+            seeds = [candidate for candidate, metrics in scored if metrics["useful"]] or proposals
+            if seeds:
+                for candidate in mutations(model, state, seeds, rng, teacher_mutations):
+                    signature = _signature(candidate)
+                    if signature not in signatures:
+                        metrics = measure(model, state, candidate, cost_weight=cost_weight,
+                                          known_satisfiable=sample["known_satisfiable"], work_budget=remaining_work,
+                                          search=search, objective=objective)
+                        scored.append((candidate, {**metrics, "novel": 1}))
+                        signatures.add(signature)
+        positives = _positive_teachers(scored, search is not None, objective=objective)
+        if teacher_cache_size and len(cache) >= teacher_cache_size:
+            cache.pop(next(iter(cache)))
+        measured = set(signatures)
+        cache[snapshot] = positives, structural, measured
         return positives, len(scored), structural, measured
 
     def selection():
@@ -686,12 +703,14 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
         # with deployment while the learner and its optimizer remain on GPU.
         validator = model if training_device.type == "cpu" else deepcopy(model).cpu().eval()
         if validation:
+            print(f"validation root propagation: {len(validation)} puzzles", flush=True)
             result = evaluate_roots(state.constraint_network, validation, validator,
                                     seconds=validation_seconds, total_work=max_total_work,
                                     cluster_attempts=cluster_attempts)
             compact = {key: value for key, value in result.items() if key != "rows"}
             if compact["contradictions"] and "puzzles" in data:
                 raise AssertionError("Validation contraction contradicted a known satisfiable puzzle")
+            print(f"validation greedy constructions: {len(validation)} puzzles", flush=True)
             greedy = []
             for domains in validation:
                 probe = state.constraint_network.create_mac_state(domains)
@@ -702,10 +721,15 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
                            greedy_reward=sum(row["reward"] for row in greedy) / max(1, len(greedy)))
             rank = (compact["additional_resolved_fraction"], compact["mean_progress"], -compact["mean_seconds"])
             if search_nodes:
-                rows = [solve(state.constraint_network, domains, "trained", validator,
-                              nodes=search_nodes, seconds=validation_seconds, total_work=max_total_work,
-                              cluster_attempts=cluster_attempts)
-                        for domains in validation]
+                print(f"validation DFS: {len(validation)} puzzles", flush=True)
+                rows = []
+                for index, domains in enumerate(validation, 1):
+                    row = solve(state.constraint_network, domains, "trained", validator,
+                                nodes=search_nodes, seconds=validation_seconds, total_work=max_total_work,
+                                cluster_attempts=cluster_attempts)
+                    rows.append(row)
+                    print(f"validation DFS {index}/{len(validation)}: {row['status']}, nodes {row['nodes']}",
+                          flush=True)
                 if any(row["status"] == "invalid" or "puzzles" in data and row["status"] == "unsat"
                        for row in rows):
                     raise AssertionError("Invalid validation search outcome")
@@ -752,7 +776,7 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
         cluster_attempts=cluster_attempts, max_total_work=max_total_work,
         search_nodes=search_nodes, search_seconds=search_seconds,
         device=str(training_device), validation_device="cpu", lr=lr, epochs=epochs,
-        planned_epochs=epochs, warmup=warmup,
+        planned_epochs=epochs, warmup=warmup, greedy_imitation=greedy_imitation,
         puzzles_per_epoch=puzzles_per_epoch, puzzles_per_epoch_effective=epoch_puzzles,
         dataset_instances=len(initial_domains), validation_instances=len(validation),
         train_puzzle_count=len(pools), train_context_count_initial=sum(map(len, pools.values())),
@@ -824,7 +848,8 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
                     imitation = policy_loss * 0
                     if teachers:
                         imitation = (on_policy_teacher_loss(model, state, teachers, work_budget=remaining_work)
-                                     if on_policy_imitation else teacher_loss(model, state.domains, teachers, rng))
+                                     if on_policy_imitation else teacher_loss(model, state.domains, teachers, rng,
+                                                                            greedy=greedy_imitation))
                         if completion_value_imitation:
                             imitation = (imitation + completion_value_loss(model, state.domains, teachers)) / 2
                     loss = (0. if epoch < warmup else 1.) * policy_loss + imitation_weight * imitation
@@ -897,9 +922,11 @@ def fit(data, *, output, epochs=12, width=32, rounds=2, lr=.0003, seed=0,
                         imitation_weight=imitation_weight, teacher_candidates=teacher_candidates,
                         teacher_probes=teacher_probes,
                         teacher_mutations=teacher_mutations, curriculum=curriculum, parent=parent,
-                        teacher_objective="legal_continuation_mass", target_labels="pruned_outputs",
+                        teacher_objective="greedy_supported_action" if greedy_imitation else "legal_continuation_mass",
+                        target_labels="pruned_outputs",
                         on_policy_imitation=on_policy_imitation,
                         completion_value_imitation=completion_value_imitation,
+                        greedy_imitation=greedy_imitation,
                         transfer_weights=transfer_weights,
                         epoch=epoch + 1, phase=phase, last_validation_epoch=last_validation_epoch,
                         search_grading=dict(search_statistics))
@@ -954,6 +981,8 @@ def main():
         parser.add_argument("--" + key.replace("_", "-"), type=type(default), default=default,
                             help=help_text.get(key))
     parser.add_argument("--objective", choices=("mixed", "dfs_nodes", "pruning"), default="mixed")
+    parser.add_argument("--decoder", choices=("depth_first", "discrepancy", "sampling", "sampling_grow"), default="depth_first",
+                        help="Actor decoding; sampling_grow extends while legal additions remain")
     parser.add_argument("--nested-teacher", action="store_true",
                         help="Keep structural proposal prefixes while expanding doubling stages from 32 candidates")
     parser.add_argument("--teacher-max-steps", type=int,
@@ -968,6 +997,8 @@ def main():
                         help="Consume a shuffled dataset in epoch-sized chunks before repeating any puzzle")
     parser.add_argument("--target-first", action="store_true", help="Choose an open variable before constructing its cluster")
     parser.add_argument("--on-policy-imitation", action="store_true", help="Teach affordable useful completions at student prefixes")
+    parser.add_argument("--greedy-imitation", action="store_true",
+                        help="Train the highest-scoring teacher-compatible continuation at corrected greedy prefixes")
     parser.add_argument("--completion-value-imitation", action="store_true", help="Also teach best-known terminal utility at student prefixes")
     parser.add_argument("--value-encoding", action="store_true", help="Encode allowed tensor assignments without absolute value labels")
     parser.add_argument("--relational-context", action="store_true", help="Retain selected tensor-value correspondences using target-value queries")

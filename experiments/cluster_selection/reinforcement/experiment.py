@@ -70,10 +70,12 @@ def _valid_assignment(network, domains, assignment):
 
 
 def _run(network, domains, mode, model, *, nodes, seconds, total_work, propagation_only,
-         baseline_candidates, cluster_attempts=None, stop_on_noop=False):
+         baseline_candidates, cluster_attempts=None, stop_on_noop=False, baseline_steps=None):
     """Both evaluations share cluster policy, work accounting, and validation."""
     if not np.isfinite(seconds) or seconds <= 0 or total_work is not None and total_work < 1:
         raise ValueError("Evaluation budgets must be positive")
+    if baseline_steps is not None and (type(baseline_steps) is not int or baseline_steps < 1):
+        raise ValueError("Structural search steps must be a positive integer")
     started = perf_counter()
     state = network.create_mac_state(domains)
     initial_domains = state.snapshot_domains()
@@ -86,6 +88,8 @@ def _run(network, domains, mode, model, *, nodes, seconds, total_work, propagati
         nonlocal policy
         if mode == "heuristic":
             limits = {key: model.config[key] for key in ("max_cores", "max_open_colors", "max_work", "max_size")}
+            if baseline_steps is not None:
+                limits["max_steps"] = baseline_steps
             runtime.attach_heuristic(state, max_candidates=baseline_candidates,
                                      compact_domains=model.config.get("compact_domains", False), **limits)
         elif mode != "plain":
@@ -181,19 +185,19 @@ def _run(network, domains, mode, model, *, nodes, seconds, total_work, propagati
 
 
 def solve(network, domains, mode, model, *, nodes, seconds, total_work=None, baseline_candidates=32,
-          cluster_attempts=None, stop_on_noop=False):
+          cluster_attempts=None, stop_on_noop=False, baseline_steps=None):
     """Run DFS with temporary cluster summaries and validate any full solution."""
     return _run(network, domains, mode, model, nodes=nodes, seconds=seconds, total_work=total_work,
                 propagation_only=False, baseline_candidates=baseline_candidates,
-                cluster_attempts=cluster_attempts, stop_on_noop=stop_on_noop)
+                cluster_attempts=cluster_attempts, stop_on_noop=stop_on_noop, baseline_steps=baseline_steps)
 
 
 def propagate(network, domains, mode, model, *, seconds, total_work=None, baseline_candidates=32,
-              cluster_attempts=None, stop_on_noop=False):
+              cluster_attempts=None, stop_on_noop=False, baseline_steps=None):
     """Close ordinary GAC, then cluster/GAC repeatedly, with no decisions or DFS."""
     return _run(network, domains, mode, model, nodes=0, seconds=seconds, total_work=total_work,
                 propagation_only=True, baseline_candidates=baseline_candidates,
-                cluster_attempts=cluster_attempts, stop_on_noop=stop_on_noop)
+                cluster_attempts=cluster_attempts, stop_on_noop=stop_on_noop, baseline_steps=baseline_steps)
 
 
 def evaluate_roots(network, initial_domains, model, *, seconds, total_work=None, mode="trained", cluster_attempts=None):
@@ -238,6 +242,8 @@ def main():
                         help="Reproduce legacy greedy construction, stopping at its first no-op")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--beta", type=float, help="Override checkpoint prior strength in every construction mode")
+    parser.add_argument("--decoder", choices=("depth_first", "discrepancy", "sampling", "sampling_grow"),
+                        help="Override construction decoding; sampling_grow extends legal additions (Q sampling is experimental)")
     args = parser.parse_args()
     if (args.output.exists() or args.nodes < 1 or args.baseline_candidates < 1
             or args.cluster_attempts is not None and args.cluster_attempts < 1
@@ -271,6 +277,8 @@ def main():
         if not np.isfinite(args.beta) or args.beta < 0:
             parser.error("Beta must be finite and nonnegative")
         trained.beta = args.beta
+    if args.decoder is not None:
+        trained.config["decoder"] = args.decoder
     torch.manual_seed(args.seed)
     untrained = Policy(raw, **trained.config).eval()
     untrained.reward_colors, untrained.beta = trained.reward_colors, trained.beta

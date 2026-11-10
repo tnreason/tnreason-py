@@ -38,8 +38,9 @@ def test_legacy_defaults_preserve_config_weights_and_scores():
     torch.manual_seed(13)
     original = _model()
     torch.manual_seed(13)
-    explicit = _model(contextual=False)
+    explicit = _model(contextual=False, decoder="depth_first")
     assert original.config == explicit.config and "contextual" not in original.config
+    assert "decoder" not in original.config
     assert not any(key.startswith("selection_") for key in original.state_dict())
     domains = [[0, 1]] * 5
     for key, value in original.state_dict().items():
@@ -57,10 +58,22 @@ def _proposal_model(**options):
                   max_open_colors=2, heuristic_candidates=0, **options).eval()
 
 
+def _growth_reference(self, encoded, sizes, keys, opened, output_phase, beta=0., targets=()):
+    # Frozen external grow wrapper; independent of the production helper.
+    actions, distribution = Policy.distribution(self, encoded, sizes, keys, opened, output_phase, beta, targets)
+    target = self.config.get("target_first") and not keys and not opened and not output_phase
+    kind = "open" if output_phase or target else "core"
+    following = [idx for idx, action in enumerate(actions) if action[0] == kind]
+    following = following or [idx for idx, action in enumerate(actions) if action[0] == "finish"]
+    following = following or list(range(len(actions)))
+    return [actions[idx] for idx in following], torch.distributions.Categorical(logits=distribution.logits[following])
+
+
 @pytest.mark.parametrize("hierarchical", [False, True])
-def test_proposals_preserve_first_greedy_choice_rng_and_grad_context(monkeypatch, hierarchical):
+@pytest.mark.parametrize("decoder", ["depth_first", "discrepancy", "sampling"])
+def test_proposals_preserve_first_greedy_choice_rng_and_grad_context(monkeypatch, hierarchical, decoder):
     torch.manual_seed(13)
-    model = _proposal_model(contextual=True, target_first=True, hierarchical_greedy=hierarchical)
+    model = _proposal_model(contextual=True, target_first=True, hierarchical_greedy=hierarchical, decoder=decoder)
     model.beta = 0
     domains = dict(a=(0, 1), b=(0, 1), c=(0, 1))
     expected, before = model.propose(domains), torch.get_rng_state().clone()
@@ -95,9 +108,10 @@ def test_proposals_supply_32_distinct_constructions_when_available():
     assert len(candidates) == len({(candidate.core_keys, candidate.open_colors) for candidate in candidates}) == 32
 
 
-def test_proposals_deduplicate_core_and_output_orders_without_losing_target_anchors(monkeypatch):
+@pytest.mark.parametrize("decoder", ["depth_first", "discrepancy"])
+def test_proposals_deduplicate_core_and_output_orders_without_losing_target_anchors(monkeypatch, decoder):
     torch.manual_seed(13)
-    model = _proposal_model(contextual=True, target_first=True)
+    model = _proposal_model(contextual=True, target_first=True, decoder=decoder)
     model.beta = 0
     distribution, visited = model.distribution, []
 
@@ -117,8 +131,9 @@ def test_proposals_deduplicate_core_and_output_orders_without_losing_target_anch
         assert (frozenset((0, 1)), frozenset((a, b)), True, anchor) in visited
 
 
-def test_proposals_continue_past_skip_and_bound_distribution_evaluations(monkeypatch):
-    model = _proposal_model()
+@pytest.mark.parametrize("decoder", ["depth_first", "discrepancy"])
+def test_proposals_continue_past_skip_and_bound_distribution_evaluations(monkeypatch, decoder):
+    model = _proposal_model(decoder=decoder)
     model.beta = 0
     distribution, calls = model.distribution, []
 
@@ -142,6 +157,312 @@ def test_proposals_continue_past_skip_and_bound_distribution_evaluations(monkeyp
 def test_proposals_reject_invalid_limits(limits):
     with pytest.raises(ValueError, match="positive integers"):
         list(_proposal_model().proposals([[0, 1]] * 3, **limits))
+
+
+@pytest.mark.parametrize("decoder", ["beam", None, 1, True])
+def test_proposals_reject_unknown_decoder(decoder):
+    with pytest.raises(ValueError, match="Decoder"):
+        _proposal_model(decoder=decoder)
+
+
+@pytest.mark.parametrize("decoder", ["depth_first", "discrepancy", "sampling", "sampling_grow"])
+def test_decoder_checkpoint_roundtrip_preserves_weights_and_proposals(tmp_path, decoder):
+    model = _proposal_model(contextual=True, target_first=True, decoder=decoder)
+    model.beta = 0
+    path = tmp_path / "policy.pt"
+    torch.save(dict(version=1, kind=model.kind, network=model.network, config=model.config,
+                    reward_colors=model.reward_colors, beta=model.beta, weights=model.state_dict()), path)
+    restored = runtime.load(path)
+    assert restored.config == model.config
+    assert ("decoder" in restored.config) == (decoder != "depth_first")
+    for key, value in model.state_dict().items():
+        torch.testing.assert_close(value, restored.state_dict()[key], atol=0, rtol=0)
+    domains = [[0, 1]] * 3
+    limit = 2 if decoder == "sampling_grow" else 4
+    assert list(restored.proposals(domains, max_candidates=limit)) == list(model.proposals(domains, max_candidates=limit))
+
+
+@pytest.mark.parametrize("target_first", [False, True])
+@pytest.mark.parametrize("hierarchical", [False, True])
+@pytest.mark.parametrize("decoder", ["sampling", "sampling_grow"])
+def test_sampling_matches_independent_rollouts_including_partial_budget(monkeypatch, target_first, hierarchical, decoder):
+    import json
+    from hashlib import sha256
+    torch.manual_seed(13)
+    model = _model(contextual=True, target_first=target_first, hierarchical_greedy=hierarchical,
+                   max_cores=3, max_open_colors=2, decoder=decoder).eval()
+    model.beta = 0
+    domains = {color: (0, 1) for color in model.network["colors"]}
+    canonical = [(color, sorted(set(domains[color]))) for color in model.network["colors"]]
+    seed = int(sha256(json.dumps(canonical, separators=(",", ":")).encode()).hexdigest(), 16) % (2 ** 63)
+    generator = torch.Generator().manual_seed(seed)
+    with torch.no_grad():
+        encoded = model.encode(domains)
+    original, reference_states = model.distribution, []
+
+    class Budget(Exception):
+        pass
+
+    def independent_draws(*args, **kwargs):
+        if len(reference_states) == 53:
+            raise Budget()
+        reference_states.append((tuple(args[2]), tuple(args[3]), bool(args[4])))
+        actions, distribution = original(*args, **kwargs)
+        if decoder == "sampling_grow":
+            actions, distribution = _growth_reference(model, *args, **kwargs)
+        distribution.sample = lambda: torch.multinomial(distribution.probs, 1, generator=generator).squeeze(0)
+        return actions, distribution
+
+    expected, signatures, attempts = [], set(), 0
+    before = torch.get_rng_state().clone()
+    with monkeypatch.context() as patch:
+        patch.setitem(model.config, "decoder", "sampling")
+        patch.setattr(model, "encode", lambda *_: encoded)
+        patch.setattr(model, "distribution", independent_draws)
+        while len(expected) < 8:
+            try:
+                with torch.no_grad():
+                    candidate = model.rollout(domains, beta=0, greedy=attempts == 0)[0]
+            except Budget:
+                break
+            attempts += 1
+            if candidate is not None and (candidate.core_keys, candidate.open_colors) not in signatures:
+                signatures.add((candidate.core_keys, candidate.open_colors))
+                expected.append(candidate)
+    actual_states = []
+
+    def record(*args, **kwargs):
+        actual_states.append((tuple(args[2]), tuple(args[3]), bool(args[4])))
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(model, "distribution", record)
+    actual = list(model.proposals(domains, max_candidates=8, max_steps=53))
+    assert actual == expected and actual_states == reference_states
+    assert torch.equal(before, torch.get_rng_state())
+    for candidate in actual:
+        assert model.rollout(domains, beta=0, trace=model.candidate_trace(candidate, domains))[0] == candidate
+
+
+def test_sampling_is_domain_canonical_and_counts_skip_and_duplicate_paths(monkeypatch):
+    torch.manual_seed(13)
+    model = _proposal_model(contextual=True, target_first=True, decoder="sampling")
+    model.beta = 0
+    domains = {color: (0, 1) for color in model.network["colors"]}
+    expected = list(model.proposals(domains, max_candidates=4))
+    permuted = {color: (1, 0, 1) for color in reversed(model.network["colors"])}
+    assert expected == list(model.proposals(permuted, max_candidates=4))
+    assert expected == list(model.proposals(list(domains.values()), max_candidates=4))
+    original, calls = model.distribution, []
+
+    def forced(*args, **kwargs):
+        actions, distribution = original(*args, **kwargs)
+        calls.append(1)
+        selected = actions.index(("skip", -1)) if skip[0] else int(model._greedy_choice(actions, distribution))
+        probabilities = torch.zeros_like(distribution.probs)
+        probabilities[selected] = 1
+        return actions, torch.distributions.Categorical(probs=probabilities)
+
+    skip = [True]
+    monkeypatch.setattr(model, "distribution", forced)
+    assert list(model.proposals(domains, max_candidates=4, max_steps=23)) == []
+    assert len(calls) == 23
+    skip[0] = False
+    calls.clear()
+    assert len(list(model.proposals(domains, max_candidates=4, max_steps=23))) == 1
+    assert len(calls) == 23
+
+
+@pytest.mark.parametrize("decoder", ["sampling", "sampling_grow"])
+def test_q_sampling_uses_legal_actions_without_global_rng(decoder):
+    torch.manual_seed(13)
+    model = _proposal_model(contextual=True, target_first=True, q_learning=True, decoder=decoder)
+    model.beta = 0
+    domains, before = [[0, 1]] * 3, torch.get_rng_state().clone()
+    expected = model.propose(domains)
+    limit = 2 if decoder == "sampling_grow" else 4
+    candidates = list(model.proposals(domains, max_candidates=limit))
+    assert len(candidates) == limit
+    assert candidates[0] == expected
+    assert torch.equal(before, torch.get_rng_state())
+    for candidate in candidates:
+        assert model.rollout(domains, trace=model.candidate_trace(candidate, domains))[0] == candidate
+
+
+def test_sampling_grow_filters_stopping_and_retains_skip_fallback_budget(monkeypatch):
+    model = _model(contextual=True, target_first=True, max_cores=3,
+                   max_open_colors=2, decoder="sampling_grow").eval()
+    model.beta = 0
+    original, calls = model.distribution, []
+
+    def prefer_stopping(*args, **kwargs):
+        actions, distribution = original(*args, **kwargs)
+        calls.append(1)
+        logits = distribution.logits.new_tensor([100. if kind == "skip" else 50. if kind == "finish" else 0.
+                                                 for kind, _ in actions])
+        return actions, torch.distributions.Categorical(logits=logits)
+
+    monkeypatch.setattr(model, "distribution", prefer_stopping)
+    domains = {color: (0, 1) for color in model.network["colors"]}
+    model.config["decoder"] = "sampling"
+    assert model.propose(domains) is None
+    model.config["decoder"] = "sampling_grow"
+    before = torch.get_rng_state().clone()
+    candidate = next(model.proposals(domains, max_candidates=1))
+    assert model.propose(domains) == candidate
+    assert len(candidate.core_keys) == 3 and len(candidate.open_colors) == 2
+    permuted = {color: (1, 0, 1) for color in reversed(model.network["colors"])}
+    assert next(model.proposals(permuted, max_candidates=1)) == candidate
+    assert torch.is_grad_enabled() and torch.equal(before, torch.get_rng_state())
+    assert "encode" not in model.__dict__
+    calls.clear()
+    assert list(model.proposals({color: (0,) for color in domains}, max_steps=11)) == []
+    assert len(calls) == 11
+
+
+@pytest.mark.parametrize("decoder", ["depth_first", "discrepancy", "sampling"])
+def test_existing_free_rollouts_keep_original_distribution_and_never_filter(monkeypatch, decoder):
+    from copy import deepcopy
+    model = _model(contextual=True, target_first=True, max_cores=3, max_open_colors=2).train()
+    model.beta = 0
+    reference = deepcopy(model)
+    if decoder != "depth_first":
+        model.config["decoder"] = decoder
+
+    def forbidden(*_args):
+        raise AssertionError("Existing free rollout modes must not filter actions")
+
+    monkeypatch.setattr(model, "_continuations", forbidden)
+    domains = [[0, 1]] * 5
+    torch.manual_seed(29)
+    expected = reference.rollout(domains, beta=0)
+    expected_rng = torch.get_rng_state().clone()
+    torch.manual_seed(29)
+    actual = model.rollout(domains, beta=0)
+    assert actual[0] == expected[0] and actual[3] == expected[3]
+    assert torch.equal(expected_rng, torch.get_rng_state())
+    torch.testing.assert_close(actual[1], expected[1], rtol=0, atol=0)
+    torch.testing.assert_close(actual[2], expected[2], rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("target_first", [False, True])
+def test_growth_free_rollout_matches_external_wrapper_probabilities_entropy_and_gradients(target_first):
+    from copy import deepcopy
+    from types import MethodType
+    torch.manual_seed(13)
+    model = _model(contextual=True, target_first=target_first, max_cores=3,
+                   max_open_colors=2, decoder="sampling_grow").train()
+    model.beta = 0
+    reference = deepcopy(model)
+    reference.config["decoder"] = "sampling"
+    reference.distribution = MethodType(_growth_reference, reference)
+    domains = [[0, 1]] * 5
+    torch.manual_seed(29)
+    expected = reference.rollout(domains, beta=0)
+    expected_rng = torch.get_rng_state().clone()
+    torch.manual_seed(29)
+    actual = model.rollout(domains, beta=0)
+    assert actual[0] == expected[0] and actual[3] == expected[3]
+    assert torch.equal(expected_rng, torch.get_rng_state())
+    torch.testing.assert_close(actual[1], expected[1], rtol=0, atol=0)
+    torch.testing.assert_close(actual[2], expected[2], rtol=0, atol=0)
+    (-actual[1] - .01 * actual[2]).backward()
+    (-expected[1] - .01 * expected[2]).backward()
+    for parameter, other in zip(model.parameters(), reference.parameters()):
+        assert (parameter.grad is None) == (other.grad is None)
+        if parameter.grad is not None:
+            torch.testing.assert_close(parameter.grad, other.grad, rtol=0, atol=0)
+    model.eval()
+    assert model.propose(domains) == next(model.proposals(domains, max_candidates=1))
+
+
+def test_growth_forced_teacher_and_prefix_bypass_filter_until_free_suffix():
+    from copy import deepcopy
+    model = _model(contextual=True, target_first=True, max_cores=3,
+                   max_open_colors=2, decoder="sampling_grow").eval()
+    model.beta = 0
+    domains = [[0, 1]] * 5
+    teacher = SummaryClusterCandidate("short", ("01",), ("0",))
+    trace = model.candidate_trace(teacher, domains)
+    reference = deepcopy(model)
+    reference.config["decoder"] = "sampling"
+    actual = model.rollout(domains, beta=0, trace=trace)
+    expected = reference.rollout(domains, beta=0, trace=trace)
+    assert actual[0] == expected[0] and actual[3] == expected[3] == trace
+    torch.testing.assert_close(actual[1], expected[1], rtol=0, atol=0)
+    torch.testing.assert_close(actual[2], expected[2], rtol=0, atol=0)
+    prefix = trace[:-1]  # Includes an early core-finish that growth would mask.
+    candidate, _, _, continued = model.rollout(domains, beta=0, prefix=prefix)
+    assert continued[:len(prefix)] == prefix
+    assert candidate.core_keys == teacher.core_keys and len(candidate.open_colors) == 2
+
+
+@pytest.mark.parametrize("q_learning", [False, True])
+def test_discrepancy_reaches_other_cores_and_targets_before_output_variants(monkeypatch, q_learning):
+    model = _model(contextual=True, target_first=True, max_cores=6, max_open_colors=4,
+                   q_learning=q_learning).eval()
+    model.beta = 0
+    targets, preferred_size = [], [4]
+
+    def ranked(encoded, sizes, keys, opened, output_phase, *unused):
+        actions = model.actions(keys, opened, output_phase, sizes)
+        if not keys:
+            if opened:
+                targets.append(opened[0])
+            preferred = "core" if opened else "open"
+        elif output_phase:
+            preferred = "open" if len(opened) < preferred_size[0] else "finish"
+        else:
+            preferred = "core" if len(keys) < 6 else "finish"
+        order = sorted(range(len(actions)), key=lambda i: (actions[i][0] != preferred, i))
+        values = torch.empty(len(actions))
+        for rank, index in enumerate(order):
+            values[index] = -float(rank)
+        return actions, values if q_learning else torch.distributions.Categorical(logits=values)
+
+    monkeypatch.setattr(model, "q_values" if q_learning else "distribution", ranked)
+    domains = [[0, 1]] * 5
+    original = list(model.proposals(domains, max_candidates=8))
+    assert len({candidate.core_keys for candidate in original}) == 1
+    assert len(set(targets)) == 1
+    targets.clear()
+    model.config["decoder"] = "discrepancy"
+    alternatives = list(model.proposals(domains, max_candidates=8))
+    assert alternatives[0] == original[0]
+    assert len({candidate.core_keys for candidate in alternatives}) > 1
+    assert len(set(targets)) > 1
+    assert len(alternatives) == 8
+    for candidate in alternatives:
+        trace = model.candidate_trace(candidate, domains)
+        reproduced, _, _, _ = model.rollout(domains, trace=trace, beta=0)
+        assert reproduced == candidate
+    # Changing learned output preferences changes the construction, even though
+    # discrepancy scheduling also seeks alternatives in earlier decisions.
+    assert len(original[0].open_colors) == 4
+    preferred_size[0] = 1
+    assert len(next(model.proposals(domains)).open_colors) == 1
+
+
+def test_discrepancy_bounds_frontier_and_state_evaluations(monkeypatch):
+    import experiments.cluster_selection.reinforcement.model as module
+    model = _model(contextual=True, target_first=True, decoder="discrepancy").eval()
+    model.beta = 0
+    limit, lengths, calls = 6, [], []
+    push, distribution = module.heappush, model.distribution
+
+    def checked_push(frontier, item):
+        push(frontier, item)
+        lengths.append(len(frontier))
+
+    def counted(*args, **kwargs):
+        calls.append(1)
+        return distribution(*args, **kwargs)
+
+    monkeypatch.setattr(module, "heappush", checked_push)
+    monkeypatch.setattr(model, "distribution", counted)
+    list(model.proposals([[0, 1]] * 5, max_candidates=100, max_steps=limit))
+    assert len(calls) == limit
+    assert max(lengths) <= 2 * limit
+    assert any(after < before for before, after in zip(lengths, lengths[1:]))
 
 
 def test_selected_topology_distinguishes_and_learns_the_odd_cycle_extension():

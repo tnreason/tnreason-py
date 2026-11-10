@@ -13,12 +13,13 @@ cluster_teacher_max_steps=auto
 cluster_nested_teacher=0
 cluster_cluster_attempts=32
 cluster_validation_seconds=600
+cluster_decoder=depth_first
 cluster_dry_run=0
 cluster_schedule_options=0
 cluster_invocation_dir=$PWD
 while (( $# )); do
     case "$1" in
-        --data|--passes|--chunk-size|--seeds|--max-jobs|--teacher-candidates|--teacher-max-steps|--cluster-attempts|--validation-seconds)
+        --data|--passes|--chunk-size|--seeds|--max-jobs|--teacher-candidates|--teacher-max-steps|--cluster-attempts|--validation-seconds|--decoder)
             if (( $# < 2 )); then echo "Missing value for $1" >&2; exit 2; fi
             case "$1" in
                 --data) cluster_data=$2 ;;
@@ -30,6 +31,7 @@ while (( $# )); do
                 --teacher-max-steps) cluster_teacher_max_steps=$2; cluster_schedule_options=1 ;;
                 --cluster-attempts) cluster_cluster_attempts=$2; cluster_schedule_options=1 ;;
                 --validation-seconds) cluster_validation_seconds=$2; cluster_schedule_options=1 ;;
+                --decoder) cluster_decoder=$2; cluster_schedule_options=1 ;;
             esac
             shift 2 ;;
         --dry-run) cluster_dry_run=1; shift ;;
@@ -37,6 +39,7 @@ while (( $# )); do
         -h|--help)
             echo "Usage: bash submit_teacher_branches.sh [PYTHON] [--data PATH --passes 10 --chunk-size 500 --seeds 3] [--max-jobs N] [--dry-run]"
             echo "Scaled teacher/inference options: --teacher-candidates 64 --teacher-max-steps auto --nested-teacher --cluster-attempts 32 --validation-seconds 600"
+            echo "Construction decoder: --decoder depth_first|discrepancy|sampling|sampling_grow (default: depth_first)"
             exit 0 ;;
         --*) echo "Unknown option: $1" >&2; exit 2 ;;
         *)
@@ -58,6 +61,9 @@ for cluster_count in "$cluster_passes" "$cluster_chunk_size" "$cluster_seeds" "$
 done
 if [[ "$cluster_teacher_max_steps" != auto && ! "$cluster_teacher_max_steps" =~ ^[1-9][0-9]*$ ]]; then
     echo "--teacher-max-steps must be auto or a positive integer." >&2; exit 2
+fi
+if [[ "$cluster_decoder" != depth_first && "$cluster_decoder" != discrepancy && "$cluster_decoder" != sampling && "$cluster_decoder" != sampling_grow ]]; then
+    echo "--decoder must be depth_first, discrepancy, sampling or sampling_grow." >&2; exit 2
 fi
 cluster_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 export CLUSTER_REPO_ROOT=$(cd -- "$cluster_script_dir/../../.." && pwd)
@@ -85,7 +91,7 @@ export CLUSTER_RUN_ROOT
 CLUSTER_RUN_ROOT=$("$CLUSTER_GPU_PYTHON" - "$cluster_script_dir" "$cluster_data" "$cluster_passes" \
     "$cluster_chunk_size" "$cluster_seeds" "$cluster_max_jobs" "$cluster_dry_run" \
     "$cluster_teacher_candidates" "$cluster_teacher_max_steps" "$cluster_nested_teacher" \
-    "$cluster_cluster_attempts" "$cluster_validation_seconds" <<'PY'
+    "$cluster_cluster_attempts" "$cluster_validation_seconds" "$cluster_decoder" <<'PY'
 from datetime import date
 from hashlib import sha256
 import json
@@ -103,6 +109,7 @@ teacher_candidates, nested_teacher = int(sys.argv[8]), sys.argv[10] == "1"
 largest = 1 << (max(32, teacher_candidates) - 1).bit_length()
 teacher_max_steps = (256 * largest if nested_teacher else 8192) if sys.argv[9] == "auto" else int(sys.argv[9])
 cluster_attempts, validation_seconds = map(int, sys.argv[11:13])
+decoder = sys.argv[13]
 teacher_stages = ([dict(candidates=2 ** power, max_steps=max(1, teacher_max_steps * 2 ** power // largest))
                    for power in range(5, largest.bit_length())] if nested_teacher else
                   [dict(candidates=teacher_candidates, max_steps=teacher_max_steps)])
@@ -130,13 +137,13 @@ plan = dict(mode="scaled" if scaled else "legacy", source_data=str(source),
     teacher_candidates=teacher_candidates, teacher_max_steps=teacher_max_steps, nested_teacher=nested_teacher,
     teacher_search_stages=teacher_stages, teacher_search_steps_nominal=sum(stage["max_steps"] for stage in teacher_stages),
     teacher_probes=80, teacher_mutations=32,
-    cluster_attempts=cluster_attempts, validation_seconds=validation_seconds)
+    cluster_attempts=cluster_attempts, validation_seconds=validation_seconds, decoder=decoder)
 if scaled:
     common = dict(epochs=str(epochs), puzzles_per_epoch=str(chunk_size), validation_interval="4",
                   checkpoint_every="5", progress_every="100", job_memory="32GB",
                   teacher_candidates=str(teacher_candidates), teacher_max_steps=str(teacher_max_steps),
                   teacher_search_args="--nested-teacher" if nested_teacher else "",
-                  cluster_attempts=str(cluster_attempts), validation_seconds=str(validation_seconds))
+                  cluster_attempts=str(cluster_attempts), validation_seconds=str(validation_seconds), decoder=decoder)
     actor = "--objective pruning --target-first --no-curriculum --no-total-work-limit --cycle-puzzles --teacher-cache-size 0"
     nodes = [("WARMUP", "warmup", 0, "learn", None, actor + f" --warmup {epochs}")]
     for phase in ("teacher", "reinforce", "q"):
@@ -159,7 +166,7 @@ if scaled:
                          initial_checkpoint=checkpoint, fresh_start=checkpoint is None,
                          epochs=epochs, phase_args=arguments, teacher_candidates=teacher_candidates,
                          teacher_max_steps=teacher_max_steps, nested_teacher=nested_teacher,
-                         cluster_attempts=cluster_attempts, validation_seconds=validation_seconds))
+                         cluster_attempts=cluster_attempts, validation_seconds=validation_seconds, decoder=decoder))
     lines.append("PARENT WARMUP CHILD " + " ".join(row[0] for row in nodes[1:]))
     (run / "teacher_branches_gpu.dag").write_text("\n".join(lines) + "\n")
     plan.update(unresolved_train_puzzles=count, passes_per_phase=passes, chunk_size=chunk_size,

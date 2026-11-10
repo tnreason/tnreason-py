@@ -15,6 +15,8 @@ run_dir = $(results_dir)/q_gpu_$(ClusterId)_$(ProcId)
 arguments = "-u -m experiments.cluster_selection.reinforcement.qlearn '$(data_file)' --output '$(run_dir)/policy.pt' --initial-checkpoint '$(warm_start)' --device cuda --seed $(run_seed:0) --epochs 8 --puzzles-per-epoch 49 --max-cores 64 --teacher-probes 40 --teacher-mutations 16 --cluster-attempts 512 --search-nodes 10000 --validation-seconds 600"
 
 request_gpus = 1
+# Match teacher_branches_gpu.sub for the shared alphareason environment.
+require_gpus = Capability >= 7.5
 request_cpus = 1
 request_memory = 16GB
 request_disk = 2GB

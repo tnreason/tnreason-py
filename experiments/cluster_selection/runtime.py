@@ -42,6 +42,17 @@ def _base_network(state, predictor):
     return base
 
 
+def _prepare(state, candidate, **limits):
+    """Return an affordable plan; propagate unexpected preparation errors."""
+    try:
+        return prepare_candidate(state, candidate, **limits)
+    except ValueError as error:
+        if str(error) not in ("Candidate exceeds the contraction work or tensor-size budget",
+                              "NumPy contraction supports at most 52 distinct colors"):
+            raise
+        return None
+
+
 def apply_candidate(state, candidate, prepared=None, **limits):
     """Contract once; retain pruning/trail, but remove the summary even on error."""
     if state.contradiction or state._queue or state._queued:
@@ -154,6 +165,57 @@ def attach(state, predictor, **options):
     return state
 
 
+class ConstructionEnsemble:
+    """Round-robin completed constructions; create a fresh instance per solver state."""
+
+    kind = "construction"
+
+    def __init__(self, members):
+        self.members = tuple(members.items())
+        if not self.members:
+            raise ValueError("A construction ensemble needs at least one member")
+        first = self.members[0][1]
+        self.network, self.config = first.network, dict(first.config)
+        self.reward_colors = getattr(first, "reward_colors", self.network["colors"])
+        defaults = dict(max_cores=None, max_open_colors=None, max_work=None,
+                        max_size=None, compact_domains=False, max_total_work=None)
+        for _, model in self.members:
+            if getattr(model, "kind", None) != self.kind or not callable(getattr(model, "proposals", None)):
+                raise ValueError("Ensemble members must provide construction proposals")
+            if model.network != self.network:
+                raise ValueError("Ensemble members must use the same network schema")
+            if any(model.config.get(key, default) != self.config.get(key, default)
+                   for key, default in defaults.items()):
+                raise ValueError("Ensemble members must use the same contraction and construction limits")
+        self._cursor, self.last_source = 0, None
+
+    def proposals(self, domains, *, max_candidates=32, max_steps=8192):
+        """Share decoder steps; restart all iterators after any domain pruning."""
+        count = len(self.members)
+        if any(isinstance(value, bool) or not isinstance(value, int) or value < 1
+               for value in (max_candidates, max_steps)) or max_steps < count:
+            raise ValueError("Positive proposal limits and at least one decoder step per member are required")
+        streams = {idx: iter(model.proposals(domains, max_candidates=max_candidates,
+            max_steps=max_steps // count + int(idx < max_steps % count)))
+            for idx, (_, model) in enumerate(self.members)}
+        seen = set()
+        while streams and len(seen) < max_candidates:
+            idx = self._cursor
+            self._cursor = (idx + 1) % count  # Advance before a yield: pruning abandons this generator.
+            if idx not in streams:
+                continue
+            candidate = next(streams[idx], None)
+            if candidate is None:
+                del streams[idx]
+                continue
+            signature = frozenset(candidate.core_keys), frozenset(candidate.open_colors)
+            if signature in seen:
+                continue
+            seen.add(signature)
+            self.last_source = self.members[idx][0]
+            yield candidate
+
+
 class ConstructionPolicy:
     """Apply up to max_candidates affordable constructions at each GAC closure."""
 
@@ -185,7 +247,7 @@ class ConstructionPolicy:
         spent, attempted, proposals = 0, 0, None
         try:
             while not state.contradiction and not state.is_solved():
-                if self.alternatives is not None and attempted >= self.max_candidates:
+                if attempted >= self.max_candidates:
                     break
                 if self.max_total_work is not None and spent >= self.max_total_work:
                     self.statistics["budget_exhausted"] += 1
@@ -211,29 +273,16 @@ class ConstructionPolicy:
                     if self.alternatives is not None:
                         continue
                     break
+                limits = {key: self.predictor.config[key] for key in ("max_work", "max_size")}
                 if self.compact_domains:
                     # Slices and shapes belong to this domain snapshot only.
-                    try:
-                        limits = {key: self.predictor.config[key] for key in ("max_work", "max_size")}
-                        prepared = prepare_candidate(state, candidate, compact_domains=True, **limits)
-                    except ValueError as error:
-                        if str(error) not in ("Candidate exceeds the contraction work or tensor-size budget",
-                                              "NumPy contraction supports at most 52 distinct colors"):
-                            raise
-                        prepared = None
+                    prepared = _prepare(state, candidate, compact_domains=True, **limits)
                 elif signature not in self.plans:
                     if len(self.plans) >= 1024:
                         evicted = next(iter(self.plans))
                         self.plans.pop(evicted)
                         self.used.pop(evicted, None)
-                    try:
-                        limits = {key: self.predictor.config[key] for key in ("max_work", "max_size")}
-                        self.plans[signature] = prepare_candidate(state, candidate, **limits)
-                    except ValueError as error:
-                        if str(error) not in ("Candidate exceeds the contraction work or tensor-size budget",
-                                              "NumPy contraction supports at most 52 distinct colors"):
-                            raise
-                        self.plans[signature] = None
+                    self.plans[signature] = _prepare(state, candidate, **limits)
                 if not self.compact_domains:
                     prepared = self.plans[signature]
                 if prepared is None:
@@ -275,8 +324,11 @@ class HeuristicPolicy:
     """Apply a bounded batch sequentially; no predictor or recursive generation."""
 
     def __init__(self, state, *, max_candidates=32, max_work=1_000_000, max_size=100_000,
-                 compact_domains=False, **options):
+                 compact_domains=False, on_application=None, **options):
+        if on_application is not None and not callable(on_application):
+            raise ValueError("Application observer must be callable")
         self.state, self.colors = state, tuple(state.domains)
+        self.on_application = on_application
         self.compact_domains = compact_domains
         self.generator = ClusterCandidateGenerator(state._cores, max_candidates=max_candidates,
                                                    max_work=max_work, max_size=max_size, **options)
@@ -310,30 +362,19 @@ class HeuristicPolicy:
                     self.statistics["skipped"] += 1
                     continue
                 if self.compact_domains:
-                    try:
-                        prepared = prepare_candidate(state, candidate, compact_domains=True, **self.limits)
-                    except ValueError as error:
-                        if str(error) not in ("Candidate exceeds the contraction work or tensor-size budget",
-                                              "NumPy contraction supports at most 52 distinct colors"):
-                            raise
-                        prepared = None
+                    prepared = _prepare(state, candidate, compact_domains=True, **self.limits)
                 elif signature not in self.plans:
                     if len(self.plans) >= self.generator.max_steps:
                         evicted = next(iter(self.plans))
                         self.plans.pop(evicted)
                         self.used.pop(evicted, None)
-                    try:
-                        self.plans[signature] = prepare_candidate(state, candidate, **self.limits)
-                    except ValueError as error:
-                        if str(error) not in ("Candidate exceeds the contraction work or tensor-size budget",
-                                              "NumPy contraction supports at most 52 distinct colors"):
-                            raise
-                        self.plans[signature] = None
+                    self.plans[signature] = _prepare(state, candidate, **self.limits)
                 if not self.compact_domains:
                     prepared = self.plans[signature]
                 if prepared is None:
                     self.statistics["rejected"] += 1
                     continue
+                before = state.snapshot_domains() if self.on_application is not None else None
                 result = apply_candidate(state, candidate, prepared)
                 self.statistics["applied"] += 1
                 self.statistics["useful"] += int(result.removed_values > 0 or result.contradiction)
@@ -343,6 +384,8 @@ class HeuristicPolicy:
                     if self.compact_domains and len(self.used) >= self.generator.max_steps:
                         self.used.pop(next(iter(self.used)))
                     self.used[signature] = tuple(state.domains[color] for color in colors)
+                if self.on_application is not None:
+                    self.on_application(state, candidate, prepared[0], before, result)
             self.last = None if state.contradiction else tuple(state.domains[color] for color in self.colors)
         finally:
             self.statistics["time_s"] += perf_counter() - start

@@ -1,7 +1,9 @@
 """Construct connected tensor clusters, then learn which variables to leave open."""
 from collections.abc import Mapping
-from hashlib import sha1
+from hashlib import sha1, sha256
+from heapq import heapify, heappop, heappush, nsmallest
 from itertools import product
+import json
 from math import prod
 from types import SimpleNamespace
 import torch
@@ -22,7 +24,7 @@ class Policy(Encoder):
                  compact_domains=False, max_total_work=None, min_active=1, cyclic_only=False,
                  hierarchical_greedy=False, target_first=False, value_encoding=False,
                  relational_context=False, relational_rounds=6, cluster_attempts=None,
-                 q_learning=False):
+                 q_learning=False, decoder="depth_first"):
         super().__init__(network, width, rounds, normalize=normalize)
         if min(max_cores, max_open_colors, max_work, max_size) < 1:
             raise ValueError("Construction limits must be positive")
@@ -30,6 +32,10 @@ class Policy(Encoder):
             raise ValueError("heuristic_candidates must be a nonnegative integer")
         self.config.update(max_cores=max_cores, max_open_colors=max_open_colors, max_work=max_work,
                            max_size=max_size, heuristic_candidates=heuristic_candidates, normalize=normalize)
+        if decoder not in ("depth_first", "discrepancy", "sampling", "sampling_grow"):
+            raise ValueError("Decoder must be depth_first, discrepancy, sampling or sampling_grow")
+        if decoder != "depth_first":
+            self.config["decoder"] = decoder
         if context_rounds < 1 or not 0 <= exploration < 1:
             raise ValueError("Expected positive context rounds and exploration in [0, 1)")
         if max_total_work is not None and max_total_work < 1:
@@ -622,6 +628,14 @@ class Policy(Encoder):
         masses = distribution.probs.new_zeros(4).index_add(0, kinds, distribution.probs)
         return distribution.probs.masked_fill(kinds != masses.argmax(), -1).argmax()
 
+    def _continuations(self, actions, keys, opened, output_phase):
+        """Growth keeps legal extensions, then finish, then original fallbacks."""
+        target = self.config.get("target_first") and not keys and not opened and not output_phase
+        kind = "open" if output_phase or target else "core"
+        following = [idx for idx, action in enumerate(actions) if action[0] == kind]
+        return (following or [idx for idx, action in enumerate(actions) if action[0] == "finish"]
+                or list(range(len(actions))))
+
     def rollout(self, domains, *, beta=None, greedy=False, trace=None, prefix=None):
         """One state encoding; bounded growth followed by output selection.
 
@@ -629,6 +643,7 @@ class Policy(Encoder):
         A full trace scores a teacher without sampling; a forced prefix is
         completed and only its sampled suffix receives policy-gradient credit.
         Training samples; inference chooses argmax. Empty outputs are legal.
+        Growth decoding filters free actions; forced teachers/prefixes bypass it.
         """
         if trace is not None and prefix is not None:
             raise ValueError("Specify either a complete trace or a prefix")
@@ -642,6 +657,11 @@ class Policy(Encoder):
         keys, opened, output_phase, decisions, log_probs, entropies = [], [], False, [], [], []
         while True:
             actions, distribution = self.distribution(encoded, sizes, keys, opened, output_phase, beta, targets)
+            if (self.config.get("decoder") == "sampling_grow" and not complete_trace
+                    and len(decisions) >= len(forced)):
+                following = self._continuations(actions, keys, opened, output_phase)
+                actions = [actions[idx] for idx in following]
+                distribution = Categorical(logits=distribution.logits[following])
             if len(decisions) < len(forced):
                 action = tuple(forced[len(decisions)])
                 if action not in actions:
@@ -685,9 +705,17 @@ class Policy(Encoder):
     def proposals(self, domains, *, max_candidates=32, max_steps=8192):
         """Enumerate distinct policy-ranked constructions, with bounded search.
 
-        The first branch follows greedy inference; alternatives backtrack through
-        the same action space. A skip ends its branch, not the enumeration. The
-        caller must restart this iterator when domains change.
+        The first branch follows greedy inference. Default depth-first search
+        backtracks through the same action space. Discrepancy search orders paths
+        by summed local action ranks, favouring earlier deviations on ties. Its
+        frontier holds at most 2 * max_steps entries; at capacity it retains the
+        best max_steps. Neither mode compares Q values between different states.
+        Sampling follows the first greedy path, then draws complete paths with a
+        domain-seeded local generator. Duplicate/skip paths consume scored states;
+        only the current path is retained. sampling_grow filters legal actions to
+        extensions, then finish, then fallback actions. Runtime still checks work
+        affordability. Q softmax sampling is experimental.
+        Restart the iterator when domains change.
         """
         if any(isinstance(value, bool) or not isinstance(value, int) or value < 1
                for value in (max_candidates, max_steps)):
@@ -697,14 +725,29 @@ class Policy(Encoder):
             targets = self._targets(domains) if self.beta and not self.config.get("q_learning") else ()
         ordered = [domains[color] for color in self.network["colors"]] if isinstance(domains, Mapping) else domains
         sizes = [len(set(values)) for values in ordered]
-        stack, visited, yielded = [((), (), 0)], set(), set()
+        discrepancy = self.config.get("decoder", "depth_first") == "discrepancy"
+        sampling = self.config.get("decoder") in ("sampling", "sampling_grow")
+        grow = self.config.get("decoder") == "sampling_grow"
+        first_path = True
+        if sampling:
+            canonical = [(color, sorted(set(values))) for color, values in zip(self.network["colors"], ordered)]
+            seed = int(sha256(json.dumps(canonical, separators=(",", ":")).encode()).hexdigest(), 16) % (2 ** 63)
+            generator = torch.Generator(device=next(self.parameters()).device).manual_seed(seed)
+        stack = [(0, float("inf"), 0, (), (), 0, 0)] if discrepancy else [((), (), 0)]
+        visited, yielded, serial = set(), set(), 0
         steps = 0
         while stack:
-            keys, opened, phase = stack.pop()
+            if discrepancy:
+                distance, deviation, _, keys, opened, phase, depth = heappop(stack)
+            else:
+                keys, opened, phase = stack.pop()
             if phase == 2:
                 core_keys = tuple(self.keys[idx] for idx in sorted(keys))
                 colors = tuple(self.network["colors"][idx] for idx in sorted(opened))
                 signature = core_keys, colors
+                if sampling:
+                    first_path = False
+                    stack.append(((), (), 0))
                 if signature in yielded:
                     continue
                 yielded.add(signature)
@@ -716,30 +759,67 @@ class Policy(Encoder):
                 continue
             anchor = opened[0] if opened and self.config.get("target_first") else None
             state = frozenset(keys), frozenset(opened), phase, anchor
-            if state in visited:
+            if not sampling and state in visited:
                 continue
             if steps >= max_steps:
                 return
-            visited.add(state)
+            if not sampling:
+                visited.add(state)
             steps += 1
             with torch.no_grad():
-                if self.config.get("q_learning"):
+                q_learning = self.config.get("q_learning")
+                if q_learning:
                     actions, values = self.q_values(encoded, sizes, list(keys), list(opened), bool(phase))
-                    first, scores = int(values.argmax()), values.tolist()
                 else:
                     actions, distribution = self.distribution(
                         encoded, sizes, list(keys), list(opened), bool(phase), self.beta, targets)
-                    first, scores = int(self._greedy_choice(actions, distribution)), distribution.probs.tolist()
-            ranked = [first] + sorted((idx for idx in range(len(actions)) if idx != first),
-                                      key=lambda idx: -scores[idx])
-            for choice in reversed(ranked):
+                if grow:
+                    following = self._continuations(actions, keys, opened, bool(phase))
+                    actions = [actions[idx] for idx in following]
+                    if q_learning:
+                        values = values[following]
+                    else:
+                        distribution = Categorical(logits=distribution.logits[following])
+                if q_learning:
+                    if sampling:
+                        choice = values.argmax() if first_path else torch.multinomial(
+                            values.softmax(0), 1, generator=generator).squeeze(0)
+                    else:
+                        first, scores = int(values.argmax()), values.tolist()
+                else:
+                    if sampling:
+                        choice = self._greedy_choice(actions, distribution) if first_path else torch.multinomial(
+                            distribution.probs, 1, generator=generator).squeeze(0)
+                    else:
+                        first, scores = int(self._greedy_choice(actions, distribution)), distribution.probs.tolist()
+            if sampling:
+                ranked = [int(choice)]
+            else:
+                ranked = [first] + sorted((idx for idx in range(len(actions)) if idx != first),
+                                          key=lambda idx: -scores[idx])
+            for rank in reversed(range(len(ranked))):
+                choice = ranked[rank]
                 kind, idx = actions[choice]
                 if kind == "core":
-                    stack.append((keys + (idx,), opened, phase))
+                    following = keys + (idx,), opened, phase
                 elif kind == "open":
-                    stack.append((keys, opened + (idx,), phase))
+                    following = keys, opened + (idx,), phase
                 elif kind == "finish":
-                    stack.append((keys, opened, phase + 1))
+                    following = keys, opened, phase + 1
+                else:
+                    if sampling:
+                        first_path = False
+                        stack.append(((), (), 0))
+                    continue
+                if discrepancy:
+                    if len(stack) >= 2 * max_steps:
+                        stack[:] = nsmallest(max_steps, stack)
+                        heapify(stack)
+                    serial += 1
+                    heappush(stack, (distance + rank, min(deviation, depth) if rank else deviation,
+                                     serial, *following, depth + 1))
+                else:
+                    stack.append(following)
 
 
 def load(path):

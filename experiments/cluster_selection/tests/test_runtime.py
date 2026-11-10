@@ -8,7 +8,7 @@ from tnreason.engine.workload_to_numpy import NumpyCore
 from experiments.constraint_networks.constraint_networks import ConstraintNetwork
 from experiments.cluster_selection.data import network_data
 from experiments.cluster_selection.candidate_evaluation_tnreason import SummaryClusterCandidate
-from experiments.cluster_selection.candidate_evaluation_mac import evaluate_candidate, prepare_candidate
+from experiments.cluster_selection.candidate_evaluation_mac import evaluate_candidate
 from experiments.cluster_selection import runtime
 
 
