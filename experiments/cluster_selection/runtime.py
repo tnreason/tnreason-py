@@ -17,6 +17,8 @@ def load(path):
     if checkpoint.get("kind") == "construction":
         from .reinforcement.model import Policy as model_type
         config.setdefault("normalize", False)  # Preserve inference for legacy checkpoints.
+    elif checkpoint.get("kind") == "mask":
+        from .mask_model import MaskPolicy as model_type
     elif checkpoint.get("kind") is None:
         from .supervised.model import Predictor as model_type
     else:
