@@ -77,6 +77,11 @@ def contract(coreDict, openColors, dimensionDict={}, contractionMethod=None, cor
         from tnreason.engine.workload_to_pgmpy import PgmpyVariableEliminator
         return PgmpyVariableEliminator(coreDict=coreDict, openColors=openColors).contract()
 
+    ## Compiled sparse contraction for cores of arity at most two
+    elif contractionMethod == "ScipySparse":
+        from tnreason.engine.workload_to_scipy_sparse import ScipySparseContractor
+        return ScipySparseContractor(coreDict=coreDict, openColors=openColors).contract()
+
     ## Corewise Contractor
     elif contractionMethod == "CorewiseContractor":
         """
