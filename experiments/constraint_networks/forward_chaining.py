@@ -71,10 +71,6 @@ class GenericForwardChaining:
                 assert edgeKey in self.cn.coresDict
                 assert self.cn.coresDict[edgeKey].colors == [nodeKey]
 
-    def maybe_validate_indices(self):
-        if self.validate:
-            self.validate_indices()
-
     def support_core(self, core):
         values = getattr(core, "values", None)
         if values is None:
@@ -99,7 +95,8 @@ class GenericForwardChaining:
                 self.cn.coresDict[nodeKey + "_core"]
             )
             self.rebuild_indices()
-            self.maybe_validate_indices()
+            if self.validate:
+                self.validate_indices()
 
     def propagate_all_singleNodeEdges(self):
         queue = [nodeKey for nodeKey in self.singleNodeEdges if nodeKey not in self.disentangledNodes]
@@ -171,7 +168,8 @@ class GenericForwardChaining:
                 self.cn.coresDict[result.edgeKey] = result.edgeCore
                 disentangled = False
         self.rebuild_indices()
-        self.maybe_validate_indices()
+        if self.validate:
+            self.validate_indices()
         return nodeKey in self.disentangledNodes and disentangled, list(newSingleNodes)
 
     def propagate_edge_snapshots(self, nodeKey, singleEdgeKey, singleEdgeCore, edgeCores):

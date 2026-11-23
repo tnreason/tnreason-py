@@ -1,7 +1,7 @@
 from .naked_pairs import _iterate_units, _candidate_digits_for_cell, _append_pair_cluster
 from itertools import combinations
 
-def detect_hidden_pairs(propagator, num=3):
+def detect_hidden_pairs(propagator, num=3, verbose=True):
     """
     Hidden-pair detector (digit-centric):
     if two digits in a unit can only appear in the same two cells, the cells form a locked pair.
@@ -22,6 +22,6 @@ def detect_hidden_pairs(propagator, num=3):
                     out, seen, unit_key_fn(n1), unit_key_fn(n2), ca, cb, n1, n2
                 )
 
-    if out:
+    if out and verbose:
         print(f"Hidden pairs detected: {len(out)}")
     return out

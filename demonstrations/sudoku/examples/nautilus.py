@@ -43,7 +43,6 @@ LINES = (
     (
         "region_sum",
         (
-            "r7c6",
             "r6c7",
             "r5c7",
             "r4c7",
@@ -68,8 +67,7 @@ LINES = (
     ),
     ("whisper", ("r7c9", "r8c8", "r9c9")),
     ("whisper", ("r8c8", "r8c9")),
-    ("renban", ("r3c9", "r2c8", "r3c7", "r2c6", "r1c7", "r2c8")),
-    ("renban", ("r2c8", "r1c9")),
+    ("renban", ("r3c9", "r2c8", "r3c7", "r2c6", "r1c7", "r2c8", "r1c9")),
 )
 QUADRUPLES = ()
 PARITY_CELLS = ()

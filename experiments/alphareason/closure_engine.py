@@ -7,9 +7,9 @@ from experiments.constraint_networks.forward_chaining import GenericForwardChain
 from tnreason import engine
 
 from .actions import AddClusterAction, AssignValueAction, cluster_key_from_colors
-from .constraint_propagation import (
+from experiments.constraint_networks.generalized_arc_consistency import (
+    add_domain_cores,
     add_cluster_summary_core,
-    add_singleton_domain_cores,
     enforce_generalized_arc_consistency,
 )
 from .cluster_proposals import propose_direct_micro_clusters
@@ -46,17 +46,22 @@ def _distribution_from_meanparams(mean_params: Dict[str, object], feature_key: s
     return tuple(value / total for value in values)
 
 
-def _distribution_from_core(core, feature_key: str, domain_size: int) -> Tuple[float, ...]:
+def _core_values(core, feature_key: str, domain_size: int) -> List[float]:
     values = []
     for idx in range(domain_size):
         try:
             values.append(max(0.0, float(core[{feature_key: idx}])))
         except Exception:
             values.append(0.0)
+    return values
 
+
+def _normalize_distribution(values: List[float]) -> Tuple[float, ...]:
     total = sum(values)
     if total <= 0.0:
-        return tuple(1.0 / domain_size for _ in range(domain_size))
+        if not values:
+            return tuple()
+        return tuple(1.0 / len(values) for _ in values)
     return tuple(value / total for value in values)
 
 
@@ -263,7 +268,7 @@ class AlphaReasonClosureEngine:
         try:
             domains, contradiction = enforce_generalized_arc_consistency(core_dict)
             if not contradiction:
-                core_dict = add_singleton_domain_cores(core_dict, domains)
+                core_dict = add_domain_cores(core_dict, domains, prefix="gac", singleton_only=True)
         except Exception:
             contradiction = True
 
@@ -289,23 +294,13 @@ class AlphaReasonClosureEngine:
             contradiction = True
 
         for feature_key in task.available_action_feature_keys():
-            domain_size = task.feature_domain_sizes[feature_key]
-            summary_core = self._summarize_constraint_node(chainer, feature_key)
-            if summary_core is None:
-                supported = list(domains.get(feature_key, ()))
-                if not supported:
-                    supported = self._support_from_evidence(task, closed_evidence, feature_key, domain_size)
-                if supported:
-                    feature_priors[feature_key] = self._distribution_from_supported(domain_size, supported)
-                else:
-                    feature_priors[feature_key] = tuple(1.0 / domain_size for _ in range(domain_size))
-                    supported = list(range(domain_size))
-            else:
-                feature_priors[feature_key] = _distribution_from_core(summary_core, feature_key, domain_size)
-                supported = _support_indices(summary_core, feature_key, domain_size)
-                if feature_key in domains:
-                    supported = [value_index for value_index in supported if value_index in domains[feature_key]]
-                    feature_priors[feature_key] = self._distribution_from_supported(domain_size, supported)
+            supported, feature_priors[feature_key] = self._constraint_feature_support_and_prior(
+                task=task,
+                chainer=chainer,
+                domains=domains,
+                evidence=closed_evidence,
+                feature_key=feature_key,
+            )
             feature_supports[feature_key] = tuple(supported)
 
             if len(supported) == 1:
@@ -468,22 +463,56 @@ class AlphaReasonClosureEngine:
             openColors=[feature_key],
         )
 
-    def _support_from_evidence(
+    def _constraint_feature_support_and_prior(
+        self,
+        task: AlphaReasonTask,
+        chainer: GenericForwardChaining,
+        domains: Dict[str, Tuple[int, ...]],
+        evidence: Dict[str, int],
+        feature_key: str,
+    ) -> Tuple[List[int], Tuple[float, ...]]:
+        domain_size = task.feature_domain_sizes[feature_key]
+        allowed = set(self._evidence_restricted_domain(task, evidence, feature_key, domain_size, domains))
+        summary_core = self._summarize_constraint_node(chainer, feature_key)
+
+        if summary_core is None:
+            supported = sorted(allowed)
+            return supported, self._distribution_from_supported(domain_size, supported)
+
+        values = _core_values(summary_core, feature_key, domain_size)
+        masked_values = [
+            value if value_index in allowed else 0.0
+            for value_index, value in enumerate(values)
+        ]
+        supported = [
+            value_index
+            for value_index, value in enumerate(masked_values)
+            if value > 0.0
+        ]
+        return supported, self._distribution_from_supported(domain_size, supported)
+
+    def _evidence_restricted_domain(
         self,
         task: AlphaReasonTask,
         evidence: Dict[str, int],
         feature_key: str,
         domain_size: int,
-    ) -> List[int]:
-        supported = []
-        for value_index in range(domain_size):
-            if evidence.get(feature_key) == value_index:
-                supported.append(value_index)
-                continue
+        domains: Dict[str, Tuple[int, ...]],
+    ) -> Tuple[int, ...]:
+        domain = set(domains.get(feature_key, tuple(range(domain_size))))
+        if feature_key in evidence:
+            value = evidence[feature_key]
+            return (value,) if value in domain else tuple()
+
+        fixed_values = []
+        for value_index in sorted(domain):
             assignment_evidence = task.assignment_to_evidence(feature_key, value_index)
-            if assignment_evidence and any(evidence.get(key) == value for key, value in assignment_evidence.items()):
-                supported.append(value_index)
-        return supported
+            if assignment_evidence and all(
+                evidence.get(key) == value
+                for key, value in assignment_evidence.items()
+            ):
+                fixed_values.append(value_index)
+        return tuple(fixed_values or sorted(domain))
 
     def _distribution_from_supported(self, domain_size: int, supported: List[int]) -> Tuple[float, ...]:
         if not supported:

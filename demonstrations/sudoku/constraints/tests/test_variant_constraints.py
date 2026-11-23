@@ -27,6 +27,7 @@ from demonstrations.sudoku.constraints import (
     x_constraint,
     zipper_line_constraints,
 )
+from demonstrations.sudoku.examples.challenge100_helpers import _split_line_by_box
 
 
 def test_pair_rules():
@@ -77,7 +78,9 @@ def test_line_rules():
         {"a": 0, "b": 3, "c": 1, "d": 2}
     ] == 1
     assert fibonacci_line_constraint(["a", "b", "c", "d"])[{"a": 0, "b": 1, "c": 2, "d": 4}] == 1
+    assert fibonacci_line_constraint(["a", "b", "c", "d"])[{"a": 4, "b": 2, "c": 1, "d": 0}] == 1
     assert sequence_line_constraint(["a", "b", "c"])[{"a": 0, "b": 2, "c": 4}] == 1
+    assert sequence_line_constraint(["a", "b", "c"])[{"a": 4, "b": 2, "c": 0}] == 1
     assert lockout_line_constraint(["a", "b", "c"])[{"a": 2, "b": 0, "c": 7}] == 1
     assert lockout_line_constraint(["a", "b", "c"])[{"a": 2, "b": 4, "c": 7}] == 0
 
@@ -101,3 +104,35 @@ def test_hidden_sum_and_product_rules():
     assert region["region_sum_1"][{"s": 3, "c": 3}] == 0
     assert diagonal_product_constraint(["a", "b"], 6)[{"a": 1, "b": 2}] == 1
     assert diagonal_product_constraint(["a", "b"], 6)[{"a": 0, "b": 2}] == 0
+
+
+def test_closed_region_sum_loop_merges_wrapped_box_segment():
+    segments = _split_line_by_box(
+        (
+            "r3c3",
+            "r3c4",
+            "r4c5",
+            "r5c6",
+            "r4c7",
+            "r3c7",
+            "r3c8",
+            "r4c8",
+            "r5c8",
+            "r6c8",
+            "r7c8",
+            "r7c7",
+            "r7c6",
+            "r6c5",
+            "r5c4",
+            "r6c3",
+            "r7c3",
+            "r7c2",
+            "r6c2",
+            "r5c2",
+            "r4c2",
+            "r3c2",
+            "r3c3",
+        ),
+        num=3,
+    )
+    assert segments[0] == ["pos_0_2_0_1", "pos_0_2_0_2"]

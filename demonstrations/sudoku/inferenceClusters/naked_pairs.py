@@ -48,13 +48,15 @@ def _iterate_units(num):
 def _candidate_digits_for_cell(propagator, cell, num):
     r1, r2, c1, c2 = cell
     pos_key = f"pos_{r1}_{r2}_{c1}_{c2}"
+    if hasattr(propagator, "domains"):
+        return set(propagator.domains[pos_key])
     return {
         n for n in range(num ** 2)
         if propagator.meanParamDict[pos_key][{pos_key: n}] > 0.5
     }
 
 
-def detect_naked_pairs(propagator, num=3):
+def detect_naked_pairs(propagator, num=3, verbose=True):
     """
     Naked-pair detector (cell-centric):
     if two cells in a unit have exactly the same two candidates, those digits are excluded from other cells.
@@ -80,6 +82,6 @@ def detect_naked_pairs(propagator, num=3):
                     out, seen, unit_key_fn(d1), unit_key_fn(d2), cell_a, cell_b, d1, d2
                 )
 
-    if out:
+    if out and verbose:
         print(f"Naked pairs detected: {len(out)}")
     return out

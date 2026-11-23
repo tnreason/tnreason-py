@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, Iterable, Mapping, Tuple
 
 from experiments.alphareason.closure_engine import AlphaReasonClosureEngine
-from experiments.alphareason.constraint_propagation import add_domain_cores
+from experiments.constraint_networks.generalized_arc_consistency import add_domain_cores
 
 
 Cell = Tuple[int, int]
@@ -96,6 +96,11 @@ class SudokuVariantPropagationResult:
     domains: Domains
     contradiction: bool
     iterations: int
+    reason: str | None = None
+
+
+def _domain_text(domains: Mapping[str, Iterable[int]], feature_key: str) -> str:
+    return f"{feature_key}={tuple(value + 1 for value in sorted(domains[feature_key]))}"
 
 
 class SudokuVariantForwardChainer:
@@ -150,24 +155,28 @@ class SudokuVariantForwardChainer:
             changed = False
             iterations += 1
 
-            unit_changed, contradiction = self.propagate_units(domains)
+            unit_changed, contradiction, reason = self.propagate_units(domains)
             changed = changed or unit_changed
             if contradiction:
-                break
+                return SudokuVariantPropagationResult(domains, True, iterations, reason)
 
-            edge_changed, contradiction = self.propagate_binary_constraints(domains)
+            edge_changed, contradiction, reason = self.propagate_binary_constraints(domains)
             changed = changed or edge_changed
             if contradiction:
-                break
+                return SudokuVariantPropagationResult(domains, True, iterations, reason)
 
-            table_changed, contradiction = self.propagate_table_constraints(domains)
+            table_changed, contradiction, reason = self.propagate_table_constraints(domains)
             changed = changed or table_changed
+            if contradiction:
+                return SudokuVariantPropagationResult(domains, True, iterations, reason)
 
-        if any(not domain for domain in domains.values()):
-            contradiction = True
-        return SudokuVariantPropagationResult(domains, contradiction, iterations)
+        empty_domains = [feature_key for feature_key, domain in domains.items() if not domain]
+        if empty_domains:
+            reason = "empty domains after propagation: " + ", ".join(empty_domains[:5])
+            return SudokuVariantPropagationResult(domains, True, iterations, reason)
+        return SudokuVariantPropagationResult(domains, False, iterations)
 
-    def propagate_units(self, domains: Domains) -> Tuple[bool, bool]:
+    def propagate_units(self, domains: Domains) -> Tuple[bool, bool, str | None]:
         changed = False
         for unit in self.units:
             assigned = {}
@@ -175,7 +184,11 @@ class SudokuVariantForwardChainer:
                 if len(domains[feature_key]) == 1:
                     digit = next(iter(domains[feature_key]))
                     if digit in assigned:
-                        return changed, True
+                        reason = (
+                            "unit conflict: "
+                            f"{feature_key} and {assigned[digit]} are both {digit + 1}"
+                        )
+                        return changed, True, reason
                     assigned[digit] = feature_key
 
             for digit, assigned_key in assigned.items():
@@ -186,18 +199,26 @@ class SudokuVariantForwardChainer:
                         domains[feature_key].remove(digit)
                         changed = True
                         if not domains[feature_key]:
-                            return changed, True
+                            reason = (
+                                "unit propagation emptied domain: "
+                                f"removed {digit + 1} from {feature_key} because of {assigned_key}"
+                            )
+                            return changed, True, reason
 
             for digit in range(self.side):
                 places = [feature_key for feature_key in unit if digit in domains[feature_key]]
                 if not places:
-                    return changed, True
+                    reason = (
+                        "unit conflict: "
+                        f"digit {digit + 1} has no possible position in unit {unit}"
+                    )
+                    return changed, True, reason
                 if len(places) == 1 and len(domains[places[0]]) > 1:
                     domains[places[0]] = {digit}
                     changed = True
-        return changed, False
+        return changed, False, None
 
-    def propagate_binary_constraints(self, domains: Domains) -> Tuple[bool, bool]:
+    def propagate_binary_constraints(self, domains: Domains) -> Tuple[bool, bool, str | None]:
         changed = False
         for left, right, allowed in self.binary_constraints:
             left_support = {
@@ -211,16 +232,20 @@ class SudokuVariantForwardChainer:
                 if any(allowed(left_digit, right_digit) for left_digit in domains[left])
             }
             if not left_support or not right_support:
-                return changed, True
+                reason = (
+                    "binary constraint has no support: "
+                    f"{_domain_text(domains, left)} with {_domain_text(domains, right)}"
+                )
+                return changed, True, reason
             if left_support != domains[left]:
                 domains[left] = left_support
                 changed = True
             if right_support != domains[right]:
                 domains[right] = right_support
                 changed = True
-        return changed, False
+        return changed, False, None
 
-    def propagate_table_constraints(self, domains: Domains) -> Tuple[bool, bool]:
+    def propagate_table_constraints(self, domains: Domains) -> Tuple[bool, bool, str | None]:
         changed = False
         for colors, allowed_tuples in self.table_constraints:
             supported_values = {color: set() for color in colors}
@@ -238,16 +263,26 @@ class SudokuVariantForwardChainer:
                     supported_values[color].add(value)
 
             if not found_supported_tuple:
-                return changed, True
+                reason = (
+                    "table constraint has no supported tuple: "
+                    f"colors={colors}, "
+                    f"domains={tuple(_domain_text(domains, color) for color in colors)}, "
+                    f"allowed_tuples={len(allowed_tuples)}"
+                )
+                return changed, True, reason
 
             for color in colors:
                 restricted_domain = domains[color] & supported_values[color]
                 if not restricted_domain:
-                    return changed, True
+                    reason = (
+                        "table constraint emptied domain: "
+                        f"{color}, colors={colors}, allowed_tuples={len(allowed_tuples)}"
+                    )
+                    return changed, True, reason
                 if restricted_domain != domains[color]:
                     domains[color] = restricted_domain
                     changed = True
-        return changed, False
+        return changed, False, None
 
 
 def _build_state_from_domains(
@@ -314,6 +349,7 @@ class SudokuVariantHybridForwardChainingClosureEngine(AlphaReasonClosureEngine):
         self.num = num
         self.binary_domain_prefix = binary_domain_prefix
         self._binary_chainer_cache = {}
+        self.last_contradiction_reason = None
 
     def _binary_chainer(self, core_dict):
         return ConstraintNetworkSudokuVariantForwardChainer(core_dict, num=self.num)
@@ -335,6 +371,7 @@ class SudokuVariantHybridForwardChainingClosureEngine(AlphaReasonClosureEngine):
             core_dict = None
             chainer = self._cached_binary_chainer(task)
         result = chainer.propagate(evidence)
+        self.last_contradiction_reason = result.reason
         if result.contradiction:
             return _build_state_from_domains(
                 closure_engine=self,

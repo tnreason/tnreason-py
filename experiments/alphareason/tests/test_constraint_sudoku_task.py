@@ -1,5 +1,6 @@
 from demonstrations.sudoku.sudoku_bench.read_puzzle import initial_board_into_evidence
 from demonstrations.sudoku.examples import standard_sudoku
+from tnreason import engine
 
 from ..run_experiment import (
     build_demo_constraint_sudoku_task,
@@ -125,3 +126,36 @@ def test_constraint_closure_preserves_assigned_target_missing_from_network():
     assert state.target_assignments == {"x": 1}
     assert state.assigned_count == 1
     assert state.solved
+
+
+def test_constraint_closure_keeps_local_tensor_priors_after_gac_masking():
+    task = AlphaReasonTask(
+        name="weighted_unary",
+        network_factory=lambda evidence: {
+            "x_weight": engine.create_from_slice_iterator(
+                colors=["x"],
+                shape=[3],
+                sliceIterator=[
+                    (3, {"x": 0}),
+                    (1, {"x": 1}),
+                ],
+            ),
+        },
+        closure_function=constraint_network_closure,
+        initial_evidence={},
+        target_feature_keys=("x",),
+        feature_domain_sizes={"x": 3},
+        assignment_evidence_map={
+            "x": {
+                0: {"x": 0},
+                1: {"x": 1},
+                2: {"x": 2},
+            },
+        },
+        consistency_checker=lambda constraint_network, assignment: True,
+    )
+
+    state = AlphaReasonClosureEngine().close(task, task.initial_evidence)
+
+    assert state.feature_supports["x"] == (0, 1)
+    assert state.feature_priors["x"] == (0.75, 0.25, 0.0)

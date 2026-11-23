@@ -1,0 +1,28 @@
+# Export the three CLUSTER_* paths, then submit from a fresh run directory.
+# One shared 30-epoch teacher phase, then 60-epoch continuations with three seeds.
+# Copy this DAG and its .sub into a fresh run directory before submission.
+JOB WARMUP teacher_branches_gpu.sub
+VARS WARMUP run_name="warmup" epochs="30" run_seed="0" initial_checkpoint="experiments/cluster_selection/reinforcement/results/useful_clusters_20261021/policy_goal_actor_seed0.best.pt" phase_args="--objective pruning --target-first --no-curriculum --warmup 30 --no-total-work-limit"
+
+JOB TEACHER0 teacher_branches_gpu.sub
+VARS TEACHER0 run_name="teacher_seed0" run_seed="0" phase_args="--objective pruning --target-first --no-curriculum --warmup 60 --no-total-work-limit"
+JOB TEACHER1 teacher_branches_gpu.sub
+VARS TEACHER1 run_name="teacher_seed1" run_seed="1" phase_args="--objective pruning --target-first --no-curriculum --warmup 60 --no-total-work-limit"
+JOB TEACHER2 teacher_branches_gpu.sub
+VARS TEACHER2 run_name="teacher_seed2" run_seed="2" phase_args="--objective pruning --target-first --no-curriculum --warmup 60 --no-total-work-limit"
+
+JOB REINFORCE0 teacher_branches_gpu.sub
+VARS REINFORCE0 run_name="reinforce_seed0" run_seed="0" phase_args="--objective pruning --target-first --no-curriculum --warmup 0 --no-total-work-limit"
+JOB REINFORCE1 teacher_branches_gpu.sub
+VARS REINFORCE1 run_name="reinforce_seed1" run_seed="1" phase_args="--objective pruning --target-first --no-curriculum --warmup 0 --no-total-work-limit"
+JOB REINFORCE2 teacher_branches_gpu.sub
+VARS REINFORCE2 run_name="reinforce_seed2" run_seed="2" phase_args="--objective pruning --target-first --no-curriculum --warmup 0 --no-total-work-limit"
+
+JOB Q0 teacher_branches_gpu.sub
+VARS Q0 run_name="q_seed0" run_seed="0" learner="qlearn" phase_args="--batch-size 32 --updates-per-state 16 --replay-capacity 16384 --n-step 8 --target-update 100"
+JOB Q1 teacher_branches_gpu.sub
+VARS Q1 run_name="q_seed1" run_seed="1" learner="qlearn" phase_args="--batch-size 32 --updates-per-state 16 --replay-capacity 16384 --n-step 8 --target-update 100"
+JOB Q2 teacher_branches_gpu.sub
+VARS Q2 run_name="q_seed2" run_seed="2" learner="qlearn" phase_args="--batch-size 32 --updates-per-state 16 --replay-capacity 16384 --n-step 8 --target-update 100"
+
+PARENT WARMUP CHILD TEACHER0 TEACHER1 TEACHER2 REINFORCE0 REINFORCE1 REINFORCE2 Q0 Q1 Q2

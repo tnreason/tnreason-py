@@ -6,6 +6,9 @@ def get_core(coreType=None):
     if coreType == "NumpyCore":
         from tnreason.engine.workload_to_numpy import NumpyCore
         return NumpyCore
+    elif coreType == "ScipySparseCore":
+        from tnreason.engine.workload_to_scipy_sparse import ScipySparseCore
+        return ScipySparseCore
     elif coreType == "PolynomialCore":
         from tnreason.engine.polynomial_handling import PolynomialCore
         return PolynomialCore

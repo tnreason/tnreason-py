@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
-from .constraint_propagation import add_cluster_summary_core, enforce_generalized_arc_consistency
+from experiments.constraint_networks.generalized_arc_consistency import (
+    add_cluster_summary_core,
+    enforce_generalized_arc_consistency,
+)
 from .state import AlphaReasonState, ClusterCandidate
 from .actions import cluster_key_from_colors
 

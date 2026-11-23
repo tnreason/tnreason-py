@@ -1,0 +1,70 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=15mm]{geometry}
+\usepackage{xcolor,enumitem,microtype}
+\usepackage[hidelinks]{hyperref}
+\definecolor{ink}{HTML}{193A51}
+\definecolor{muted}{HTML}{53616C}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlist[enumerate]{leftmargin=*,itemsep=5pt,topsep=5pt,parsep=0pt}
+\hypersetup{pdftitle={Learning useful tensor-network clusters: meeting summary},
+  pdfsubject={Completed experiments and latest saved training results, 23 October 2026}}
+\begin{document}
+{\color{ink}\LARGE\bfseries Learning useful tensor-network clusters}\par
+{\color{muted}Meeting summary \hfill 23 October 2026}
+\vspace{3pt}
+
+\textbf{Goal and setup.} Learn which original tensor cores to combine and which variables to leave open, so domain-conditioned contraction and GAC expose deductions and reduce DFS. Summaries are temporary; pruning is retained reversibly. The structural heuristic is generic, with no Sudoku-specific rules.
+
+\textbf{Current finding:} useful learned clusters exist, but we have \textbf{not demonstrated a held-out 9\,$\times$\,9 Sudoku learning advantage}. Some improvements over initialization occur on smaller problems. DFS counts below are totals within each stated dataset; lower is better.
+
+\begin{enumerate}
+\item \textbf{Supervised candidate scoring.} Predicted pruning, contraction time and contradiction for a fixed candidate list. Training loss fell \textbf{0.607 $\rightarrow$ 0.043} over 200 epochs. On the default 100 Sudoku puzzles: \textbf{237 nodes}, versus plain MAC 245 and heuristic 177. This benchmark overlaps training; it does not establish generalization or learn construction.
+
+\item \textbf{Early constructive REINFORCE.} Pruning reward with time cost and annealed structural guidance failed to learn useful construction. Fixed guidance with a treewidth cost produced useful samples, but used \textbf{232 nodes} on the same overlapping benchmark. Repeated application still used 232. Weaker guidance alone also failed to improve its untrained control.
+
+\item \textbf{Teacher imitation + mixed-reward RL.} Added partial-cluster context, target-first construction, measured teachers and pruning/search rewards. Development best: \textbf{295 nodes}, versus plain 323 and heuristic 194. On \textbf{10 fresh held-out Sudoku puzzles}: trained \textbf{455}, random initialization 449, plain 475, heuristic 245. No root solved without DFS. The development gain did not establish a held-out learning gain; imitation and RL effects were not isolated.
+
+\item \textbf{Easier 4\,$\times$\,4 curriculum.} Ordinary GAC already solved all 588 representative minimal unique clue puzzles. We therefore used partial-domain states with remaining pruning opportunities. On \textbf{32 reserved states}: plain 123 nodes, ordinary training 119, repair imitation 122, value-aware encoder + repair 119, heuristic 115. Value-aware training closed \textbf{24.4\%} of the removable primary-domain gap, versus heuristic 49.0\%. These states have multiple solutions.
+
+\item \textbf{Better teachers and prefix training.} Generic failed-value probes supplied verified contraction witnesses, including 80 useful Sudoku training examples; 41 used 33--64 cores at less than 2,000 estimated work. Teaching useful completions from the learner's own prefixes improved a tiny generic probe from \textbf{5/8 to 8/8} greedy successes. Broader topology transfer remained weak; nonrelational coupled-graph training did not beat its initialization.
+
+\item \textbf{Relational representation.} Added value/tuple context to preserve correlations lost by pooling. On \textbf{48 fresh generic graphs}: initialization 95 nodes, teacher imitation 93, completion imitation \textbf{91}, uniform construction 87, heuristic 48. This shows a small learned gain, below simple controls. Zero-shot transfer to already-used Sudoku puzzles gave no root pruning.
+
+\item \textbf{Equal attempts and wider inference.} With frozen weights and no cumulative work cap, raising both methods' allowances from 32 to 128 to 512 reduced learned generic-graph nodes \textbf{71 $\rightarrow$ 50 $\rightarrow$ 48}, matching heuristic 48. Sudoku4 stayed \textbf{119}; heuristic improved 115 $\rightarrow$ 114. These reused examined datasets, with no retraining: more attempts helped the graph family, not that Sudoku policy.
+
+\item \textbf{DFS-savings-only REINFORCE.} Rewarded actual completed-search node savings, removing pruning/time bonuses. Eight epochs did not improve the selected checkpoint: \textbf{initialization remained best}. As forced teacher prefixes were phased out, node-saving trials fell from 195 to zero in epoch 7, then four in epoch 8. Validation timed out, so aggregate DFS totals were unavailable.
+
+\item \textbf{Maze/Dai-style Q-learning with replay.} Sequential construction, terminal pruning reward, undiscounted backups and successful/failed replay; no forced prefixes. Tiny generic smoke: greedy pruning learned and nodes fell \textbf{2 $\rightarrow$ 1} with one attempt, tying the heuristic. Latest saved Sudoku run: \textbf{6/8 planned epochs}; Q loss 0.0171 $\rightarrow$ 0.0118, but greedy usefulness only 0--1/17. Full validation completed 20--21/25 solves; no comparable DFS total, and initialization remained selected.
+\end{enumerate}
+
+\vfill
+{\footnotesize\raggedright\color{muted}\textbf{Evidence:} saved supervised and RL logs/checkpoints; benchmark \texttt{results/raw/mac\_sudoku*.out}; RL reports in \texttt{prior\_probe\_20261021}, \texttt{useful\_clusters\_20261021}, \texttt{efficiency\_curriculum\_20261021} and \texttt{node\_budget\_sweep\_20261022}. Latest-run figures are a saved-checkpoint snapshot, not a completed new held-out test.\par}
+
+% Evidence paths, relative to tnreason-py unless otherwise stated:
+% experiments/cluster_selection/supervised/{model.py,train.out}
+% ../tnreason-benchmarks/results/raw/{mac_sudoku.out,mac_sudoku_trained_pred.out,
+%   mac_sudoku_heuristic_clusters.out,mac_sudoku_rl_clusters.out}
+% experiments/cluster_selection/reinforcement/{policy.pt,policy_heuristic.pt}
+% experiments/cluster_selection/reinforcement/results/prior_probe_20261021/
+%   {summary.json,data_and_saved_results_audit.json}
+% experiments/cluster_selection/reinforcement/results/useful_clusters_20261021/
+%   {REPORT.md,heldout_28_37/summary.json,search_seed0_assessment.json}
+% experiments/cluster_selection/reinforcement/results/efficiency_curriculum_20261021/
+%   {REPORT.md,9x9_causal_teacher_probe_initial10.json,
+%    network_curriculum/REPORT.md,coupled_learning/REPORT.md,
+%    relational_coupled/REPORT.md,sudoku9_transfer_development/REPORT.md}
+% experiments/cluster_selection/reinforcement/results/node_budget_sweep_20261022/
+%   {REPORT.txt,summary.json}
+% experiments/cluster_selection/reinforcement/training.out
+% experiments/cluster_selection/reinforcement/results/dfs_nodes_20261022_seed0/
+%   {policy.best.pt,policy.pt}
+% experiments/cluster_selection/reinforcement/qtraining.out
+% experiments/cluster_selection/reinforcement/results/q_learning_20261022_seed0/
+%   {policy.best.pt,policy.pt}
+% experiments/cluster_selection/reinforcement/results/q_learning_smoke_20261022/summary.json
+\end{document}
